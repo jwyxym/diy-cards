@@ -1,0 +1,71 @@
+--
+local cm,m,o=GetID()
+function cm.initial_effect(c)
+	--link summon
+	c:EnableReviveLimit()
+	aux.AddLinkProcedure(c,aux.FilterBoolFunction(Card.IsLinkRace,RACE_MACHINE),2,2)
+
+	--spsummonm
+	local e1=Effect.CreateEffect(c)
+	e1:SetCategory(CATEGORY_LEAVE_GRAVE+CATEGORY_SPECIAL_SUMMON)
+	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e1:SetProperty(EFFECT_FLAG_DELAY)
+	e1:SetCountLimit(1,m)
+	e1:SetCondition(cm.con)
+	e1:SetTarget(cm.tg)
+	e1:SetOperation(cm.op)
+	c:RegisterEffect(e1)
+		--tohand
+	local e2=Effect.CreateEffect(c)
+	e2:SetCategory(CATEGORY_TODECK)
+	e2:SetType(EFFECT_TYPE_QUICK_O)
+	e2:SetCode(EVENT_FREE_CHAIN)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetCountLimit(1,m)
+	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_MAIN_END)
+	e2:SetCondition(cm.con1)
+	e2:SetTarget(cm.tg1)
+	e2:SetOperation(cm.op1)
+	c:RegisterEffect(e2)
+end
+function cm.con(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():IsSummonType(SUMMON_TYPE_LINK)
+end
+function cm.filter(c,e,tp,zone)
+	return c:IsSetCard(0x310) and c:IsType(TYPE_MONSTER)
+		and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP,tp,zone)
+end
+function cm.tg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local zone=bit.band(e:GetHandler():GetLinkedZone(tp),0x1f)
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and Duel.IsExistingMatchingCard(cm.filter,tp,LOCATION_GRAVE,0,1,nil,e,tp,zone) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_GRAVE)
+end
+function cm.op(e,tp,eg,ep,ev,re,r,rp)
+	local zone=bit.band(e:GetHandler():GetLinkedZone(tp),0x1f)
+	if zone~=0 then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+		local g=Duel.SelectMatchingCard(tp,cm.filter,tp,LOCATION_GRAVE,0,1,1,nil,e,tp,zone)
+		if g then
+			Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP,zone)
+		end
+	end
+end
+function cm.con1(e,tp,eg,ep,ev,re,r,rp)
+	local ph=Duel.GetCurrentPhase()
+	return (ph==PHASE_MAIN1 or ph==PHASE_MAIN2)
+end
+function cm.tg1(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) end
+	if chk==0 then return Duel.IsExistingTarget(nil,tp,0,LOCATION_MZONE,1,1,nil)
+	end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
+	local g=Duel.SelectTarget(tp,nil,tp,0,LOCATION_MZONE,1,1,nil)
+	Duel.SetOperationInfo(0,CATEGORY_TODECK,g,1,0,0)
+end
+function cm.op1(e,tp,eg,ep,ev,re,r,rp)
+	local tc=Duel.GetFirstTarget()
+	if tc:IsRelateToEffect(e) then Duel.SendtoDeck(tc,nil,SEQ_DECKSHUFFLE,REASON_EFFECT) end
+end

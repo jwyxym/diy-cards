@@ -1,0 +1,122 @@
+--混沌之玛莉龙忒 莉维坦
+local this,id,ofs=GetID()
+function this.initial_effect(c)
+    aux.EnablePendulumAttribute(c,false)
+    aux.AddSynchroProcedure(c,nil,aux.NonTuner(this.mfilter),1)
+    c:EnableReviveLimit()
+	local e1=Effect.CreateEffect(c)
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_QUICK_O)
+	e1:SetCode(EVENT_ATTACK_ANNOUNCE)
+    e1:SetRange(LOCATION_PZONE)
+    e1:SetCountLimit(1,id)
+	e1:SetCondition(this.condition)
+	e1:SetTarget(this.target)
+	e1:SetOperation(this.activate)
+	c:RegisterEffect(e1)
+    local e1=Effect.CreateEffect(c)
+	e1:SetCategory(CATEGORY_DISABLE)
+	e1:SetType(EFFECT_TYPE_QUICK_O)
+	e1:SetCode(EVENT_FREE_CHAIN)
+	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e1:SetRange(LOCATION_MZONE)
+	e1:SetHintTiming(0,TIMINGS_CHECK_MONSTER)
+	e1:SetCountLimit(1,id+1)
+	e1:SetTarget(this.distg)
+	e1:SetOperation(this.disop)
+	c:RegisterEffect(e1)
+    local e5=Effect.CreateEffect(c)
+	e5:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e5:SetCode(EVENT_DESTROYED)
+	e5:SetProperty(EFFECT_FLAG_DELAY)
+    e5:SetCountLimit(1,id+2)
+	e5:SetCondition(this.pencon)
+	e5:SetTarget(this.pentg)
+	e5:SetOperation(this.penop)
+	c:RegisterEffect(e5)
+end
+function this.mfilter(c)
+    return c:IsRace(RACE_DRAGON) and c:IsType(TYPE_PENDULUM)
+end
+function this.condition(e,tp,eg,ep,ev,re,r,rp)
+	return tp~=Duel.GetTurnPlayer()
+end
+function this.target(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.GetMZoneCount(tp)>0 and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,tp,LOCATION_PZONE)
+    Duel.SetTargetCard(Duel.GetAttacker())
+end
+function this.activate(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+    local tc=Duel.GetAttacker()
+    Debug.Message(Duel.GetFieldGroupCount(tp,0,LOCATION_MZONE))
+    Debug.Message(Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0))
+    if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,SUMMON_TYPE_SPECIAL,tp,tp,false,false,POS_FACEUP)>0
+    and Duel.GetFieldGroupCount(tp,0,LOCATION_MZONE)>Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)
+    and tc:IsRelateToEffect(e) and tc:IsFaceup() and tc:GetAttack()>0 then
+        local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetCode(EFFECT_SET_ATTACK_FINAL)
+		e1:SetValue(0)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+		tc:RegisterEffect(e1)
+		local e2=Effect.CreateEffect(c)
+		e2:SetType(EFFECT_TYPE_SINGLE)
+		e2:SetCode(EFFECT_DISABLE)
+		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
+		tc:RegisterEffect(e2)
+		local e3=Effect.CreateEffect(c)
+		e3:SetType(EFFECT_TYPE_SINGLE)
+		e3:SetCode(EFFECT_DISABLE_EFFECT)
+		e3:SetReset(RESET_EVENT+RESETS_STANDARD)
+		tc:RegisterEffect(e3)
+    end
+end
+function this.distg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsControler(1-tp) and chkc:IsOnField() and aux.NegateAnyFilter(chkc) end
+	if chk==0 then return Duel.IsExistingTarget(aux.NegateAnyFilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DISABLE)
+	local g=Duel.SelectTarget(tp,aux.NegateAnyFilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
+	Duel.SetOperationInfo(0,CATEGORY_DISABLE,g,1,0,0)
+end
+function this.disop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tc=Duel.GetFirstTarget()
+	if tc:IsFaceup() and tc:IsRelateToEffect(e) and tc:IsCanBeDisabledByEffect(e,false) then
+		Duel.NegateRelatedChain(tc,RESET_TURN_SET)
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		e1:SetCode(EFFECT_DISABLE)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+		tc:RegisterEffect(e1)
+		local e2=Effect.CreateEffect(c)
+		e2:SetType(EFFECT_TYPE_SINGLE)
+		e2:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		e2:SetCode(EFFECT_DISABLE_EFFECT)
+		e2:SetValue(RESET_TURN_SET)
+		e2:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+		tc:RegisterEffect(e2)
+		if tc:IsType(TYPE_TRAPMONSTER) then
+			local e3=Effect.CreateEffect(c)
+			e3:SetType(EFFECT_TYPE_SINGLE)
+			e3:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+			e3:SetCode(EFFECT_DISABLE_TRAPMONSTER)
+			e3:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+			tc:RegisterEffect(e3)
+		end
+	end
+end
+function this.pencon(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	return c:IsPreviousLocation(LOCATION_MZONE) and c:IsFaceup()
+end
+function this.pentg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1) end
+end
+function this.penop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsRelateToEffect(e) then
+		Duel.MoveToField(c,tp,tp,LOCATION_PZONE,POS_FACEUP,true)
+	end
+end

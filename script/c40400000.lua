@@ -1,0 +1,26 @@
+--“又是一天。”
+local tv1,tv2,tv3=GetID()
+function tv1.initial_effect(p1)
+	local v1=Effect.CreateEffect(p1)
+	v1:SetType(2)
+	v1:SetCode(100)
+	v1:SetRange(256)
+	v1:SetTargetRange(4,0)
+	v1:SetTarget(tv1.f1)
+	v1:SetValue(500)
+	p1:RegisterEffect(v1)
+	local v2=Effect.CreateEffect(p1)
+	v2:SetType(2)
+	v2:SetCode(100)
+	v2:SetRange(256)
+	v2:SetTargetRange(4,0)
+	v2:SetTarget(tv1.f2)
+	v2:SetValue(500)
+	p1:RegisterEffect(v2)
+end
+function tv1.f1(p1,p2)
+    return p2:IsAttribute(16)
+end
+function tv1.f2(p1,p2)
+    return p2:IsType(8388608)
+end

@@ -195,7 +195,7 @@ function s.eqfilter2(c)
 	return c:IsFaceupEx() and c:IsType(TYPE_MONSTER) and not c:IsForbidden()
 end
 function s.thfilter(c)
-	return c:IsSetCard(0x38c0) and c:IsAbleToHand()
+	return c:IsSetCard(0x57c0) and c:IsAbleToHand()
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local b1=Duel.GetLocationCount(tp,LOCATION_SZONE)>0

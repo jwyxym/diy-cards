@@ -86,9 +86,10 @@ function cm.distg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end
 	Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
 	if re:GetHandler():IsDestructable() and re:GetHandler():IsRelateToEffect(re) then
+		Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
 		Duel.SetOperationInfo(0,CATEGORY_DESTROY,eg,1,0,0)
 	end
-	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) then
+	if re:GetHandler():IsRelateToEffect(re) then
 		Duel.Destroy(eg,REASON_EFFECT)
 	end
 end
@@ -96,13 +97,14 @@ function cm.disop(e,tp,eg,ep,ev,re,r,rp)
 local c=e:GetHandler()
 local lg=c:GetLinkedGroup()
 local la=lg:Select(tp,1,1,nil):GetFirst()
- Duel.Destroy(la,REASON_EFFECT)
+	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) then
+	Duel.Destroy(eg,REASON_EFFECT)
+ 	Duel.Destroy(la,REASON_EFFECT)
+	end
 end
 function cm.lcheck(g,lc)
 	return g:IsExists(cm.matfilter,1,nil)
 end
 function cm.matfilter(c)
 	return c:IsRace(RACE_PSYCHO) and c:IsAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_LINK)
-
-
 end

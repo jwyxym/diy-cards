@@ -16,19 +16,17 @@ function cm.initial_effect(c)
 	e1:SetTarget(cm.tg)
 	e1:SetOperation(cm.op)
 	c:RegisterEffect(e1)
-		--tohand
-	local e2=Effect.CreateEffect(c)
-	e2:SetCategory(CATEGORY_TODECK)
-	e2:SetType(EFFECT_TYPE_QUICK_O)
-	e2:SetCode(EVENT_FREE_CHAIN)
-	e2:SetRange(LOCATION_MZONE)
-	e2:SetCountLimit(1,m)
-	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_MAIN_END)
-	e2:SetCondition(cm.con1)
-	e2:SetTarget(cm.tg1)
-	e2:SetOperation(cm.op1)
-	c:RegisterEffect(e2)
+end
+function cm.cost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	local e0=Effect.CreateEffect(e:GetHandler())
+	e0:SetType(EFFECT_TYPE_FIELD)
+	e0:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e0:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e0:SetTargetRange(1,0)
+	e0:SetTarget(cm.splimit)
+	e0:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e0,tp)
 end
 function cm.con(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_LINK)
@@ -53,19 +51,6 @@ function cm.op(e,tp,eg,ep,ev,re,r,rp)
 		end
 	end
 end
-function cm.con1(e,tp,eg,ep,ev,re,r,rp)
-	local ph=Duel.GetCurrentPhase()
-	return (ph==PHASE_MAIN1 or ph==PHASE_MAIN2)
-end
-function cm.tg1(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) end
-	if chk==0 then return Duel.IsExistingTarget(nil,tp,0,LOCATION_MZONE,1,1,nil)
-	end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
-	local g=Duel.SelectTarget(tp,nil,tp,0,LOCATION_MZONE,1,1,nil)
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,g,1,0,0)
-end
-function cm.op1(e,tp,eg,ep,ev,re,r,rp)
-	local tc=Duel.GetFirstTarget()
-	if tc:IsRelateToEffect(e) then Duel.SendtoDeck(tc,nil,SEQ_DECKSHUFFLE,REASON_EFFECT) end
+function cm.splimit(e,c)
+	return not c:IsRace(RACE_MACHINE)
 end

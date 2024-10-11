@@ -28,6 +28,7 @@ function s.initial_effect(c)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_F)
 	e3:SetCode(EVENT_PHASE+PHASE_END)
 	e3:SetRange(LOCATION_REMOVED)
+	e3:SetCountLimit(1,id)
 	e3:SetCondition(s.tdcon)
 	e3:SetTarget(s.tdtg)
 	e3:SetOperation(s.tdop)
@@ -42,14 +43,14 @@ function s.condition(e,tp,eg,ep,ev,re,r,rp)
 	return ph>=PHASE_BATTLE_START and ph<=PHASE_BATTLE
 end
 function s.thfilter(c)
-	return c:IsFaceupEx() and c:IsSetCard(0x40c0) and c:IsAbleToHand()
+	return c:IsFaceupEx() and c:IsSetCard(0x97c0) and c:IsAbleToHand()
 end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_REMOVED,0,1,nil) end
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_REMOVED)
 end
 function s.setfilter(c)
-	return c:IsSetCard(0x40c0) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsSSetable()
+	return c:IsSetCard(0x97c0) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsSSetable()
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
@@ -84,7 +85,7 @@ function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_REMOVED)
 end
 function s.thfilter2(c)
-	return c:IsFaceupEx() and c:IsSetCard(0x40c0) and c:IsAbleToHand()
+	return c:IsFaceupEx() and c:IsSetCard(0x97c0) and c:IsAbleToHand()
 end
 function s.tdop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

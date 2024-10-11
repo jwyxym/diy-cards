@@ -80,7 +80,7 @@ function cm.spop2(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function cm.splimit2(e,c,sump,sumtype,sumpos,targetp)
-	return not c:IsSetCard(0xa60)
+	return not c:IsRace(RACE_PSYCHO)
 end
 
 

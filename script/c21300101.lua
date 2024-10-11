@@ -30,7 +30,7 @@ end
 function cm.filter(c)
 return c:IsReleasable() and c:IsSetCard(0x676) and c:IsType(TYPE_MONSTER) end
 function cm.filter2(c)
-return c:IsType(TYPE_SPELL) and c:IsSetCard(0x676) and c:IsAbleToHand() end
+return c:IsSetCard(0x676) and c:IsAbleToHand() end
 function cm.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(cm.filter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,nil) end
 	local g=Duel.SelectMatchingCard(tp,cm.filter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,nil)

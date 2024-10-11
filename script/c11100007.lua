@@ -85,5 +85,5 @@ function cm.op2(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e2,tp)
 end
 function cm.splimit2(e,c,sump,sumtype,sumpos,targetp)
-	return not c:IsSetCard(0xa60)
+	return not c:IsRace(RACE_PSYCHO)
 end

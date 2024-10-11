@@ -28,6 +28,7 @@ function s.initial_effect(c)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_F)
 	e3:SetCode(EVENT_PHASE+PHASE_END)
 	e3:SetRange(LOCATION_REMOVED)
+	e3:SetCountLimit(1,id)
 	e3:SetCondition(s.tdcon)
 	e3:SetTarget(s.tdtg)
 	e3:SetOperation(s.tdop)
@@ -53,11 +54,11 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
 	local g=Duel.GetMatchingGroup(aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,e:GetHandler()):Select(tp,1,1,nil)
 	if #g>0 and Duel.Destroy(g,REASON_EFFECT)~=0
-		and Duel.IsExistingMatchingCard(aux.AND(Card.IsFaceupEx,Card.IsSetCard),tp,LOCATION_REMOVED,LOCATION_REMOVED,1,nil,0x40c0)
+		and Duel.IsExistingMatchingCard(aux.AND(Card.IsFaceupEx,Card.IsSetCard),tp,LOCATION_REMOVED,LOCATION_REMOVED,1,nil,0x97c0)
 		and Duel.IsExistingMatchingCard(s.atkfilter,tp,LOCATION_MZONE,0,1,nil,e)
 		and Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
 		local g=Duel.GetMatchingGroup(s.atkfilter,tp,LOCATION_MZONE,0,nil,e)
-		local atk=Duel.GetMatchingGroupCount(aux.AND(Card.IsFaceupEx,Card.IsSetCard),tp,LOCATION_REMOVED,LOCATION_REMOVED,nil,0x40c0)
+		local atk=Duel.GetMatchingGroupCount(aux.AND(Card.IsFaceupEx,Card.IsSetCard),tp,LOCATION_REMOVED,LOCATION_REMOVED,nil,0x97c0)
 		if g:GetCount()>0 then
 			for tc in aux.Next(g) do
 				local e1=Effect.CreateEffect(e:GetHandler())
@@ -87,7 +88,7 @@ function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_REMOVED)
 end
 function s.thfilter2(c)
-	return c:IsFaceupEx() and c:IsSetCard(0x40c0) and c:IsAbleToHand()
+	return c:IsFaceupEx() and c:IsSetCard(0x97c0) and c:IsAbleToHand()
 end
 function s.tdop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

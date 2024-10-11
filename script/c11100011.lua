@@ -61,7 +61,7 @@ function cm.spop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e2,tp)
 end
 function cm.splimit2(e,c,sump,sumtype,sumpos,targetp)
-	return not c:IsSetCard(0xa60)
+	return not c:IsRace(RACE_PSYCHO)
 end
 function cm.filter4(c)
 return c:IsLocation(LOCATION_GRAVE)
@@ -71,8 +71,6 @@ function cm.con1(e,tp,eg,ep,ev,re,r,rp)
 end
 function cm.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Card.IsReleasable(e:GetHandler(),REASON_COST) end
-   
-	
 	Duel.Release(e:GetHandler(),REASON_COST)
 end
 function cm.tg1(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -90,7 +88,7 @@ end
 function cm.filter1(c)
 return c:IsType(TYPE_MONSTER) and c:IsSetCard(0xa60) and not c:IsType(TYPE_LINK) end
 function cm.filter2(c,e,tp)
-return c:IsSetCard(0xa60) and c:IsType(TYPE_MONSTER) and c:IsRace(RACE_PSYCHO) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) 
+return c:IsType(TYPE_MONSTER) and c:IsLevelBelow(4) and c:IsRace(RACE_PSYCHO) and c:IsAttribute(ATTRIBUTE_DARK) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) 
 end
 function cm.mfilter(c)
 	return c:IsLinkRace(RACE_PSYCHO)

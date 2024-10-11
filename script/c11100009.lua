@@ -59,7 +59,7 @@ local e2=Effect.CreateEffect(e:GetHandler())
 	Duel.RegisterEffect(e2,tp)
 end
 function cm.splimit2(e,c,sump,sumtype,sumpos,targetp)
-	return c:IsSummonLocation(LOCATION_EXTRA) and not (c:IsSetCard(0xa60) and c:IsType(TYPE_LINK))
+	return not c:IsRace(RACE_PSYCHO)
 end
 function cm.regop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Destroy(e:GetHandler(),REASON_EFFECT+REASON_REPLACE)

@@ -100,7 +100,7 @@ function cm.spop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function cm.splimit2(e,c,sump,sumtype,sumpos,targetp)
-	return c:IsSummonLocation(LOCATION_EXTRA) and not (c:IsSetCard(0xa60) and c:IsType(TYPE_LINK))
+	return not c:IsRace(RACE_PSYCHO)
 end
 
 

@@ -25,6 +25,18 @@ end
 function c72600204.filter(c,e,tp)
 	return c:IsCode(72600200) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
+function c72600204.tkcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.GetCustomActivityCount(72600204,tp,ACTIVITY_SPSUMMON)==0 end
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(function(e,c) 
+	return not c:IsAttribute(ATTRIBUTE_DARK) end)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+end
 function c72600204.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 		and Duel.IsExistingMatchingCard(c72600204.filter,tp,LOCATION_DECK,0,1,nil,e,tp) end

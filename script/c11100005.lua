@@ -64,7 +64,7 @@ function cm.thop(e,tp,eg,ep,ev,re,r,rp)
 	end   
 end   
 function cm.splimit2(e,c,sump,sumtype,sumpos,targetp)
-	return not c:IsSetCard(0xa60)
+	return not c:IsRace(RACE_PSYCHO)
 end
 function cm.cfilter(c)
 	return c:IsSetCard(0xa60) 
@@ -90,7 +90,4 @@ function cm.spop(e,tp,eg,ep,ev,re,r,rp)
 	e1:SetReset(RESET_PHASE+PHASE_END)
 	Duel.RegisterEffect(e1,tp)
 	end
-end
-function cm.splimit2(e,c,sump,sumtype,sumpos,targetp)
-	return not c:IsSetCard(0xa60)
 end

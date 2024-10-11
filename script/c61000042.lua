@@ -30,19 +30,9 @@ function s.initial_effect(c)
 	e3:SetTarget(s.rectg)
 	e3:SetOperation(s.recop)
 	c:RegisterEffect(e3)
-	local e4=Effect.CreateEffect(c)
-	e4:SetDescription(aux.Stringid(id,3))
-	e4:SetCategory(CATEGORY_TODECK+CATEGORY_DRAW)
-	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_F)
-	e4:SetCode(EVENT_PHASE+PHASE_END)
-	e4:SetRange(LOCATION_REMOVED)
-	e4:SetCondition(s.tdcon)
-	e4:SetTarget(s.tdtg)
-	e4:SetOperation(s.tdop)
-	c:RegisterEffect(e4)
 end
 function s.filter(c)
-	return c:IsSetCard(0x40c0) and c:IsAbleToRemove()
+	return c:IsSetCard(0x97c0) and c:IsAbleToRemove()
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetMatchingGroup(s.filter,tp,LOCATION_DECK,0,nil)
@@ -62,7 +52,7 @@ end
 function s.rectg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end
 	Duel.SetTargetPlayer(tp)
-	Duel.SetTargetParam(ev)
+	Duel.SetTargetParam(math.ceil(ev))
 	Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,tp,ev)
 end
 function s.recop(e,tp,eg,ep,ev,re,r,rp)
@@ -78,7 +68,7 @@ function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
 end
 function s.thfilter2(c)
-	return c:IsSetCard(0x40c0) and c:IsAbleToHand()
+	return c:IsSetCard(0x97c0) and c:IsAbleToHand()
 end
 function s.tdop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

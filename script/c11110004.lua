@@ -46,7 +46,7 @@ function cm.drop(e,tp,eg,ep,ev,re,r,rp)
 	end   
 end 
 function cm.espfil(c,e,tp,mg)  
-	return c:IsType(TYPE_SYNCHRO) and c:GetLevel()==mg:GetSum(Card.GetLevel) and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_SPECIAL,tp,false,false) 
+	return c:IsRace(RACE_REPTILE) and c:IsType(TYPE_SYNCHRO) and c:GetLevel()==mg:GetSum(Card.GetLevel) and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_SPECIAL,tp,false,false) 
 end 
 function cm.matgck(g,e,tp) 
 	return Duel.IsExistingMatchingCard(cm.espfil,tp,LOCATION_EXTRA,0,1,nil,e,tp,g)

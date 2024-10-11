@@ -40,10 +40,10 @@ function s.regop(e,tp,eg,ep,ev,re,r,rp)
 	e:GetHandler():RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,0,1)
 end
 function s.condition(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(aux.AND(Card.IsFaceup,Card.IsSetCard),tp,LOCATION_REMOVED,0,1,nil,0x40c0)
+	return Duel.IsExistingMatchingCard(aux.AND(Card.IsFaceup,Card.IsSetCard),tp,LOCATION_REMOVED,0,1,nil,0x97c0)
 end
 function s.thfilter(c)
-	return not c:IsCode(id) and c:IsSetCard(0x40c0) and c:IsAbleToHand()
+	return not c:IsCode(id) and c:IsSetCard(0x97c0) and c:IsAbleToHand()
 end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil) end
@@ -73,7 +73,7 @@ function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
 end
 function s.thfilter2(c)
-	return c:IsSetCard(0x40c0) and c:IsAbleToHand()
+	return c:IsSetCard(0x97c0) and c:IsAbleToHand()
 end
 function s.tdop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

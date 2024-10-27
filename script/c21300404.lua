@@ -12,6 +12,7 @@ function this.initial_effect(c)
 	e1:SetOperation(this.atkop)
 	c:RegisterEffect(e1)
 	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,0))
 	e2:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DESTROY)
 	e2:SetType(EFFECT_TYPE_IGNITION)
 	e2:SetRange(LOCATION_HAND+LOCATION_GRAVE)
@@ -51,7 +52,7 @@ function this.atkop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function this.spfilter(c)
-	return c:IsSetCard(0x678) and c:IsFaceup() and c:GetOriginalType()&TYPE_MONSTER~=0
+	return c:IsSetCard(0x678) and c:IsFaceup()
 end
 function this.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsOnField() and chkc:IsControler(tp) and this.spfilter(chkc) end

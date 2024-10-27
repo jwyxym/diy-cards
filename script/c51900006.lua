@@ -5,6 +5,7 @@ function c51900006.initial_effect(c)
 	aux.AddFusionProcFunRep(c,function(c) return c:IsFusionAttribute(ATTRIBUTE_LIGHT+ATTRIBUTE_DARK) and c:IsRace(RACE_DRAGON+RACE_FAIRY) end,2,true)
 	--draw 
 	local e1=Effect.CreateEffect(c) 
+	e1:SetDescription(aux.Stringid(51900006,4))
 	e1:SetCategory(CATEGORY_DRAW+CATEGORY_EQUIP)
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O) 
 	e1:SetCode(EVENT_PHASE+PHASE_END) 
@@ -81,6 +82,7 @@ function c51900006.efop(e,tp,eg,ep,ev,re,r,rp)
 	--
 	--draw 
 	local e1=Effect.CreateEffect(c) 
+	e1:SetDescription(aux.Stringid(51900006,4))
 	e1:SetCategory(CATEGORY_DRAW+CATEGORY_EQUIP)
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O) 
 	e1:SetCode(EVENT_PHASE+PHASE_END) 

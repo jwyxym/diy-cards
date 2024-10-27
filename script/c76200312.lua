@@ -2,17 +2,17 @@
 local this,id,ofs=GetID()
 function this.initial_effect(c)
 	aux.EnablePendulumAttribute(c)
-    aux.AddCodeList(c,76200312)
-    local e1=Effect.CreateEffect(c)
-    e1:SetCategory(CATEGORY_ATKCHANGE)
-    e1:SetType(EFFECT_TYPE_IGNITION)
-    e1:SetRange(LOCATION_PZONE)
-    e1:SetCountLimit(1,id)
-    e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
-    e1:SetCost(this.acost)
-    e1:SetTarget(this.atg)
-    e1:SetOperation(this.aop)
-    c:RegisterEffect(e1)
+	aux.AddCodeList(c,76200312)
+	local e1=Effect.CreateEffect(c)
+	e1:SetCategory(CATEGORY_ATKCHANGE)
+	e1:SetType(EFFECT_TYPE_IGNITION)
+	e1:SetRange(LOCATION_PZONE)
+	e1:SetCountLimit(1,id)
+	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e1:SetCost(this.acost)
+	e1:SetTarget(this.atg)
+	e1:SetOperation(this.aop)
+	c:RegisterEffect(e1)
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -20,7 +20,7 @@ function this.initial_effect(c)
 	e1:SetCode(EVENT_CUSTOM+id)
 	e1:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DELAY)
 	e1:SetRange(LOCATION_HAND)
-    e1:SetCountLimit(1,id+1)
+	e1:SetCountLimit(1,id+1)
 	e1:SetCondition(this.spcon)
 	e1:SetTarget(this.sptg)
 	e1:SetOperation(this.spop)
@@ -30,7 +30,6 @@ function this.initial_effect(c)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_MZONE)
 	e1:SetCountLimit(1,id+2)
-	e1:SetCost(this.thcost)
 	e1:SetTarget(this.thtg)
 	e1:SetOperation(this.thop)
 	c:RegisterEffect(e1)
@@ -45,29 +44,29 @@ function this.initial_effect(c)
 	end
 end
 function this.afilter(c)
-    return not c:IsPublic()
+	return not c:IsPublic()
 end
 function this.acost(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return Duel.IsExistingMatchingCard(this.afilter,tp,LOCATION_HAND,0,1,nil) end
-    local g=Duel.SelectMatchingCard(tp,this.afilter,tp,LOCATION_HAND,0,1,99,nil)
-    Duel.ConfirmCards(1-tp,g)
-    e:SetLabel(#g)
+	if chk==0 then return Duel.IsExistingMatchingCard(this.afilter,tp,LOCATION_HAND,0,1,nil) end
+	local g=Duel.SelectMatchingCard(tp,this.afilter,tp,LOCATION_HAND,0,1,99,nil)
+	Duel.ConfirmCards(1-tp,g)
+	e:SetLabel(#g)
 end
 function this.atg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-    if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_MZONE) and chkc:IsFaceup() end
-    if chk==0 then return Duel.IsExistingTarget(Card.IsFaceup,tp,LOCATION_MZONE,0,1,nil) end
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
-    Duel.SelectTarget(tp,Card.IsFaceup,tp,LOCATION_MZONE,0,1,1,nil)
+	if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_MZONE) and chkc:IsFaceup() end
+	if chk==0 then return Duel.IsExistingTarget(Card.IsFaceup,tp,LOCATION_MZONE,0,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+	Duel.SelectTarget(tp,Card.IsFaceup,tp,LOCATION_MZONE,0,1,1,nil)
 end
 function this.aop(e,tp,eg,ep,ev,re,r,rp)
-    local tc=Duel.GetFirstTarget()
-    if not tc:IsRelateToEffect(e) then return end
-    local e1=Effect.CreateEffect(e:GetHandler())
-    e1:SetType(EFFECT_TYPE_SINGLE)
-    e1:SetCode(EFFECT_UPDATE_ATTACK)
-    e1:SetValue(e:GetLabel()*300)
-    e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-    tc:RegisterEffect(e1)
+	local tc=Duel.GetFirstTarget()
+	if not tc:IsRelateToEffect(e) then return end
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetCode(EFFECT_UPDATE_ATTACK)
+	e1:SetValue(e:GetLabel()*300)
+	e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+	tc:RegisterEffect(e1)
 end
 function this.regcon1(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
@@ -105,10 +104,6 @@ function this.spop(e,tp,eg,ep,ev,re,r,rp)
 	if c:IsRelateToEffect(e) then
 		Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
 	end
-end
-function this.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsDiscardable,tp,LOCATION_HAND,0,1,nil) end
-	Duel.DiscardHand(tp,Card.IsDiscardable,1,1,REASON_COST+REASON_DISCARD)
 end
 function this.thfilter(c)
 	return c:IsType(TYPE_MONSTER) and aux.IsCodeListed(c,76200312) and c:IsAbleToHand()

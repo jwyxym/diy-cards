@@ -74,15 +74,13 @@ function this.spop(e,tp,eg,ep,ev,re,r,rp)
     end
     Duel.SpecialSummonComplete()
 end
-function this.filter(c)
-return c:IsReleasable() and c:IsType(TYPE_MONSTER) end
 function this.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-    local b1=Duel.IsExistingMatchingCard(this.filter,tp,LOCATION_ONFIELD,0,1,nil)
+    local b1=Duel.CheckReleaseGroup(tp,nil,1,nil,tp)
     local b2=Duel.IsExistingMatchingCard(Card.IsAbleToGraveAsCost,tp,LOCATION_SZONE,0,1,nil) and Duel.GetMZoneCount(tp)>0
     if chk==0 then return b1 or b2 end
     local op=aux.SelectFromOptions(tp,{b1,aux.Stringid(id,0)},{b2,1103})
     if op==1 then
-        local g=Duel.SelectMatchingCard(tp,this.filter,tp,LOCATION_ONFIELD,0,1,1,nil)
+        local g=Duel.SelectReleaseGroup(tp,nil,1,1,nil,tp)
         Duel.Release(g,REASON_COST)
     elseif op==2 then
         Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)

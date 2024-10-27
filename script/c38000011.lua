@@ -45,14 +45,16 @@ function this.atkfilter(c)
     return c:IsFaceup() and c:IsSetCard(0x380) and c:IsType(TYPE_SYNCHRO)
 end
 function this.atkcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if Duel.IsPlayerAffectedByEffect(tp,38000071) and Duel.GetFlagEffect(tp,38000071)==0 then
-	if chk==0 then return Duel.CheckLPCost(1-tp,500) end
-		Duel.PayLPCost(1-tp,500)
-		Duel.RegisterFlagEffect(tp,38000071,RESET_PHASE+PHASE_END,0,1)
-	else
-		if chk==0 then return Duel.CheckLPCost(tp,500) end
-		Duel.PayLPCost(tp,500)
-	end
+	local b=e:GetHandler():IsAbleToRemoveAsCost()
+    if Duel.IsPlayerAffectedByEffect(tp,38000071) and Duel.GetFlagEffect(tp,38000071)==0 then
+        if chk==0 then return Duel.CheckLPCost(1-tp,500) and b end
+        Duel.PayLPCost(1-tp,500)
+        Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_COST)
+    else
+        if chk==0 then return Duel.CheckLPCost(tp,500) and b end
+        Duel.PayLPCost(tp,500)
+        Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_COST)
+    end
 end
 function this.atktg(e,tp,eg,ep,ev,rr,r,rp,chk)
     if chk==0 then return Duel.IsExistingMatchingCard(this.atkfilter,tp,LOCATION_MZONE,0,1,nil) end

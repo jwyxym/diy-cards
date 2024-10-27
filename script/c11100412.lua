@@ -1,0 +1,101 @@
+--仪界龙  长空龙魂
+local s,id,o=GetID()
+function s.initial_effect(c)
+	aux.AddCodeList(c,11100400,11100406,11100418,11100421)
+	--change name
+	aux.EnableChangeCode(c,11100400,LOCATION_HAND+LOCATION_MZONE+LOCATION_GRAVE+LOCATION_DECK)
+    --苏生限制
+    c:EnableReviveLimit()
+    --to hand
+    local e1=Effect.CreateEffect(c)
+    e1:SetDescription(aux.Stringid(id,0))
+    e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
+	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+    e1:SetProperty(EFFECT_FLAG_DELAY)
+    e1:SetCode(EVENT_SPSUMMON_SUCCESS)
+    e1:SetCountLimit(1,id)
+	e1:SetTarget(s.thtg)
+	e1:SetCondition(s.thcon)
+	e1:SetOperation(s.thop)
+	c:RegisterEffect(e1)
+    --spsummon
+    local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,1))
+	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e3:SetType(EFFECT_TYPE_QUICK_O)
+	e3:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetCode(EVENT_FREE_CHAIN)
+	e3:SetCountLimit(1,id+o)
+	e3:SetCondition(s.spcon)
+	e3:SetCost(s.spcost)
+	e3:SetTarget(s.sptg)
+	e3:SetOperation(s.spop)
+	c:RegisterEffect(e3)
+end
+function s.thcon(e,tp,eg,ep,ev,re,r,rp)
+	return re and (re:GetHandler():IsCode(11100418) or re:GetHandler():IsCode(11100421))
+end
+function s.thfilter(c)
+	return (c:IsCode(11100421) or c:IsCode(11100400)) and c:IsAbleToHand()
+end
+function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
+end
+function s.thop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.thfilter),tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
+	if g:GetCount()>0 then
+		Duel.SendtoHand(g,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,g)
+        local c=e:GetHandler()
+	    if c:IsFaceup() then
+		    local e1=Effect.CreateEffect(e:GetHandler())
+		    e1:SetType(EFFECT_TYPE_SINGLE)
+		    e1:SetCode(EFFECT_CHANGE_CODE)
+		    e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		    e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+		    e1:SetValue(11100400)
+		    e:GetHandler():RegisterEffect(e1)
+            local e2=Effect.CreateEffect(e:GetHandler())
+		    e2:SetType(EFFECT_TYPE_SINGLE)
+		    e2:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		    e2:SetCode(EFFECT_CHANGE_LEVEL)
+		    e2:SetValue(8)
+		    e2:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+            e:GetHandler():RegisterEffect(e2)
+        end
+	end
+end
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():IsSummonType(SUMMON_TYPE_RITUAL)
+end
+function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return e:GetHandler():IsReleasable() end
+	Duel.Release(e:GetHandler(),REASON_COST)
+end
+function s.spfilter(c,e,tp,mc)
+	return (c:IsCode(11100400) or c:IsCode(11100406)) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+end
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,nil,e,tp,e:GetHandler()) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE)
+end
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local tc=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil,e,tp):GetFirst()
+	if tc and Duel.SpecialSummonStep(tc,0,tp,tp,false,false,POS_FACEUP) then
+		if tc:IsType(TYPE_NORMAL) and Duel.SelectYesNo(tp,aux.Stringid(11100412,2)) then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+        local sg=Duel.SelectMatchingCard(tp,aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
+            if sg:GetCount()>0 then
+            Duel.HintSelection(sg)
+            Duel.Destroy(sg,REASON_EFFECT)
+            end
+		end
+		Duel.SpecialSummonComplete()
+	end
+end

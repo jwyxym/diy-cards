@@ -61,7 +61,7 @@ function cm.initial_effect(c)
 	c:RegisterEffect(e4)
 end
 function cm.ovfilter(c)
-	return c:IsFaceup() and c:IsCode(m+1)
+	return c:IsFaceup() and c:IsCode(66600018)
 end
 function cm.xyzop(e,tp,chk)
 	if chk==0 then return Duel.GetFlagEffect(tp,m)==0 end

@@ -33,10 +33,10 @@ function this.desfilter(c)
     return c:IsRace(RACE_WYRM) and c:IsFaceup()
 end
 function this.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) and this.desfilter(chkc) end
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and this.desfilter(chkc) end
 	if chk==0 then return Duel.IsExistingTarget(this.desfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-	local g=Duel.SelectTarget(tp,this.desfilter,tp,0,LOCATION_MZONE,1,1,nil)
+	local g=Duel.SelectTarget(tp,this.desfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
 	g:AddCard(e:GetHandler())
 	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,2,0,0)
 end

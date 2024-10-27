@@ -35,7 +35,7 @@ function cm.con0(e,tp,eg,ep,ev,re,r,rp,chk)
 	return Duel.IsExistingMatchingCard(function(c) return c:IsType(TYPE_MONSTER) and c:IsReleasable() and c:IsRace(RACE_SPELLCASTER) end,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,nil) or Duel.IsExistingMatchingCard(function(c) return c:IsType(TYPE_SPELL) and c:IsAbleToGraveAsCost() end,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,nil) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 end
 	
 function cm.ssop(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.SelectMatchingCard(tp,function(c,tp) return (c:IsType(TYPE_MONSTER) and c:IsReleasable() and c:IsRace(RACE_SPELLCASTER)) or (c:IsType(TYPE_SPELL) and c:IsAbleToGraveAsCost() and Duel.GetLocationCount(tp,LOCATION_MZONE)>0) end,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,nil,tp)
+	local g=Duel.SelectMatchingCard(tp,function(c) return (c:IsType(TYPE_MONSTER) and c:IsReleasable() and c:IsRace(RACE_SPELLCASTER)) or (c:IsType(TYPE_SPELL) and c:IsAbleToGraveAsCost()) end,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,nil)
 	if g:GetFirst():IsType(TYPE_MONSTER) then
 	Duel.Release(g,REASON_COST)
 	else 

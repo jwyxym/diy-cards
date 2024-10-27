@@ -54,7 +54,7 @@ end
 function cm.spsop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	
-	local g=Duel.SelectMatchingCard(tp,nil,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,nil,tp,LOCATION_MZONE,0,1,1,nil)
 	Duel.SendtoHand(g,nil,REASON_EFFECT)
 	local gc=Duel.SelectMatchingCard(tp,cm.filter2,tp,LOCATION_GRAVE,0,1,1,nil,e,tp)
 	Duel.SpecialSummon(gc,0,tp,tp,false,false,POS_FACEUP)

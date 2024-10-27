@@ -139,7 +139,7 @@ function c51900008.thfilter(c)
 	return c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsSetCard(0x46) and c:IsAbleToHand()
 end
 function c51900008.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c51900008.thfilter,tp,LOCATION_DECK,0,1,nil) and e:GetHandler() end
+	if chk==0 then return Duel.IsExistingMatchingCard(c51900008.thfilter,tp,LOCATION_GRAVE,0,1,nil) and e:GetHandler() end
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,2,tp,LOCATION_GRAVE)
 end
 function c51900008.thop(e,tp,eg,ep,ev,re,r,rp) 

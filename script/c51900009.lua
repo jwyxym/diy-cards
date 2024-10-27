@@ -19,7 +19,7 @@ function c51900009.initial_effect(c)
 	--cannot release
 	local e1=Effect.CreateEffect(c)
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_EQUIP)
-	e1:SetCode(EFFECT_CANNOT_DISEFFECT) 
+	e1:SetCode(EFFECT_CANNOT_DISABLE) 
 	e1:SetRange(LOCATION_MZONE)
 	e1:SetValue(c51900009.effectfilter)  
 	c:RegisterEffect(e1)
@@ -135,7 +135,7 @@ function c51900009.thfilter(c)
 	return c:IsCode(51900003) and c:IsAbleToHand()
 end
 function c51900009.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c51900009.thfilter,tp,LOCATION_DECK,0,1,nil) and e:GetHandler() end
+	if chk==0 then return Duel.IsExistingMatchingCard(c51900009.thfilter,tp,LOCATION_GRAVE,0,1,nil) and e:GetHandler():IsAbleToHand() end
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,2,tp,LOCATION_GRAVE)
 end
 function c51900009.thop(e,tp,eg,ep,ev,re,r,rp) 

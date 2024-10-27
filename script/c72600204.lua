@@ -7,6 +7,7 @@ function c72600204.initial_effect(c)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)  
 	e1:SetCountLimit(1,72600204) 
+	e1:SetCost(c72600204.cost) 
 	e1:SetTarget(c72600204.target)
 	e1:SetOperation(c72600204.activate)
 	c:RegisterEffect(e1) 
@@ -25,7 +26,7 @@ end
 function c72600204.filter(c,e,tp)
 	return c:IsCode(72600200) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
-function c72600204.tkcost(e,tp,eg,ep,ev,re,r,rp,chk)
+function c72600204.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetCustomActivityCount(72600204,tp,ACTIVITY_SPSUMMON)==0 end
 	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD)

@@ -1,68 +1,64 @@
---捕食日轮之角 
+--妖精骑士 高文
 local this,id,ofs=GetID()
 function this.initial_effect(c)
     aux.AddCodeList(c,31000201)
+	aux.AddLinkProcedure(c,nil,2,2,this.lcheck)
+	c:EnableReviveLimit()
 	local e1=Effect.CreateEffect(c)
-    e1:SetCategory(CATEGORY_DESTROY)
-    e1:SetType(EFFECT_TYPE_ACTIVATE)
-    e1:SetCode(EVENT_FREE_CHAIN)
-    e1:SetCountLimit(1,id)
-    e1:SetCondition(this.acon)
-    e1:SetTarget(this.atg)
-    e1:SetOperation(this.aop)
-    c:RegisterEffect(e1)
-	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(22748199,1))
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e2:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e2:SetProperty(EFFECT_FLAG_DELAY)
-	e2:SetRange(LOCATION_GRAVE)
-	e2:SetCountLimit(1,id)
-	e2:SetCondition(this.setcon)
-	e2:SetTarget(this.settg)
-	e2:SetOperation(this.setop)
-	c:RegisterEffect(e2)
+	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
+	e1:SetType(EFFECT_TYPE_TRIGGER_O+EFFECT_TYPE_SINGLE)
+	e1:SetProperty(EFFECT_FLAG_DELAY)
+	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e1:SetCountLimit(1,id)
+	e1:SetCondition(this.thcon)
+	e1:SetTarget(this.thtg)
+	e1:SetOperation(this.thop)
+	c:RegisterEffect(e1)
+	local e5=Effect.CreateEffect(c)
+	e5:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
+	e5:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e5:SetCode(EVENT_TO_GRAVE)
+	e5:SetProperty(EFFECT_FLAG_DELAY)
+	e5:SetCountLimit(1,50907447)
+	e5:SetTarget(this.thtg2)
+	e5:SetOperation(this.thop2)
+	c:RegisterEffect(e5)
 end
-function this.afilter(c)
-    return (c:IsCode(31000201) or c:IsType(TYPE_RITUAL) and aux.IsCodeListed(c,31000201)) and c:IsFaceup()
+function this.lfilter(c)
+	return c:IsLinkRace(RACE_BEASTWARRIOR)
 end
-function this.dfilter(c)
-    return c:IsFaceup() and c:IsAttackBelow(3e3)
+function this.lcheck(g)
+	return g:IsExists(this.lfilter,1,nil)
 end
-function this.acon(e,tp,eg,ep,ev,re,r,rp)
-    return Duel.IsExistingMatchingCard(this.afilter,tp,LOCATION_MZONE,0,1,nil)
+function this.thcon(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():IsSummonType(SUMMON_TYPE_LINK)
 end
-function this.atg(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return Duel.IsExistingMatchingCard(nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,e:GetHandler()) or Duel.IsExistingMatchingCard(this.dfilter,tp,0,LOCATION_MZONE,1,nil) end
+function this.thfilter(c)
+	return (c:IsCode(31000201) or aux.IsCodeListed(c,31000201)) and c:IsAbleToHand()
 end
-function this.aop(e,tp,eg,ep,ev,re,r,rp)
-    local b1=Duel.IsExistingMatchingCard(nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,e:GetHandler())
-    local b2=Duel.IsExistingMatchingCard(this.dfilter,tp,0,LOCATION_MZONE,1,nil)
-    local op
-    if b1 and b2 then op=Duel.SelectOption(tp,aux.Stringid(id,0),aux.Stringid(id,1))
-    elseif b1 then op=Duel.SelectOption(tp,aux.Stringid(id,0))
-    elseif b2 then op=Duel.SelectOption(tp,aux.Stringid(id,1))+1
-    else return end
-    if op==0 then
-        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-        local tc=Duel.SelectMatchingCard(tp,nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,e:GetHandler())
-        if tc and #tc==1 then Duel.Destroy(tc,REASON_EFFECT) end
-    elseif op==1 then
-        local g=Duel.GetMatchingGroup(this.dfilter,tp,0,LOCATION_MZONE,nil)
-        Duel.Destroy(g,REASON_EFFECT)
-    end
+function this.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(this.thfilter,tp,LOCATION_DECK,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
 end
-function this.setfilter(c,tp)
-	return c:IsFaceup() and aux.IsCodeListed(c,31000201) and c:IsType(TYPE_RITUAL) and c:IsSummonType(SUMMON_TYPE_RITUAL) and c:IsControler(tp)
+function this.thop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,this.thfilter,tp,LOCATION_DECK,0,1,1,nil)
+	if g:GetCount()>0 then
+		Duel.SendtoHand(g,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,g)
+	end
 end
-function this.setcon(e,tp,eg,ep,ev,re,r,rp)
-	return eg:IsExists(this.setfilter,1,nil,tp)
+function this.thfilter2(c)
+	return c:IsRace(RACE_BEASTWARRIOR) and c:IsType(TYPE_RITUAL) and c:IsAbleToHand()
 end
-function this.settg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return e:GetHandler():IsSSetable() end
-	Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,e:GetHandler(),1,0,0)
+function this.thtg2(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(this.thfilter2,tp,LOCATION_GRAVE,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_GRAVE)
 end
-function this.setop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) then Duel.SSet(tp,c) end
+function this.thop2(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(this.thfilter2),tp,LOCATION_GRAVE,0,1,1,nil)
+	if g:GetCount()>0 and Duel.SendtoHand(g,nil,REASON_EFFECT)~=0 then
+		Duel.ConfirmCards(1-tp,g)
+	end
 end

@@ -67,7 +67,7 @@ function this.costfilter(c)
     return c:IsFaceup() and c:IsType(TYPE_PENDULUM) and c:IsAbleToDeckAsCost()
 end
 function this.descost(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return Duel.IsExistingMatchingCard(this.costfilter,tpp,LOCATION_EXTRA,0,1,nil) end
+    if chk==0 then return Duel.IsExistingMatchingCard(this.costfilter,tp,LOCATION_EXTRA,0,1,nil) end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
     local tc=Duel.SelectMatchingCard(tp,this.costfilter,tp,LOCATION_EXTRA,0,1,1,nil)
     Duel.SendtoDeck(tc,tp,SEQ_DECKSHUFFLE,REASON_COST)
@@ -78,7 +78,7 @@ function this.destg(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 function this.desop(e,tp,eg,ep,ev,re,r,rp)
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-    local tc=Duel.SelectMatchingCard(tp,nil,tp,LOCATION_SZONE,0,1,1,nil):GetFirst()
+    local tc=Duel.SelectMatchingCard(tp,nil,tp,LOCATION_SZONE,LOCATION_SZONE,1,1,nil):GetFirst()
     Duel.Destroy(tc,REASON_EFFECT)
 end
 function this.pencon(e,tp,eg,ep,ev,re,r,rp)

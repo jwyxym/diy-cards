@@ -75,7 +75,8 @@ function this.sprcon(e,c)
 	local tp=c:GetControler()
 	local g=Duel.GetMatchingGroup(this.sprfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,nil)
 	return ((c:IsLocation(LOCATION_HAND) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0) or
-		(c:IsLocation(LOCATION_EXTRA) and Duel.GetLocationCountFromEx(tp,tp,nil,c)>0))
+		(c:IsLocation(LOCATION_EXTRA) and Duel.GetLocationCountFromEx(tp,tp,nil,c)>0) or 
+		(c:IsLocation(LOCATION_GRAVE) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0))
 		and g:IsExists(this.sprfilter,2,c)
 end
 function this.sprtg(e,tp,eg,ep,ev,re,r,rp,chk,c)

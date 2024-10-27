@@ -43,7 +43,7 @@ function this.matfilter2(c,scard)
     return c:IsRace(RACE_WYRM) and c:IsNotTuner(scard)
 end
 function this.cfilter(c,tp)
-	return c:IsPreviousLocation(LOCATION_PZONE) and c:IsPreviousControler(tp)
+	return c:IsPreviousLocation(LOCATION_ONFIELD) and c:IsPreviousControler(tp)
 end
 function this.setcon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(this.cfilter,1,nil,tp)
@@ -59,7 +59,7 @@ end
 function this.setop(e,tp,eg,ep,ev,re,r,rp)
     if Duel.GetLocationCountFromEx(tp)<=0 then return end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-    local tc=Duel.SelectMatchingCard(this.filter,tp,LOCATION_EXTRA,0,1,1,nil,e,tp)
+    local tc=Duel.SelectMatchingCard(tp,this.filter,tp,LOCATION_EXTRA,0,1,1,nil,e,tp)
     if tc then Duel.SpecialSummon(tc,SUMMON_TYPE_SPECIAL,tp,tp,false,false,POS_FACEUP) end
 end
 function this.costfilter(c)

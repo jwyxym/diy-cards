@@ -1,39 +1,50 @@
---黑犬公的巧克力山
+--野性法则
 local this,id,ofs=GetID()
 function this.initial_effect(c)
     aux.AddCodeList(c,31000201)
 	local e1=Effect.CreateEffect(c)
-    e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
-    e1:SetType(EFFECT_TYPE_IGNITION)
-    e1:SetRange(LOCATION_HAND)
+    e1:SetCategory(CATEGORY_DESTROY+CATEGORY_TOHAND+CATEGORY_SEARCH)
+    e1:SetType(EFFECT_TYPE_ACTIVATE)
+    e1:SetCode(EVENT_FREE_CHAIN)
     e1:SetCountLimit(1,id)
-    e1:SetCost(this.thcost)
-    e1:SetTarget(this.thtg)
-    e1:SetOperation(this.thop)
+    e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
+    e1:SetTarget(this.tg)
+    e1:SetOperation(this.op)
     c:RegisterEffect(e1)
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_SINGLE)
-	e1:SetCode(EFFECT_EXTRA_RITUAL_MATERIAL)
-	e1:SetValue(this.val)
-	c:RegisterEffect(e1)
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_FIELD)
+	e2:SetCode(EFFECT_DESTROY_REPLACE)
+	e2:SetRange(LOCATION_GRAVE)
+    e2:SetCountLimit(1,id)
+	e2:SetTarget(this.desreptg)
+	e2:SetValue(this.desrepval)
+	e2:SetOperation(this.desrepop)
+	c:RegisterEffect(e2)
 end
-function this.thfilter(c)
-    return (c:IsCode(31000201) or aux.IsCodeListed(c,31000201)) and c:IsAbleToHand()
+function this.filter1(c)
+    return bit.band(c:GetType(),TYPE_SPELL+TYPE_RITUAL)==TYPE_SPELL+TYPE_RITUAL and aux.IsCodeListed(c,31000201) and c:IsAbleToHand()
 end
-function this.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return e:GetHandler():IsAbleToGraveAsCost() end
-	Duel.SendtoGrave(e:GetHandler(),REASON_COST)
+function this.filter2(c)
+    return c:IsType(TYPE_RITUAL) and c:IsRace(RACE_BEASTWARRIOR) and c:IsAbleToHand()
 end
-function this.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return Duel.IsExistingMatchingCard(this.thfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,e:GetHandler()) end
-    Duel.SetOperationInfo(0,CATEGORY_TOHAND+CATEGORY_SEARCH,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
+function this.tg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+    if chkc then return chkc:IsControler(tp) and chkc:IsOnField() end
+    if chk==0 then return Duel.IsExistingTarget(nil,tp,LOCATION_ONFIELD,0,1,nil) end
+    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+    local tc=Duel.SelectTarget(tp,nil,tp,LOCATION_ONFIELD,0,1,1,e:GetHandler())
+    Duel.SetOperationInfo(0,CATEGORY_DESTROY,tc,1,0,0)
 end
-function this.thop(e,tp,eg,ep,ev,re,r,rp)
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-    local tc=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(this.thfilter),tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,e:GetHandler()):GetFirst()
-    if tc then
-        Duel.SendtoHand(tc,tp,REASON_EFFECT)
-        Duel.ConfirmCards(1-tp,tc)
+function this.op(e,tp,eg,ep,ev,re,r,rp)
+    local tc=Duel.GetFirstTarget()
+    if tc:IsRelateToEffect(e) and Duel.Destroy(tc,REASON_EFFECT)>0 and Duel.IsExistingMatchingCard(this.filter1,tp,LOCATION_DECK,0,1,nil) and Duel.IsExistingMatchingCard(this.filter2,tp,LOCATION_DECK,0,1,nil) and Duel.SelectYesNo(tp,aux.Stringid(id,0)) then
+        Duel.BreakEffect()
+        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+        local tc1=Duel.SelectMatchingCard(tp,this.filter1,tp,LOCATION_DECK,0,1,1,nil)
+        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+        local tc2=Duel.SelectMatchingCard(tp,this.filter2,tp,LOCATION_DECK,0,1,1,nil)
+        tc1:Merge(tc2)
+        Duel.SendtoHand(tc1,tp,REASON_EFFECT)
+        Duel.ConfirmCards(1-tp,tc1)
     end
 	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD)
@@ -47,6 +58,21 @@ end
 function this.splimit(e,c)
 	return c:IsLocation(LOCATION_EXTRA) and not c:IsRace(RACE_BEASTWARRIOR)
 end
-function this.val(e,c)
-    return c:IsRace(RACE_BEASTWARRIOR)
+function this.repfilter(c,tp)
+	return c:IsControler(tp) and c:IsOnField()
+		and c:IsReason(REASON_BATTLE+REASON_EFFECT) and not c:IsReason(REASON_REPLACE)
+end
+function this.repcfilter(c)
+    return c:IsType(TYPE_RITUAL) and c:IsFaceup() and aux.IsCodeListed(c,31000201)
+end
+function this.desreptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return eg:IsExists(this.repfilter,1,nil,tp) and Duel.IsExistingMatchingCard(this.repcfilter,tp,LOCATION_MZONE,0,1,nil) end
+	return Duel.SelectEffectYesNo(tp,c,96)
+end
+function this.desrepval(e,c)
+	return this.repfilter(c,e:GetHandlerPlayer())
+end
+function this.desrepop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_EFFECT)
 end

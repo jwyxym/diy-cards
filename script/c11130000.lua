@@ -71,6 +71,16 @@ function this.initial_effect(c)
 	e4:SetTarget(this.tg)
 	e4:SetOperation(this.op)
 	c:RegisterEffect(e4)
+	--pendulum
+	local e8=Effect.CreateEffect(c)
+	e8:SetDescription(aux.Stringid(13331639,3))
+	e8:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e8:SetCode(EVENT_DESTROYED)
+	e8:SetProperty(EFFECT_FLAG_DELAY)
+	e8:SetCondition(this.pencon)
+	e8:SetTarget(this.pentg)
+	e8:SetOperation(this.penop)
+	c:RegisterEffect(e8)
 end
 this.material_type=TYPE_FUSION+TYPE_SYNCHRO+TYPE_XYZ+TYPE_PENDULUM
 function this.fusfilter1(c)
@@ -126,6 +136,9 @@ function this.eqop(e,tp,eg,ep,ev,re,r,rp)
 			e2:SetReset(RESET_EVENT+RESETS_STANDARD)
 			tc:RegisterEffect(e2)
 			ct=ct+1
+			local e3=e2:Clone()
+			e3:SetCode(EFFECT_UPDATE_DEFENSE)
+			tc:RegisterEffect(e3)
 		end
 	end
 	Duel.EquipComplete()
@@ -210,4 +223,17 @@ function this.rstop(e,tp,eg,ep,ev,re,r,rp)
 	e1:Reset()
 	Duel.HintSelection(Group.FromCards(c))
 	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
+end
+function this.pencon(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	return c:IsPreviousLocation(LOCATION_MZONE) and c:IsFaceup()
+end
+function this.pentg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1) end
+end
+function this.penop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsRelateToEffect(e) then
+		Duel.MoveToField(c,tp,tp,LOCATION_PZONE,POS_FACEUP,true)
+	end
 end

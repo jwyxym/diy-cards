@@ -55,7 +55,7 @@ function cm.tg(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 function cm.thop2(e,tp,eg,ep,ev,re,r,rp)
    local tc=Duel.GetFirstTarget()
-if tc and tc:IsRelateToEffect(e) then -- fixed by k3
+if tc then
 Duel.SendtoHand(tc,tp,REASON_EFFECT)
 end
 end

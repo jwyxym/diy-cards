@@ -6,7 +6,7 @@ function c38020010.initial_effect(c)
 	e1:SetCategory(CATEGORY_TOGRAVE)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
-	e1:SetCountLimit(1,m+EFFECT_COUNT_CODE_OATH)
+	e1:SetCountLimit(1,m)
 	e1:SetCost(cm.cost)
 	e1:SetCondition(c38020010.condition)
 	e1:SetTarget(cm.tg1)
@@ -16,9 +16,9 @@ function c38020010.initial_effect(c)
 	e2:SetCategory(CATEGORY_LEAVE_GRAVE)
 	e2:SetType(EFFECT_TYPE_IGNITION)
 	e2:SetRange(LOCATION_GRAVE)
-	e2:SetCode(EVENT_FREE_CHAIN)
-	e2:SetProperty(EFFECT_FLAG_CARD_TARGET+EFFECT_FLAG_DELAY)
+	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e2:SetCondition(aux.exccon)
+	e2:SetCountLimit(1,m+1)
 	e2:SetCost(cm.cost1)
 	e2:SetTarget(cm.tg2)
 	e2:SetOperation(cm.activate)
@@ -29,33 +29,12 @@ function cm.counterfilter(c)
 	return c:IsSetCard(0x380)
 end
 function cm.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckLPCost(tp,800) and Duel.GetCustomActivityCount(m,tp,ACTIVITY_SPSUMMON)==0 end
+	if chk==0 then return Duel.CheckLPCost(tp,800)  end
 	Duel.PayLPCost(tp,800)
-	local e1=Effect.CreateEffect(e:GetHandler())
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
-	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetReset(RESET_PHASE+PHASE_END)
-	e1:SetTargetRange(1,0)
-	e1:SetTarget(cm.splimit)
-	Duel.RegisterEffect(e1,tp)
 end
 function cm.cost1(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return e:GetHandler():IsReleasable() end
-	Duel.Release(e:GetHandler(),REASON_COST)
-	if chk==0 then return  e:GetHandler():IsAbleToRemoveAsCost() and Duel.GetCustomActivityCount(m,tp,ACTIVITY_SPSUMMON)==0 end
+	if chk==0 then return  e:GetHandler():IsAbleToRemoveAsCost()  end
 	Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_COST)
-	local e1=Effect.CreateEffect(e:GetHandler())
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
-	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetReset(RESET_PHASE+PHASE_END)
-	e1:SetTargetRange(1,0)
-	e1:SetTarget(cm.splimit)
-	Duel.RegisterEffect(e1,tp)
-end
-function cm.splimit(e,c)
-	return not c:IsSetCard(0x380)
 end
 function c38020010.condition(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetCurrentPhase()==PHASE_MAIN1 and not Duel.CheckPhaseActivity()
@@ -91,13 +70,13 @@ function cm.op1(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e1,tp)
 end
 function cm.splimit2(e,c)
-	return not c:IsSetCard(0x380)
+	return c:IsLocation(LOCATION_EXTRA) and not c:IsType(TYPE_SYNCHRO)
 end
 function cm.tg2(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return false end
-	if chk==0 then return Duel.IsExistingTarget(nil,tp,LOCATION_REMOVED,LOCATION_REMOVED,3,nil) end
+	if chk==0 then return Duel.IsExistingTarget(Card.IsSetCard,tp,LOCATION_REMOVED,0,3,nil,0x380) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-	local g=Duel.SelectTarget(tp,Card.IsSetCard,tp,LOCATION_REMOVED,LOCATION_REMOVED,3,3,nil,0x380)
+	local g=Duel.SelectTarget(tp,Card.IsSetCard,tp,LOCATION_REMOVED,0,3,3,nil,0x380)
 	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,g,3,0,0)
 end
 function cm.activate(e,tp,eg,ep,ev,re,r,rp)
@@ -105,12 +84,4 @@ function cm.activate(e,tp,eg,ep,ev,re,r,rp)
 	if #g>0 then
 		Duel.SendtoGrave(g,REASON_EFFECT+REASON_RETURN)
 	end
-local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e1:SetTargetRange(1,0)
-	e1:SetTarget(cm.splimit2)
-	e1:SetReset(RESET_PHASE+PHASE_END)
-	Duel.RegisterEffect(e1,tp)
 end

@@ -59,7 +59,7 @@ function this.psplimit(e,c,tp,sumtp,sumpos)
 	return not c:IsRace(RACE_DRAGON) and bit.band(sumtp,SUMMON_TYPE_PENDULUM)==SUMMON_TYPE_PENDULUM
 end
 function this.thfilter(c)
-	return c:IsSetCard(0x722) and return c:IsFaceup() and c:IsType(TYPE_PENDULUM) and c:IsAbleToHand()
+	return c:IsSetCard(0x722) and c:IsFaceup() and c:IsType(TYPE_PENDULUM) and c:IsAbleToHand()
 end
 function this.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.CheckLPCost(tp,1000) end

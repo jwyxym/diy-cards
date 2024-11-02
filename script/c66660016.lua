@@ -8,7 +8,6 @@ function cm.initial_effect(c)
 	aux.EnablePendulumAttribute(c)
 	xiaoye.PendulumScale(c)
 	xiaoye.CannotBeMaterial(c)
-	xiaoye.CardTargetBeTuner(c)
 	xiaoye.SpecialSummonWithoutPendulum(c)
 	xiaoye.PWhenDestory(c)
 --destroy

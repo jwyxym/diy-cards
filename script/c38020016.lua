@@ -2,6 +2,7 @@
 local m=38020016
 local cm=c38020016
 function c38020016.initial_effect(c)
+	c:SetSPSummonOnce(38020016)
 	c:SetUniqueOnField(1,1,38020016)
 	 c:EnableReviveLimit()
 	--spsummon condition

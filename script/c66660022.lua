@@ -9,5 +9,5 @@ function cm.initial_effect(c)
 	xiaoye.LinkSearch(c,cm.thfilter,m)
 end
 function cm.thfilter(c)
-	return c:IsCode(66660030) or c:IsCode(66660026) and c:IsAbleToHand()
+	return (c:IsSetCard(0x666) and c:IsType(TYPE_FIELD)) or c:IsCode(66660026) and c:IsAbleToHand()
 end

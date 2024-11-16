@@ -1,7 +1,7 @@
 --魔姬之仪 维希
 function c51600185.initial_effect(c)
 	--xyz summon
-	aux.AddXyzProcedure(c,aux.FilterBoolFunction(Card.IsSetCard,0x516),5,2,nil,nil,99)
+	aux.AddXyzProcedure(c,aux.FilterBoolFunction(Card.IsSetCard,0x910),5,2,nil,nil,99)
 	c:EnableReviveLimit()
 
 	local e1=Effect.CreateEffect(c)
@@ -32,7 +32,7 @@ function c51600185.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	e:GetHandler():RemoveOverlayCard(tp,1,1,REASON_COST)
 end
 function c51600185.thfilter(c)
-	return c:IsType(TYPE_MONSTER) and c:IsSetCard(0x516) and c:IsAbleToHand()
+	return c:IsType(TYPE_MONSTER) and c:IsSetCard(0x910) and c:IsAbleToHand()
 end
 function c51600185.thtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_MZONE+LOCATION_GRAVE) and c51600185.thfilter(chkc) end
@@ -50,5 +50,5 @@ function c51600185.thop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function c51600185.etlimit(e,c)
-	return c~=e:GetHandler() and c:IsFaceup() and c:IsSetCard(0x516)
+	return c~=e:GetHandler() and c:IsFaceup() and c:IsSetCard(0x910)
 end

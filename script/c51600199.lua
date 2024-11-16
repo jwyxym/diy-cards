@@ -25,7 +25,7 @@ end
 
 
 function c51600199.thfilter(c)
-	return c:IsType(TYPE_MONSTER) and c:IsSetCard(0x516) and c:IsAbleToHand()
+	return c:IsType(TYPE_MONSTER) and c:IsSetCard(0x910) and c:IsAbleToHand()
 end
 function c51600199.activate(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetMatchingGroup(c51600199.thfilter,tp,LOCATION_DECK,0,nil)
@@ -38,12 +38,12 @@ function c51600199.activate(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function c51600199.cfilter1(c)
-	return c:IsFaceup() and c:IsType(TYPE_FUSION) and c:IsSetCard(0x516)
+	return c:IsFaceup() and c:IsType(TYPE_FUSION) and c:IsSetCard(0x910)
 end
 function c51600199.condition(e)
 	local tp=e:GetHandlerPlayer()
 	return Duel.IsExistingMatchingCard(c51600199.cfilter1,tp,LOCATION_ONFIELD,0,1,nil)
 end
 function c51600199.alimit(e,c)
-	return c:IsFacedown() or not (c:IsType(TYPE_FUSION) and c:IsSetCard(0x516))
+	return c:IsFacedown() or not (c:IsType(TYPE_FUSION) and c:IsSetCard(0x910))
 end

@@ -26,6 +26,7 @@ function this.initial_effect(c)
 	e4:SetProperty(EFFECT_FLAG_DELAY)
 	e4:SetCode(EVENT_SPSUMMON_SUCCESS)
 	e4:SetRange(LOCATION_GRAVE)
+	e4:SetCountLimit(1,id+2)
 	e4:SetCondition(this.spcon1)
 	e4:SetTarget(this.sptg1)
 	e4:SetOperation(this.spop1)
@@ -60,12 +61,12 @@ function this.effop(e,tp,eg,ep,ev,re,r,rp)
 	local rc=c:GetReasonCard()
 	local e1=Effect.CreateEffect(rc)
 	e1:SetDescription(aux.Stringid(id,0))
-    e1:SetCategory(CATEGORY_DESTROY+CATEGORY_DRAW)
-    e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-    e1:SetCode(EVENT_SPSUMMON_SUCCESS)
-    e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
-    e1:SetTarget(this.dtg)
-    e1:SetOperation(this.dop)
+	e1:SetCategory(CATEGORY_DESTROY+CATEGORY_DRAW)
+	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e1:SetTarget(this.dtg)
+	e1:SetOperation(this.dop)
 	e1:SetReset(RESET_EVENT+RESETS_STANDARD)
 	rc:RegisterEffect(e1,true)
 	if not rc:IsType(TYPE_EFFECT) then
@@ -78,18 +79,18 @@ function this.effop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function this.dtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-    if chkc then return chkc:IsOnField() and chkc~=e:GetHandler() end
-    if chk==0 then return Duel.IsExistingTarget(nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,e:GetHandler()) end
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
-    local tc=Duel.SelectTarget(tp,nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,e:GetHandler())
-    Duel.SetOperationInfo(0,CATEGORY_DESTROY,tc,1,0,0)
+	if chkc then return chkc:IsOnField() and chkc~=e:GetHandler() end
+	if chk==0 then return Duel.IsExistingTarget(nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,e:GetHandler()) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+	local tc=Duel.SelectTarget(tp,nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,e:GetHandler())
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,tc,1,0,0)
 end
 function this.dop(e,tp,eg,ep,ev,re,r,rp)
-    local tc=Duel.GetFirstTarget()
-    if tc:IsRelateToEffect(e) and Duel.Destroy(tc,REASON_EFFECT)>0
-        and Duel.IsPlayerCanDraw(tp,1) and Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
-        Duel.Draw(tp,1,REASON_EFFECT)
-    end
+	local tc=Duel.GetFirstTarget()
+	if tc:IsRelateToEffect(e) and Duel.Destroy(tc,REASON_EFFECT)>0
+		and Duel.IsPlayerCanDraw(tp,1) and Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
+		Duel.Draw(tp,1,REASON_EFFECT)
+	end
 end
 function this.cfilter1(c,tp)
 	return not c:IsCode(id) and c:IsFaceup() and c:IsControler(tp)
@@ -118,5 +119,5 @@ function this.spop1(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e1,tp)
 end
 function this.atktg(e,c)
-    return not c:IsSetCard(0xa63)
+	return not c:IsSetCard(0xa63)
 end

@@ -39,6 +39,18 @@ function this.initial_effect(c)
 	e5:SetTarget(this.pentg)
 	e5:SetOperation(this.penop)
 	c:RegisterEffect(e5)
+	--召唤词
+	local e6=Effect.CreateEffect(c)
+	e6:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+	e6:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e6:SetCountLimit(1,id+10000)
+	e6:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e6:SetOperation(this.cop)
+	c:RegisterEffect(e6)
+end
+function this.cop(e,tp,eg,ep,ev,re,r,rp)
+	Debug.Message("掠过月夜重现于山巅，咆哮着回应呼唤")
+	Debug.Message("同调召唤!涬溟阁龙 曦月")
 end
 function this.matfilter(c,scard)
     return c:IsRace(RACE_WYRM) and c:IsAttribute(ATTRIBUTE_FIRE) and c:IsTuner(scard) or c:IsRace(RACE_WYRM)

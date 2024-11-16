@@ -1,0 +1,120 @@
+--王威遍及 查理曼
+local s,id,o=GetID()
+function s.initial_effect(c)
+	c:EnableCounterPermit(0x1)
+	aux.AddSynchroProcedure(c,aux.AND(aux.FilterBoolFunction(Card.IsSynchroType,TYPE_SYNCHRO),aux.FilterBoolFunction(Card.IsAttribute,ATTRIBUTE_LIGHT)),aux.NonTuner(Card.IsRace,RACE_WARRIOR),1)
+	c:EnableReviveLimit()
+	local e1=Effect.CreateEffect(c)
+	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_SINGLE_RANGE)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetRange(LOCATION_EXTRA)
+	e1:SetCode(EFFECT_SPSUMMON_CONDITION)
+	e1:SetValue(aux.synlimit)
+	c:RegisterEffect(e1)
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetCode(EFFECT_IMMUNE_EFFECT)
+	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetValue(s.efilter)
+	c:RegisterEffect(e2)
+	local e3=Effect.CreateEffect(c)
+	e3:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_FIELD)
+	e3:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+	e3:SetCode(EVENT_CHAINING)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetOperation(aux.chainreg)
+	c:RegisterEffect(e3)
+	local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_FIELD)
+	e4:SetCode(EVENT_CHAIN_SOLVED)
+	e4:SetRange(LOCATION_MZONE)
+	e4:SetOperation(s.acop)
+	c:RegisterEffect(e4)
+	local e5=Effect.CreateEffect(c)
+	e5:SetDescription(aux.Stringid(id,1))
+	e5:SetCategory(CATEGORY_ATKCHANGE)
+	e5:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e5:SetCode(EVENT_ATTACK_ANNOUNCE)
+	e5:SetRange(LOCATION_MZONE)
+	e5:SetCountLimit(1,id)
+	e5:SetCondition(s.atkcon)
+	e5:SetTarget(s.atktg)
+	e5:SetOperation(s.atkop)
+	c:RegisterEffect(e5)
+	local e5=Effect.CreateEffect(c)
+	e5:SetDescription(aux.Stringid(id,2))
+	e5:SetCategory(CATEGORY_NEGATE+CATEGORY_DESTROY)
+	e5:SetType(EFFECT_TYPE_QUICK_O)
+	e5:SetCode(EVENT_CHAINING)
+	e5:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL)
+	e5:SetRange(LOCATION_MZONE)
+	e5:SetCountLimit(1,id+o*10000)
+	e5:SetCondition(s.discon)
+	e5:SetCost(s.discost)
+	e5:SetTarget(s.distg)
+	e5:SetOperation(s.disop)
+	c:RegisterEffect(e5)
+end
+function s.efilter(e,re)
+	return re:IsActiveType(TYPE_MONSTER) and re:GetOwner():IsAttribute(ATTRIBUTE_LIGHT)
+end
+function s.acop(e,tp,eg,ep,ev,re,r,rp)
+	local p=Duel.GetChainInfo(ev,CHAININFO_TRIGGERING_PLAYER)
+	local c=e:GetHandler()
+	if re:IsActiveType(TYPE_MONSTER) and re:GetHandler():IsRace(RACE_WARRIOR) and c:GetFlagEffect(FLAG_ID_CHAINING)>0 then
+		c:AddCounter(0x1,1)
+	end
+end
+function s.atkcon(e,tp,eg,ep,ev,re,r,rp)
+	local ac=Duel.GetAttacker()
+	return ac:IsFaceup() and ac:IsControler(tp) and ac==e:GetHandler()
+end
+function s.atkfilter(c)
+	return c:IsFaceup() and c:IsRace(RACE_WARRIOR)
+end
+function s.atktg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.atkfilter,tp,LOCATION_MZONE,0,1,nil) end
+end
+function s.atkop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local g=Duel.GetMatchingGroup(s.atkfilter,tp,LOCATION_MZONE,0,nil)
+	local tc=g:GetFirst()
+	while tc do
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetCode(EFFECT_UPDATE_ATTACK)
+		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+		e1:SetValue(500)
+		tc:RegisterEffect(e1)
+		tc=g:GetNext()
+	end
+end
+function s.discon(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	return ep==1-tp and re:IsActiveType(TYPE_MONSTER) and Duel.IsChainNegatable(ev)
+end
+function s.discost(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return c:IsCanRemoveCounter(tp,0x1,3,REASON_COST) end
+	c:RemoveCounter(tp,0x1,3,REASON_COST)
+end
+function s.distg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
+	if re:GetHandler():IsRelateToEffect(re) then
+		Duel.SetOperationInfo(0,CATEGORY_DESTROY,eg,1,0,0)
+	end
+end
+function s.cxfilter(c)
+	return c:IsFaceup()
+end
+function s.disop(e,tp,eg,ep,ev,re,r,rp)
+	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) 
+		and Duel.Destroy(eg,REASON_EFFECT)
+		and Duel.IsExistingMatchingCard(s.cxfilter,tp,LOCATION_MZONE,0,1,nil)
+		and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
+		
+	end
+end

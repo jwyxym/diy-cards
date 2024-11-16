@@ -20,15 +20,15 @@ function c19990020.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 function c19990020.filter(c)
-	return c:IsSetCard(0xb29) and (c:IsFaceup() or c:IsLocation(LOCATION_DECK)) and c:IsAbleToGrave()
+	return c:IsSetCard(0xb29) and c:IsType(TYPE_MONSTER) and (c:IsFaceup() or c:IsLocation(LOCATION_DECK)) and c:IsAbleToGrave()
 end
 function c19990020.target(e,tp,eg,ep,ev,re,r,rp,chk,_,exc)
-	if chk==0 then return Duel.IsExistingMatchingCard(c19990020.filter,tp,LOCATION_DECK,0,1,exc) end
-	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_DECK+LOCATION_EXTRA)
+	if chk==0 then return Duel.IsExistingMatchingCard(c19990020.filter,tp,LOCATION_DECK+LOCATION_REMOVED+LOCATION_EXTRA,0,1,exc) end
+	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_DECK+LOCATION_REMOVED+LOCATION_EXTRA)
 end
 function c19990020.activate(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-	local g=Duel.SelectMatchingCard(tp,c19990020.filter,tp,LOCATION_DECK,0,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,c19990020.filter,tp,LOCATION_DECK+LOCATION_REMOVED+LOCATION_EXTRA,0,1,1,nil)
 	if g:GetCount()>0 then
 		Duel.SendtoGrave(g,REASON_EFFECT)
 	end

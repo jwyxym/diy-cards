@@ -37,6 +37,18 @@ function c21300518.initial_effect(c)
 	e3:SetTarget(c21300518.sptg)
 	e3:SetOperation(c21300518.spop)
 	c:RegisterEffect(e3)
+	--召唤词
+	local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+	e4:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e4:SetCountLimit(1,21300518+10000)
+	e4:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e4:SetOperation(c21300518.cop)
+	c:RegisterEffect(e4)
+	end
+function c21300518.cop(e,tp,eg,ep,ev,re,r,rp)
+	Debug.Message("不灭的苍炎，染上煞气重燃，宣告狩猎之始")
+	Debug.Message("超量召唤!阶级8 涬溟龙 苍炎 狩袭")
 end
 function c21300518.spcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

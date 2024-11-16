@@ -24,10 +24,10 @@ end
 
 
 function c51600211.filter(c)
-return c:IsSetCard(0x516) and c:IsType(TYPE_MONSTER) and c:IsType(TYPE_FUSION)
+return c:IsSetCard(0x910) and c:IsType(TYPE_MONSTER) and c:IsType(TYPE_FUSION)
 end
 function c51600211.filter2(c)
-return c:IsSetCard(0x516) and not c:IsCode(51600211)
+return c:IsSetCard(0x910) and not c:IsCode(51600211)
 end
 function c51600211.effcon(e,tp,eg,ep,ev,re,r,rp)
 	return (re:IsActiveType(TYPE_MONSTER) or re:IsHasType(EFFECT_TYPE_ACTIVATE)) and Duel.IsChainNegatable(ev)
@@ -48,7 +48,7 @@ end
 
 
 function c51600211.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and chkc:IsControler(tp) and chkc:IsSetCard(0x516) end
+	if chkc then return chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and chkc:IsControler(tp) and chkc:IsSetCard(0x910) end
 	if chk==0 then return Duel.IsExistingTarget(c51600211.filter2,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil)
 		end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)

@@ -1,7 +1,7 @@
 --提丰·欧赫迈罗斯
 local s,id,o=GetID()
 function s.initial_effect(c)
-	aux.AddCodeList(c,76200205)
+	aux.AddCodeList(c,76200215)
 	aux.AddXyzProcedure(c,aux.FilterBoolFunction(Card.IsRace,RACE_DRAGON),7,2)
 	c:EnableReviveLimit()
 	local e0=Effect.CreateEffect(c)
@@ -83,7 +83,7 @@ end
 function s.discon(e,tp,eg,ep,ev,re,r,rp)
 	local dr=Duel.GetOperationInfo(ev,CATEGORY_DRAW)
 	local ex,g,gc,dp,dv=Duel.GetOperationInfo(ev,CATEGORY_TOHAND)
-	return Duel.IsEnvironment(76200205,tp,LOCATION_FZONE)
+	return Duel.IsEnvironment(76200215,tp,LOCATION_FZONE)
 		and (dr or ex and bit.band(dv,LOCATION_DECK)==LOCATION_DECK)
 		and Duel.IsChainDisablable(ev)
 end
@@ -106,7 +106,7 @@ function s.cfilter(c,tp)
 	return c:IsSummonPlayer(1-tp) and c:IsAbleToDeck()
 end
 function s.dscon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsEnvironment(76200205,tp,LOCATION_FZONE) and aux.NegateSummonCondition() and eg:IsExists(s.cfilter,1,nil,tp)
+	return Duel.IsEnvironment(76200215,tp,LOCATION_FZONE) and aux.NegateSummonCondition() and eg:IsExists(s.cfilter,1,nil,tp)
 end
 function s.dstg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end
@@ -118,7 +118,7 @@ function s.dsop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.SendtoDeck(eg,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
 end
 function s.negcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsEnvironment(76200205,tp,LOCATION_FZONE) and tp~=Duel.GetTurnPlayer()
+	return Duel.IsEnvironment(76200215,tp,LOCATION_FZONE) and tp~=Duel.GetTurnPlayer()
 end
 function s.negtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local tg=Duel.GetAttacker()

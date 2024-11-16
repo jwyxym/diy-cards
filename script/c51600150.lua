@@ -25,7 +25,7 @@ end
 
 
 function c51600150.filter(c)
-	return c:IsFaceup() and c:IsSetCard(0x516) and not c:IsCode(51600150)
+	return c:IsFaceup() and c:IsSetCard(0x910) and not c:IsCode(51600150)
 end
 function c51600150.spcon(e,c)
 	if c==nil then return true end
@@ -36,10 +36,10 @@ end
 
 
 function c51600150.desfilter(c,tp)
-	return c:IsFaceup()  and c:IsSetCard(0x516) and Duel.GetMZoneCount(tp,c,tp)>0
+	return c:IsFaceup()  and c:IsSetCard(0x910) and Duel.GetMZoneCount(tp,c,tp)>0
 end
 function c51600150.spfilter(c,e,tp)
-	return c:IsSetCard(0x516) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_DEFENSE)
+	return c:IsSetCard(0x910) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_DEFENSE)
 end
 function c51600150.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local c=e:GetHandler()

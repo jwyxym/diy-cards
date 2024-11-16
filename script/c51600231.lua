@@ -51,7 +51,7 @@ function c51600231.spop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e1,tp)
 end
 function c51600231.splimit(e,c)
-	return not c:IsSetCard(0x516) 
+	return not c:IsSetCard(0x910) 
 end
 
 
@@ -61,7 +61,7 @@ function c51600231.sccon(e,tp,eg,ep,ev,re,r,rp)
 	return ph==PHASE_MAIN1 or (ph>=PHASE_BATTLE_START and ph<=PHASE_BATTLE) or ph==PHASE_MAIN2
 end
 function c51600231.mfilter(c)
-	return c:IsSetCard(0x516)
+	return c:IsSetCard(0x910)
 end
 function c51600231.sctg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then

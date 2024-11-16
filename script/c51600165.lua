@@ -36,7 +36,7 @@ end
 function c51600165.cfilter(c,tp,se)
 	return c:IsPreviousControler(tp) and not c:IsPreviousLocation(LOCATION_SZONE)
 		and (c:IsPreviousLocation(LOCATION_MZONE) or c:GetOriginalType()&TYPE_MONSTER~=0)
-		and c:IsSetCard(0x516) and c:IsReason(REASON_BATTLE+REASON_EFFECT)
+		and c:IsSetCard(0x910) and c:IsReason(REASON_BATTLE+REASON_EFFECT)
 		and (se==nil or c:GetReasonEffect()~=se)
 end
 function c51600165.spcon(e,tp,eg,ep,ev,re,r,rp)
@@ -60,7 +60,7 @@ end
 
 
 function c51600165.thfilter(c)
-	return c:IsSetCard(0x516) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand()
+	return c:IsSetCard(0x910) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand()
 end
 function c51600165.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(c51600165.thfilter,tp,LOCATION_DECK,0,1,nil) end

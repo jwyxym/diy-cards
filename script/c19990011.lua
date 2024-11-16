@@ -31,7 +31,7 @@ function c19990011.rmfilter(c)
 end
 function c19990011.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(c19990011.rmfilter,tp,LOCATION_EXTRA+LOCATION_GRAVE+LOCATION_DECK,0,1,nil) end
-	local g=Duel.GetMatchingGroup(c19990011.rmfilter,tp,LOCATION_EXTRA+LOCATION_GRAVE,0,nil)
+	local g=Duel.GetMatchingGroup(c19990011.rmfilter,tp,LOCATION_EXTRA+LOCATION_GRAVE+LOCATION_DECK,0,nil)
 	Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,1,0,0)
 end
 function c19990011.activate(e,tp,eg,ep,ev,re,r,rp)
@@ -57,7 +57,7 @@ function c19990011.thfilter(c)
 	return c:IsSetCard(0xb30) and (c:IsLocation(LOCATION_GRAVE) or c:IsFaceup()) and c:IsAbleToHand()
 end
 function c19990011.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c19990011.thfilter,tp,LOCATION_REMOVED,0,1,e:GetHandler()) end
+	if chk==0 then return Duel.IsExistingMatchingCard(c19990011.thfilter,tp,LOCATION_REMOVED+LOCATION_GRAVE,0,1,e:GetHandler()) end
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_REMOVED+LOCATION_GRAVE)
 end
 function c19990011.thop(e,tp,eg,ep,ev,re,r,rp)

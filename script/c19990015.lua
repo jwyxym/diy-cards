@@ -20,7 +20,7 @@ function c19990015.initial_effect(c)
 	e2:SetDescription(aux.Stringid(19990015,4))
 	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e2:SetCode(EVENT_LEAVE_FIELD)
-	e2:SetProperty(EFFECT_FLAG_DELAY)
+	e2:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_DAMAGE_STEP)
 	e2:SetCondition(c19990015.pencon)
 	e2:SetTarget(c19990015.pentg)
 	e2:SetOperation(c19990015.penop)
@@ -75,7 +75,7 @@ function c19990015.xyzop(e,tp,eg,ep,ev,re,r,rp)
 end
 function c19990015.pencon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	return c:IsPreviousLocation(LOCATION_MZONE) and c:IsFaceup()
+	return c:IsPreviousPosition(POS_FACEUP) and c:IsPreviousLocation(LOCATION_MZONE)
 end
 function c19990015.pentg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1) end

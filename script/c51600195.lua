@@ -1,7 +1,7 @@
 --魔姬之弓 依诺
 function c51600195.initial_effect(c)
 		--synchro summon
-	aux.AddSynchroProcedure(c,nil,aux.NonTuner(Card.IsSetCard,0x516),1)
+	aux.AddSynchroProcedure(c,nil,aux.NonTuner(Card.IsSetCard,0x910),1)
 	c:EnableReviveLimit()
 	--special summon
 	local e1=Effect.CreateEffect(c)
@@ -30,7 +30,7 @@ end
 
 
 function c51600195.spfilter(c,e,tp)
-	return c:IsSetCard(0x516) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsSetCard(0x910) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function c51600195.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
@@ -47,7 +47,7 @@ function c51600195.spop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function c51600195.costfilter(c)
-	return (c:IsSetCard(0x516) ) and c:IsAbleToRemoveAsCost()
+	return (c:IsSetCard(0x910) ) and c:IsAbleToRemoveAsCost()
 end
 function c51600195.discost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(c51600195.costfilter,tp,LOCATION_GRAVE+LOCATION_HAND,0,1,nil) end

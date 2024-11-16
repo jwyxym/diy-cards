@@ -1,0 +1,128 @@
+--Numerical Limiters
+function c88188213.initial_effect(c)
+	aux.AddSynchroMixProcedure(c,aux.Tuner(c88188213.sfilter1),nil,nil,aux.FilterBoolFunction(c88188213.sfilter2),2,99)
+	c:EnableReviveLimit()
+	local e0=Effect.CreateEffect(c)
+	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0:SetType(EFFECT_TYPE_SINGLE)
+	e0:SetCode(EFFECT_SPSUMMON_CONDITION)
+	e0:SetValue(aux.synlimit)
+	c:RegisterEffect(e0)
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetCode(EFFECT_CANNOT_ATTACK)
+	c:RegisterEffect(e1)
+	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(88188213,1))
+	e2:SetCategory(EFFECT_TYPE_ACTIVATE)
+	e2:SetType(EFFECT_TYPE_QUICK_O)
+	e2:SetCode(EVENT_FREE_CHAIN)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetCountLimit(1,88188213)
+	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
+	e2:SetCondition(c88188213.descon)
+	e2:SetTarget(c88188213.destg)
+	e2:SetOperation(c88188213.desop)
+	c:RegisterEffect(e2)
+	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(88188213,2))
+	e3:SetCategory(CATEGORY_REMOVE)
+	e3:SetType(EFFECT_TYPE_QUICK_O)
+	e3:SetCode(EVENT_FREE_CHAIN)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetCountLimit(1,88188213)
+	e3:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
+	e3:SetCondition(c88188213.cbcon)
+	e3:SetTarget(c88188213.cbtg)
+	e3:SetOperation(c88188213.cbop)
+	c:RegisterEffect(e3)
+	local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_SINGLE)
+	e4:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e4:SetRange(LOCATION_MZONE)
+	e4:SetCode(EFFECT_SET_ATTACK_FINAL)
+	e4:SetValue(c88188213.atkval)
+	c:RegisterEffect(e4)
+end
+c88188213.SetCard_Numerical_Crack=true
+function c88188213.sfilter1(c)
+	return c:IsSetCard(0xa590) and c:IsSynchroType(TYPE_SYNCHRO)
+end
+function c88188213.sfilter2(c)
+	return c:IsRace(RACE_CYBERSE) and c:IsSynchroType(TYPE_SYNCHRO)
+end
+function c88188213.descon(e,tp,eg,ep,ev,re,r,rp)
+	local ph=Duel.GetCurrentPhase()
+	return not e:GetHandler():IsStatus(STATUS_CHAINING)
+		and (ph>=PHASE_BATTLE_START and ph<=PHASE_BATTLE)
+end
+function c88188213.destg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsFaceup,tp,0,LOCATION_MZONE,1,nil) end
+	Duel.Hint(HINT_MESSAGE,1-tp,aux.Stringid(88188200,0))
+	Duel.Hint(HINT_MESSAGE,tp,aux.Stringid(88188200,0))
+	Duel.RegisterFlagEffect(e:GetHandlerPlayer(),88188200,RESET_EVENT+RESETS_STANDARD,0,1)
+	Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,nil)
+end
+function c88188213.desop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,0,LOCATION_MZONE,nil)
+	if g:GetCount()>0 then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+		local sg=g:Select(tp,1,1,nil)
+		Duel.HintSelection(sg)
+		local tc=sg:GetFirst()
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+		e1:SetRange(LOCATION_MZONE)
+		e1:SetCode(EFFECT_SET_ATTACK_FINAL)
+		e1:SetValue(c88188213.zatkval)
+		e:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_CHAIN)
+		c:RegisterEffect(e1)
+		local atk=c:GetAttack()
+		local ctk=tc:GetAttack()
+		if atk>ctk then
+			Duel.Damage(1-tp,atk-ctk,REASON_EFFECT)
+		else
+			Duel.Damage(1-tp,ctk-atk,REASON_EFFECT)
+		end
+	end
+end
+function c88188213.cbcon(e,tp,eg,ep,ev,re,r,rp)
+	local ph=Duel.GetCurrentPhase()
+	return not e:GetHandler():IsStatus(STATUS_CHAINING)
+		and (ph>=PHASE_BATTLE_START and ph<=PHASE_BATTLE)
+end
+function c88188213.cbtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(nil,tp,0,LOCATION_MZONE,1,nil) end
+	Duel.Hint(HINT_MESSAGE,1-tp,aux.Stringid(88188200,0))
+	Duel.Hint(HINT_MESSAGE,tp,aux.Stringid(88188200,0))
+	Duel.RegisterFlagEffect(e:GetHandlerPlayer(),88188200,RESET_EVENT+RESETS_STANDARD,0,1)
+end
+function c88188213.cbop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local g=Duel.GetMatchingGroup(nil,tp,0,LOCATION_MZONE,nil)
+	if g:GetCount()>0 then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATTACKTARGET)
+		local sg=g:Select(tp,1,1,nil)
+		Duel.HintSelection(sg)
+		local tc=sg:GetFirst()
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+		e1:SetRange(LOCATION_MZONE)
+		e1:SetCode(EFFECT_SET_ATTACK_FINAL)
+		e1:SetValue(c88188213.zatkval)
+		e:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_CHAIN)
+		c:RegisterEffect(e1)
+		Duel.CalculateDamage(c,tc)
+	end
+end
+function c88188213.zatkval(e,c)
+	local x=Duel.GetFlagEffect(e:GetHandlerPlayer(),88188200)
+	return e:GetHandler():GetAttack()*x
+end
+function c88188213.atkval(e,c)
+	local x=Duel.GetFlagEffect(e:GetHandlerPlayer(),88188200)
+	return c:GetBaseAttack()*x*x*x
+end

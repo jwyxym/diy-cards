@@ -2,7 +2,7 @@
 function c51600190.initial_effect(c)
 	c:EnableCounterPermit(0x065)
 	--synchro summon
-	aux.AddSynchroMixProcedure(c,aux.FilterBoolFunction(c51600190.sfilter),nil,nil,aux.Tuner(Card.IsSetCard,0x516),1,99)
+	aux.AddSynchroMixProcedure(c,aux.FilterBoolFunction(c51600190.sfilter),nil,nil,aux.Tuner(Card.IsSetCard,0x910),1,99)
 	c:EnableReviveLimit()
 	--cannot special summon
 	local e0=Effect.CreateEffect(c)
@@ -77,11 +77,11 @@ function c51600190.initial_effect(c)
 end
   
 function c51600190.sfilter(c)
-	return c:IsSetCard(0x516) and c:IsType(TYPE_SYNCHRO)
+	return c:IsSetCard(0x910) and c:IsType(TYPE_SYNCHRO)
 end
 
 function c51600190.value1(e,c)
-	return Duel.GetMatchingGroupCount(Card.IsSetCard,e:GetHandlerPlayer(),LOCATION_REMOVED,0,nil,0x516)*-300
+	return Duel.GetMatchingGroupCount(Card.IsSetCard,e:GetHandlerPlayer(),LOCATION_REMOVED,0,nil,0x910)*-300
 end
 function c51600190.stcon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(Card.IsType,1,nil,TYPE_MONSTER)

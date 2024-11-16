@@ -32,6 +32,18 @@ function s.initial_effect(c)
 	e3:SetTarget(s.sptg)
 	e3:SetOperation(s.spop)
 	c:RegisterEffect(e3)
+	--召唤词
+	local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+	e4:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e4:SetCountLimit(1,id+10000)
+	e4:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e4:SetOperation(s.cop)
+	c:RegisterEffect(e4)
+	end
+function s.cop(e,tp,eg,ep,ev,re,r,rp)
+	Debug.Message("消散于天界的圣龙主，如今在耀日之下重现神威！")
+	Debug.Message("仪界龙 长空龙魂！")
 end
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
 	return re and (re:GetHandler():IsCode(11100418) or re:GetHandler():IsCode(11100421))

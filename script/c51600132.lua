@@ -4,9 +4,8 @@ function c51600132.initial_effect(c)
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(51600132,0))
 	e1:SetCategory(CATEGORY_DESTROY+CATEGORY_SPECIAL_SUMMON)
-	e1:SetType(EFFECT_TYPE_QUICK_O)
+	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetRange(LOCATION_GRAVE)
 	e1:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
 	e1:SetCountLimit(1,51600132)
@@ -31,7 +30,7 @@ function c51600132.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetCurrentPhase()==PHASE_MAIN1 or Duel.GetCurrentPhase()==PHASE_MAIN2
 end
 function c51600132.tfilter(c,tp)
-	local b1=c:IsSetCard(0x516)
+	local b1=c:IsSetCard(0x910)
 	return c:IsFaceup() and Duel.GetMZoneCount(tp,c)>0 and b1 
 end
 function c51600132.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
@@ -61,7 +60,7 @@ function c51600132.spc(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function c51600132.spfilter(c, e, tp)
-	return c:IsSetCard(0x516) and not c:IsCode(51600132) and c:IsCanBeSpecialSummoned(e, 0, tp, false, false)
+	return c:IsSetCard(0x910) and not c:IsCode(51600132) and c:IsCanBeSpecialSummoned(e, 0, tp, false, false)
 end
 
 function c51600132.spt(e, tp, eg, ep, ev, re, r, rp, chk)

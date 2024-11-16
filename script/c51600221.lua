@@ -42,14 +42,14 @@ function cm.target(e,tp,eg,ep,ev,re,r,rp,chk)
 		if e:GetLabel()==0 then return false end
 		e:SetLabel(0)
 		return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-			and Duel.IsPlayerCanSpecialSummonMonster(tp,m,0x516,TYPES_NORMAL_TRAP_MONSTER,1900,1000,5,RACE_MACHINE,ATTRIBUTE_EARTH) end
+			and Duel.IsPlayerCanSpecialSummonMonster(tp,m,0x910,TYPES_NORMAL_TRAP_MONSTER,1900,1000,5,RACE_MACHINE,ATTRIBUTE_EARTH) end
 	e:SetLabel(0)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
 function cm.activate(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
 	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) and Duel.IsPlayerCanSpecialSummonMonster(tp,m,0x516,TYPES_NORMAL_TRAP_MONSTER,1900,1000,5,RACE_MACHINE,ATTRIBUTE_EARTH) then
+	if c:IsRelateToEffect(e) and Duel.IsPlayerCanSpecialSummonMonster(tp,m,0x910,TYPES_NORMAL_TRAP_MONSTER,1900,1000,5,RACE_MACHINE,ATTRIBUTE_EARTH) then
 		c:AddMonsterAttribute(TYPE_NORMAL)
 		Duel.SpecialSummon(c,0,tp,tp,true,false,POS_FACEUP_DEFENSE)
 	end
@@ -58,10 +58,10 @@ function cm.actcon(e)
 	return Duel.IsExistingMatchingCard(cm.filter,e:GetHandlerPlayer(),LOCATION_MZONE,0,1,nil)
 end
 function cm.filter(c)
-	return c:IsSetCard(0x516) and c:IsFaceup()
+	return c:IsSetCard(0x910) and c:IsFaceup()
 end
 function cm.spfilter(c,e,tp)
-	return c:IsSetCard(0x516) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsSetCard(0x910) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function cm.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_GRAVE) and chkc:IsControler(tp) and cm.spfilter(chkc,e,tp) end

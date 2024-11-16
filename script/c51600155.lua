@@ -4,9 +4,8 @@ function c51600155.initial_effect(c)
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(51600155,0))
 	e1:SetCategory(CATEGORY_DESTROY+CATEGORY_SPECIAL_SUMMON)
-	e1:SetType(EFFECT_TYPE_QUICK_O)
+	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetRange(LOCATION_REMOVED)
 	e1:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
 	e1:SetCountLimit(1,51600155)
@@ -14,16 +13,14 @@ function c51600155.initial_effect(c)
 	e1:SetTarget(c51600155.sptg)
 	e1:SetOperation(c51600155.spop)
 	c:RegisterEffect(e1)
-	  --search
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(51600155,1))
-	e2:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
+	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e2:SetType(EFFECT_TYPE_IGNITION)
-	e2:SetRange(LOCATION_GRAVE)
+	e2:SetRange(LOCATION_MZONE)
 	e2:SetCountLimit(1,51600156)
-	e2:SetCost(aux.bfgcost)
-	e2:SetTarget(c51600155.thtg)
-	e2:SetOperation(c51600155.thop)
+	e2:SetTarget(c51600155.target)
+	e2:SetOperation(c51600155.operation)
 	c:RegisterEffect(e2)
 end
 
@@ -33,7 +30,7 @@ function c51600155.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetCurrentPhase()==PHASE_MAIN1 or Duel.GetCurrentPhase()==PHASE_MAIN2
 end
 function c51600155.tfilter(c,tp)
-	local b1=c:IsSetCard(0x516)
+	local b1=c:IsSetCard(0x910)
 	return c:IsFaceup() and Duel.GetMZoneCount(tp,c)>0 and b1 
 end
 function c51600155.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
@@ -56,20 +53,35 @@ function c51600155.spop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
-
-
-function c51600155.thfilter(c)
-	return c:IsSetCard(0x516) and c:IsType(TYPE_MONSTER) and not c:IsCode(51600155) and c:IsAbleToHand()
+function c51600155.filter(c)
+	return c:IsFaceup() and c:IsSetCard(0x910) and c:IsLevelAbove(1)
 end
-function c51600155.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c51600155.thfilter,tp,LOCATION_DECK,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
+function c51600155.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and c51600155.filter(chkc) end
+	if chk==0 then return Duel.IsExistingTarget(c51600155.filter,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
+	local g=Duel.SelectTarget(tp,c51600155.filter,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
+	local tc=g:GetFirst()
+	local op=0
+	if tc:IsLevel(1) then op=Duel.SelectOption(tp,aux.Stringid(51600155,1))
+	else op=Duel.SelectOption(tp,aux.Stringid(51600155,1),aux.Stringid(51600155,2)) end
+	e:SetLabel(op)
 end
-function c51600155.thop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=Duel.SelectMatchingCard(tp,c51600155.thfilter,tp,LOCATION_DECK,0,1,1,nil)
-	if g:GetCount()>0 then
-		Duel.SendtoHand(g,nil,REASON_EFFECT)
-		Duel.ConfirmCards(1-tp,g)
+function c51600155.operation(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tc=Duel.GetFirstTarget()
+	if tc:IsFaceup() and tc:IsRelateToEffect(e) then
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		e1:SetCode(EFFECT_UPDATE_LEVEL)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+		if e:GetLabel()==0 then
+			e1:SetValue(2)
+		else e1:SetValue(-2) end
+		tc:RegisterEffect(e1)
 	end
 end
+
+
+

@@ -8,7 +8,7 @@ function c51600175.initial_effect(c)
 	e1:SetCategory(CATEGORY_DRAW+CATEGORY_TOGRAVE+CATEGORY_HANDES+CATEGORY_DECKDES)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_MZONE)
-	e1:SetCountLimit(1)
+	e1:SetCountLimit(1,51600175)
 	e1:SetCost(c51600175.thcost)
 	e1:SetTarget(c51600175.drtg)
 	e1:SetOperation(c51600175.drop)
@@ -22,7 +22,7 @@ function c51600175.initial_effect(c)
 	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e2:SetCode(EVENT_FREE_CHAIN)
 	e2:SetRange(LOCATION_MZONE)
-	e2:SetCountLimit(1)
+	e2:SetCountLimit(1,51600176)
 	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
 	e2:SetCost(c51600175.descost)
 	e2:SetTarget(c51600175.destg)
@@ -33,7 +33,7 @@ end
 
 
 function c51600175.ovfilter(c)
-	return c:IsFaceup() and c:IsSetCard(0x516) and not c:IsCode(51600175) and c:IsType(TYPE_XYZ)
+	return c:IsFaceup() and c:IsSetCard(0x910) and not c:IsCode(51600175) and c:IsType(TYPE_XYZ)
 end
 function c51600175.xyzop(e,tp,chk)
 	if chk==0 then return true end
@@ -52,7 +52,7 @@ function c51600175.drtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_HANDES,nil,0,tp,1)
 end
 function c51600175.tgfilter(c)
-	return c:IsSetCard(0x516) and c:IsAbleToGrave()
+	return c:IsSetCard(0x910) and c:IsAbleToGrave()
 end
 function c51600175.drop(e,tp,eg,ep,ev,re,r,rp)
 	local p=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER)
@@ -62,7 +62,7 @@ function c51600175.drop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.DiscardHand(tp,nil,1,1,REASON_EFFECT+REASON_DISCARD)
 		local g=Duel.GetOperatedGroup()
 		local tc=g:GetFirst()
-		if  tc:IsSetCard(0x516) and tc:IsType(TYPE_MONSTER) and 
+		if  tc:IsSetCard(0x910) and tc:IsType(TYPE_MONSTER) and 
 			Duel.IsExistingMatchingCard(c51600175.tgfilter,tp,LOCATION_DECK,0,1,nil) 
 			and Duel.SelectYesNo(tp,aux.Stringid(51600175,3)) then
 			Duel.BreakEffect()

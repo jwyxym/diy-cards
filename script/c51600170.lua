@@ -46,10 +46,10 @@ function c51600170.initial_effect(c)
 end
 
 function c51600170.matfilter(c)
-	return c:IsSetCard(0x516) and c:IsType(TYPE_MONSTER)
+	return c:IsSetCard(0x910) and c:IsType(TYPE_MONSTER)
 end
 function c51600170.atkfilter(c)
-	return c:IsFaceup() and c:IsSetCard(0x516) and c:IsType(TYPE_MONSTER)
+	return c:IsFaceup() and c:IsSetCard(0x910) and c:IsType(TYPE_MONSTER)
 end
 function c51600170.atkcon(e)
 	local tp=e:GetHandlerPlayer()
@@ -75,7 +75,7 @@ function c51600170.disop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function c51600170.spfilter(c,e,tp)
-	return c:IsFaceup() and c:IsSetCard(0x516) and c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsFaceup() and c:IsSetCard(0x910) and c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function c51600170.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0

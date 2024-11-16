@@ -35,7 +35,7 @@ function c21300358.target(e,tp,eg,ep,ev,re,r,rp,chk)
 		local res=Duel.IsExistingMatchingCard(c21300358.filter2,tp,LOCATION_EXTRA,0,1,nil,e,tp,mg1,nil,chkf)
 		if not res then
 			local ce=Duel.GetFusionMaterial(tp)
-			if ce~nil then
+			if ce~=nil then
 				local fgroup=ce:GetTarget()
 				local mg2=fgroup(ce,e,tp)
 				local mf=ce:GetValue()

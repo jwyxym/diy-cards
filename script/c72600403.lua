@@ -54,7 +54,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e5)
 end
 function s.cnfilter(c)
-	return c:IsFaceup() and c:IsRace(RACE_DRAGON) and c:IsType(TYPE_TUNER)
+	return c:IsFaceup() and c:IsRace(RACE_DRAGON) and not c:IsType(TYPE_TUNER)
 end
 function s.tntg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and s.cnfilter(chkc) end
@@ -73,6 +73,7 @@ function s.tnop(e,tp,eg,ep,ev,re,r,rp)
 		e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
 		e1:SetValue(TYPE_TUNER)
 		tc:RegisterEffect(e1)
+		Duel.Recover(tp,1000,REASON_EFFECT)
 	end
 end
 function s.atkfilter(c)
@@ -136,7 +137,7 @@ function s.disop(e,tp,eg,ep,ev,re,r,rp)
 		if Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.IsPlayerCanSpecialSummonMonster(tp,72600406,0,TYPES_TOKEN_MONSTER+TYPE_TUNER,0,0,3,RACE_DRAGON,ATTRIBUTE_LIGHT)
 			and Duel.SelectYesNo(tp,aux.Stringid(id,4)) then
 			Duel.BreakEffect()
-			local token=Duel.CreateToken(tp,id+72600406)
+			local token=Duel.CreateToken(tp,72600406)
 			Duel.SpecialSummon(token,0,tp,tp,false,false,POS_FACEUP)
 		end
 	end

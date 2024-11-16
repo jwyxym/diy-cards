@@ -43,6 +43,7 @@ function c19000002.initial_effect(c)
 	e5:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_F)
 	e5:SetCode(EVENT_PHASE+PHASE_END)
 	e5:SetRange(LOCATION_FZONE)
+	e6:SetCondition(c19000002.thcon)
 	e5:SetCost(c19000002.tgcost)
 	e5:SetTarget(c19000002.tgtg)
 	e5:SetOperation(c19000002.tgop)
@@ -95,6 +96,9 @@ function c19000002.spop(e,tp,eg,ep,ev,re,r,rp)
 	local e3=e1:Clone()
 	e3:SetCode(EFFECT_CANNOT_FLIP_SUMMON)
 	Duel.RegisterEffect(e3,tp)
+end
+function c19000002.thcon(e,tp,eg,ep,ev,re,r,rp)
+	return tp==Duel.GetTurnPlayer()
 end
 function c19000002.tgcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end

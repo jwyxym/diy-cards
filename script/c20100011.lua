@@ -1,11 +1,5 @@
 --Super-PLU-Infection
 function c20100011.initial_effect(c)
-	--act in hand
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_SINGLE)
-	e0:SetCode(EFFECT_QP_ACT_IN_NTPHAND)
-	e0:SetCondition(c20100011.handcon)
-	c:RegisterEffect(e0)
 	--immune
 	local e1=Effect.CreateEffect(c)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
@@ -47,12 +41,6 @@ function c20100011.operation(e,tp,eg,ep,ev,re,r,rp)
 end
 function c20100011.efilter(e,te)
 	return te:IsActiveType(TYPE_SPELL+TYPE_TRAP+TYPE_MONSTER) and te:GetOwner()~=e:GetOwner()
-end
-function c20100011.cfilter1(c)
-	return c:IsFaceup() and c:IsSetCard(0xb28)
-end
-function c20100011.handcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(c20100011.cfilter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil)
 end
 function c20100011.repfilter(c,tp)
 	return c:IsFaceup() and c:IsSetCard(0xb28) and c:IsControler(tp) and c:IsReason(REASON_EFFECT+REASON_BATTLE) and not c:IsReason(REASON_REPLACE)

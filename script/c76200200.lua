@@ -42,7 +42,7 @@ function s.initial_effect(c)
 	end
 end
 function s.check(c)
-	return c and c:IsType(TYPE_XYZ)
+	return c and c:IsType(TYPE_XYZ) and c:IsRace(RACE_DRAGON)
 end
 function s.checkop(e,tp,eg,ep,ev,re,r,rp)
 	if s.check(Duel.GetAttacker()) or s.check(Duel.GetAttackTarget()) then
@@ -51,7 +51,7 @@ function s.checkop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function s.ovfilter(c)
-	return c:IsFaceup() and c:IsType(TYPE_XYZ)
+	return c:IsFaceup() and c:IsType(TYPE_XYZ) and c:IsRace(RACE_DRAGON)
 end
 function s.xyzop(e,tp,chk)
 	if chk==0 then return Duel.GetFlagEffect(tp,id)>0 and Duel.GetFlagEffect(tp,id+o*100)==0 end

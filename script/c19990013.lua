@@ -11,12 +11,6 @@ function c19990013.initial_effect(c)
 	e1:SetTarget(c19990013.target)
 	e1:SetOperation(c19990013.activate)
 	c:RegisterEffect(e1)
-	--act in hand
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_SINGLE)
-	e2:SetCode(EFFECT_TRAP_ACT_IN_HAND)
-	e2:SetCondition(c19990013.handcon)
-	c:RegisterEffect(e2)
 end
 function c19990013.condition(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsChainNegatable(ev) and re:IsActiveType(TYPE_MONSTER)
@@ -42,10 +36,4 @@ function c19990013.activate(e,tp,eg,ep,ev,re,r,rp)
 	if re:GetHandler():IsRelateToEffect(re) then
 		Duel.Destroy(eg,REASON_EFFECT)
 	end
-end
-function c19990013.filter(c)
-	return c:IsFaceup() and c:IsSetCard(0xb29) and c:IsType(TYPE_SYNCHRO+TYPE_XYZ+TYPE_LINK)
-end
-function c19990013.handcon(e,c)
-	return Duel.IsExistingMatchingCard(c19990013.filter,e:GetHandlerPlayer(),LOCATION_MZONE,0,1,nil)
 end

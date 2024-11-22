@@ -79,7 +79,7 @@ function this.op(e,tp,eg,ep,ev,re,reason,rp)
 		Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
 	else
 	   if Duel.Destroy(tc,REASON_EFFECT)>0 then
-		Duel.Damage(1-tp,1500,REASON_EFFECT)
+		Duel.Damage(1-tp,2000,REASON_EFFECT)
 	   end
 	end
 end

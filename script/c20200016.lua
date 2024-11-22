@@ -57,3 +57,6 @@ function c20200016.spsop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
 	end
 end
+function c20200016.tnval(e,c)
+	return e:GetHandler():IsControler(c:GetControler())
+end

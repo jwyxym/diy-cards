@@ -1,77 +1,136 @@
---俯瞰苍界之鸦
-local cm,m,o=GetID()
-if not pcall(function() require("expansions/script/c20000000") end) then require("script/c20000000") end
-fu_kurusu = fu_kurusu or {}
-function fu_kurusu.A(c,code,cat,tg,op)
-	aux.AddCodeList(c,20000001)
-	local e1=fuef.B_A(c,0,cat,nil,"TG","O",fu_kurusu.A_con1,nil,tg,op,c)
-	local e2=fuef.B_A(c,"TH","SH",nil,nil,"O",nil,fu_kurusu.A_cos2,fu_kurusu.A_tg2,fu_kurusu.A_op2,c)
-	if not fu_kurusu.glo then
-		fu_kurusu.glo={0,0}
-		local ge1=fuef.FC(c,nil,EVENT_CHAINING,nil,nil,nil,fu_kurusu.glocon1,fu_kurusu.gloop1(1),1)
-		local ge2=fuef.Clone(ge1,1,{"COD",EVENT_CHAIN_NEGATED},{"OP",fu_kurusu.gloop1()})
-		local ge3=fuef.FC(c,nil,EVENT_PHASE_START+PHASE_DRAW,nil,nil,nil,nil,fu_kurusu.gloop3,1)
+--
+function c20000002.initial_effect(c)
+	c:SetSPSummonOnce(20000002)
+	--cannot special summon
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_SINGLE)
+	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0:SetCode(EFFECT_SPSUMMON_CONDITION)
+	e0:SetValue(c20000002.splimit)
+	c:RegisterEffect(e0)
+	--cost
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e1:SetCode(EVENT_PHASE+PHASE_BATTLE_START)
+	e1:SetCountLimit(1)
+	e1:SetDescription(aux.Stringid(20000002,5))
+	e1:SetRange(LOCATION_MZONE)
+	e1:SetCondition(c20000002.mtcon)
+	e1:SetOperation(c20000002.mtop)
+	c:RegisterEffect(e1)
+	--Special Summon1
+	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(20000002,3))
+	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e2:SetType(EFFECT_TYPE_IGNITION)
+	e2:SetRange(LOCATION_HAND+LOCATION_GRAVE)
+	e2:SetCountLimit(1,EFFECT_COUNT_CODE_SINGLE)
+	e2:SetCost(c20000002.spcost1)
+	e2:SetTarget(c20000002.sptg1)
+	e2:SetOperation(c20000002.spop1)
+	c:RegisterEffect(e2)
+	local e3=e2:Clone()
+	e3:SetDescription(aux.Stringid(20000002,2))
+	e3:SetCost(c20000002.spcost2)
+	c:RegisterEffect(e3)
+	--spsummon
+	local e4=Effect.CreateEffect(c)
+	e4:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e4:SetProperty(EFFECT_FLAG_DELAY)
+	e4:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e4:SetCountLimit(1,20000002)
+	e4:SetTarget(c20000002.sptg2)
+	e4:SetOperation(c20000002.spop2)
+	c:RegisterEffect(e4)
+	--disable summon
+	local e5=Effect.CreateEffect(c)
+	e5:SetType(EFFECT_TYPE_FIELD)
+	e5:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e5:SetRange(LOCATION_MZONE)
+	e5:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e5:SetTargetRange(1,0)
+	e5:SetTarget(c20000002.sumlimit)
+	c:RegisterEffect(e5)
+	local e6=e5:Clone()
+	e6:SetCode(EFFECT_CANNOT_SUMMON)
+	c:RegisterEffect(e6)
+	local e7=e5:Clone()
+	e7:SetCode(EFFECT_CANNOT_FLIP_SUMMON)
+	c:RegisterEffect(e7)
+end
+function c20000002.sumlimit(e,c,sump,sumtype,sumpos,targetp)
+	return not c:IsSetCard(0xb33)
+end
+function c20000002.splimit(e,se,sp,st)
+	return se:IsHasType(EFFECT_TYPE_ACTIONS)
+end
+function c20000002.mtcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetTurnPlayer()==tp
+end
+function c20000002.cfilter(c)
+	return c:IsCode(20000010) and not c:IsPublic()
+end
+function c20000002.mtop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	Duel.HintSelection(Group.FromCards(c))
+	local g=Duel.GetMatchingGroup(c20000002.cfilter,tp,LOCATION_HAND,0,nil)
+	local sel=1
+	if g:GetCount()~=0 then
+		sel=Duel.SelectOption(tp,aux.Stringid(20000002,0),aux.Stringid(20000002,1))
+	else
+		sel=Duel.SelectOption(tp,aux.Stringid(20000002,1))+1
 	end
-	return e1,e2
-end
-function fu_kurusu.glocon1(e,tp,eg,ep,ev,re,r,rp)
-	return re:GetHandler():IsCode(20000001)
-end
-function fu_kurusu.gloop1(isadd)
-	return function(e,tp,eg,ep,ev,re,r,rp)
-		fu_kurusu.glo[rp+1]=fu_kurusu.glo[rp+1]+(isadd and 1 or -1)
+	if sel==0 then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
+		local cg=g:Select(tp,1,1,nil)
+		Duel.ConfirmCards(1-tp,cg)
+		Duel.ShuffleHand(tp)
+	else
+		Duel.Destroy(c,REASON_COST)
 	end
 end
-function fu_kurusu.gloop3(e,tp,eg,ep,ev,re,r,rp)
-	fu_kurusu.glo={0,0}
+function c20000002.spcost1(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(c20000002.cfilter,tp,LOCATION_HAND,0,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
+	local g=Duel.SelectMatchingCard(tp,c20000002.cfilter,tp,LOCATION_HAND,0,1,1,nil)
+	Duel.ConfirmCards(1-tp,g)
+	Duel.ShuffleHand(tp)
 end
-function fu_kurusu.RH(e,tp,eg,ep,ev,re,r,rp)
-	local res={RESET_PHASE+PHASE_STANDBY,Duel.GetCurrentPhase()<=PHASE_STANDBY and 2 or 1}
-	fuef.FC(e,{20000002,0},EVENT_PHASE+PHASE_STANDBY,nil,nil,1,nil,fu_kurusu.RH_op,tp,res,Duel.GetTurnCount())
+function c20000002.costfilter(c)
+	return c:IsSetCard(0xb33) and c:IsType(TYPE_MONSTER) and c:IsAbleToRemoveAsCost()
 end
-function fu_kurusu.A_con1(e,tp,eg,ep,ev,re,r,rp)
-	return fu_kurusu.glo[tp+1]>0
-end
-function fu_kurusu.A_cos2(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return fugf.GetFilter(tp,"G","IsTyp+AbleTo",{"S","+R"},nil,1) end
+function c20000002.spcost2(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return Duel.IsExistingMatchingCard(c20000002.costfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,c) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-	local g=fugf.SelectFilter(tp,"G","IsTyp+AbleTo",{"S","+R"},nil,1)
+	local g=Duel.SelectMatchingCard(tp,c20000002.costfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,1,c)
 	Duel.Remove(g,POS_FACEUP,REASON_COST)
 end
-function fu_kurusu.A_tg2(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return fugf.GetFilter(tp,"D","IsCode+AbleTo",{20000001,"H"},nil,1) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
+function c20000002.sptg1(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
-function fu_kurusu.A_op2(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local tc=fugf.SelectFilter(tp,"D","IsCode+AbleTo",{20000001,"H"},nil,1):GetFirst()
-	if not tc then return end
-	Duel.SendtoHand(tc,nil,REASON_EFFECT)
-	Duel.ConfirmCards(1-tp,tc)
+function c20000002.spop1(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if not c:IsRelateToEffect(e) then return end
+	Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
 end
-function fu_kurusu.RH_op(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.GetTurnCount()~=e:GetLabel() and fugf.GetFilter(tp,"G","IsTyp+AbleTo",{"S","H"},nil,1) then
-		Duel.Hint(HINT_CARD,0,e:GetHandler():GetCode())
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-		local tc=fugf.SelectFilter(tp,"G","IsTyp+AbleTo+GChk",{"S","H"},nil,1):GetFirst()
-		if tc then Duel.SendtoHand(tc,nil,REASON_EFFECT) end
+function c20000002.filter(c,e,tp)
+	return c:IsSetCard(0xb33) and not c:IsCode(20000002) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+end
+function c20000002.sptg2(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and Duel.IsExistingMatchingCard(c20000002.filter,tp,LOCATION_GRAVE,0,1,nil,e,tp) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_GRAVE)
+end
+function c20000002.spop2(e,tp,eg,ep,ev,re,r,rp)
+	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local g=Duel.SelectMatchingCard(tp,c20000002.filter,tp,LOCATION_GRAVE,0,1,1,nil,e,tp)
+	if g:GetCount()>0 then
+		Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
 	end
-	e:Reset()
-end
-if not cm then return end
---------------------------------------------------------
-function cm.initial_effect(c)
-	local e1,e2=fu_kurusu.A(c,m,"TH",cm.tg,cm.op)
-end
---e1
-function cm.tg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return fucf.Filter(chkc,"IsLoc+IsTyp+AbleTo-IsCode","G","S","H",m) end
-	if chk==0 then return fugf.GetFilter(tp,"G+G","IsTyp+AbleTo+TgChk-IsCode",{"S","H",e,m},nil,1) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=fugf.SelectTg(tp,"G+G","IsTyp+AbleTo+TgChk-IsCode",{"S","H",e,m},nil,1)
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,g,1,0,16)
-end
-function cm.op(e,tp,eg,ep,ev,re,r,rp)
-	local tc=Duel.GetFirstTarget()
-	if tc and Duel.SendtoHand(tc,tp,REASON_EFFECT)>0 then fu_kurusu.RH(e,tp,eg,ep,ev,re,r,rp) end
 end

@@ -2,7 +2,8 @@
 function c51600190.initial_effect(c)
 	c:EnableCounterPermit(0x065)
 	--synchro summon
-	aux.AddSynchroMixProcedure(c,aux.FilterBoolFunction(c51600190.sfilter),nil,nil,aux.Tuner(Card.IsSetCard,0x910),1,99)
+	aux.AddSynchroProcedure(c,nil,aux.NonTuner(Card.IsSynchroType,TYPE_SYNCHRO),1)
+	c:EnableReviveLimit()
 	c:EnableReviveLimit()
 	--cannot special summon
 	local e0=Effect.CreateEffect(c)
@@ -12,18 +13,33 @@ function c51600190.initial_effect(c)
 	e0:SetCode(EFFECT_SPSUMMON_CONDITION)
 	e0:SetValue(aux.synlimit)
 	c:RegisterEffect(e0)
-	--atk/def down
+	--cannot be destroyed
 	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_UPDATE_ATTACK)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
 	e1:SetRange(LOCATION_MZONE)
-	e1:SetTargetRange(0,LOCATION_MZONE)
-	e1:SetValue(c51600190.value1)
+	e1:SetCondition(c51600190.incon)
+	e1:SetValue(1)
 	c:RegisterEffect(e1)
-	local e2=e1:Clone()
-	e2:SetCode(EFFECT_UPDATE_DEFENSE)
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
+	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetCondition(c51600190.incon)
+	e2:SetValue(1)
 	c:RegisterEffect(e2)
-	
+	--cannot be target
+	local e7=Effect.CreateEffect(c)
+	e7:SetType(EFFECT_TYPE_SINGLE)
+	e7:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e7:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+	e7:SetRange(LOCATION_MZONE)
+	e7:SetCondition(c51600190.incon)
+	e7:SetValue(c51600190.efilter)
+	c:RegisterEffect(e7)
+
 	local e3=Effect.CreateEffect(c)
 	e3:SetCategory(CATEGORY_COUNTER)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_F)
@@ -47,19 +63,19 @@ function c51600190.initial_effect(c)
 	e4:SetTarget(c51600190.drtg)
 	e4:SetOperation(c51600190.drop)
 	c:RegisterEffect(e4)
-	--position change
+	--remove
 	local e5=Effect.CreateEffect(c)
 	e5:SetDescription(aux.Stringid(51600190,1))
-	e5:SetCategory(CATEGORY_POSITION)
+	e5:SetCategory(CATEGORY_REMOVE)
 	e5:SetType(EFFECT_TYPE_QUICK_O)
 	e5:SetCode(EVENT_FREE_CHAIN)
 	e5:SetHintTiming(TIMING_END_PHASE,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE+TIMING_STANDBY_PHASE)
 	e5:SetRange(LOCATION_MZONE)
 	e5:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e5:SetCountLimit(1,51600190)
+	e5:SetCountLimit(1,51600191)
 	e5:SetCost(c51600190.cost2)
-	e5:SetTarget(c51600190.postg)
-	e5:SetOperation(c51600190.posop)
+	e5:SetTarget(c51600190.rmtg)
+	e5:SetOperation(c51600190.rmop)
 	c:RegisterEffect(e5)
 	--destory
 	local e6=Effect.CreateEffect(c)
@@ -69,19 +85,17 @@ function c51600190.initial_effect(c)
 	e6:SetCode(EVENT_FREE_CHAIN)
 	e6:SetRange(LOCATION_MZONE)
 	e6:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
-	e6:SetCondition(c51600190.descon)
-	e6:SetCost(c51600190.descost)
+	e6:SetCountLimit(1,51600192)
+	e6:SetCost(c51600190.cost3)
 	e6:SetTarget(c51600190.destg)
 	e6:SetOperation(c51600190.desop)
 	c:RegisterEffect(e6)
 end
-  
-function c51600190.sfilter(c)
-	return c:IsSetCard(0x910) and c:IsType(TYPE_SYNCHRO)
+function c51600190.efilter(e,re,rp)
+	return re:IsActiveType(TYPE_MONSTER)
 end
-
-function c51600190.value1(e,c)
-	return Duel.GetMatchingGroupCount(Card.IsSetCard,e:GetHandlerPlayer(),LOCATION_REMOVED,0,nil,0x910)*-300
+function c51600190.incon(e)
+	return Duel.GetCounter(e:GetHandlerPlayer(),1,0,0x065)>=10
 end
 function c51600190.stcon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(Card.IsType,1,nil,TYPE_MONSTER)
@@ -112,44 +126,39 @@ function c51600190.drop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
 end
 function c51600190.cost2(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsCanRemoveCounter(tp,1,0,0x065,3,REASON_COST) end
+	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
+	Duel.RemoveCounter(tp,1,0,0x065,3,REASON_COST)
+end
+function c51600190.rmtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsOnField() and chkc:IsAbleToRemove() end
+	if chk==0 then return Duel.IsExistingTarget(Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+	local g=Duel.SelectTarget(tp,Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
+	Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,1,0,0)
+end
+function c51600190.rmop(e,tp,eg,ep,ev,re,r,rp)
+	local tc=Duel.GetFirstTarget()
+	if tc:IsRelateToEffect(e) then
+		Duel.Remove(tc,POS_FACEUP,REASON_EFFECT)
+	end
+end
+function c51600190.cost3(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsCanRemoveCounter(tp,1,0,0x065,4,REASON_COST) end
 	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
 	Duel.RemoveCounter(tp,1,0,0x065,4,REASON_COST)
 end
-function c51600190.postg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_MZONE) and c51600190.posfilter(chkc) end
-	if chk==0 then return Duel.IsExistingTarget(c51600190.posfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) end
-	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_POSCHANGE)
-	local g=Duel.SelectTarget(tp,c51600190.posfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
-	Duel.SetOperationInfo(0,CATEGORY_POSITION,g,1,0,0)
-	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
-end
-function c51600190.posop(e,tp,eg,ep,ev,re,r,rp)
-	local tc=Duel.GetFirstTarget()
-	if tc:IsRelateToEffect(e) then
-		Duel.ChangePosition(tc,POS_FACEDOWN_DEFENSE)
-	end
-end
-function c51600190.descon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetTurnPlayer()==1-tp and not e:GetHandler():IsStatus(STATUS_BATTLE_DESTROYED)
-end
-function c51600190.descost(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-	if chk==0 then return c:IsReleasable() and c:GetCounter(0x065)>=8 end
-	Duel.Hint(HINT_OPSELECTED,2-tp,e:GetDescription())
-	Duel.Release(c,REASON_COST)
-end
 function c51600190.destg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-	if chk==0 then return Duel.IsExistingMatchingCard(aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,c) end
+	if chk==0 then return Duel.IsExistingMatchingCard(aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) end
+	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
 	local g=Duel.GetMatchingGroup(aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
-	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,g:GetCount(),0,0)
-	Duel.Hint(HINT_OPSELECTED,2-tp,e:GetDescription())
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
 end
 function c51600190.desop(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetMatchingGroup(aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+	local g=Duel.SelectMatchingCard(tp,aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
 	if g:GetCount()>0 then
+		Duel.HintSelection(g)
 		Duel.Destroy(g,REASON_EFFECT)
 	end
 end

@@ -5,16 +5,11 @@ function c20200015.initial_effect(c)
 	e1:SetCategory(CATEGORY_NEGATE+CATEGORY_TODECK)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_CHAINING)
+	e1:SetCountLimit(1,20200015)
 	e1:SetCondition(c20200015.condition)
 	e1:SetTarget(c20200015.target)
 	e1:SetOperation(c20200015.activate)
 	c:RegisterEffect(e1)
-	--act in hand
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_SINGLE)
-	e2:SetCode(EFFECT_TRAP_ACT_IN_HAND)
-	e2:SetCondition(c20200015.handcon)
-	c:RegisterEffect(e2)
 end
 function c20200015.cfilter(c)
 	return c:IsCode(20200003) and c:IsFaceup()
@@ -37,7 +32,4 @@ function c20200015.activate(e,tp,eg,ep,ev,re,r,rp)
 		ec:CancelToGrave()
 		Duel.SendtoDeck(ec,nil,2,REASON_EFFECT)
 	end
-end
-function c20200015.handcon(e,c)
-    return Duel.IsExistingMatchingCard(c20200015.cfilter,e:GetHandlerPlayer(),LOCATION_MZONE,0,1,nil)
 end

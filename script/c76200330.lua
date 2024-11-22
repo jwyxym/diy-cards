@@ -3,6 +3,7 @@ local this,id,ofs=GetID()
 function this.initial_effect(c)
 	c:EnableReviveLimit()
 	aux.AddXyzProcedure(c,nil,12,3,this.ovfilter,aux.Stringid(id,0),3,this.xyzop)
+	--
 	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_TRIGGER_O+EFFECT_TYPE_SINGLE)
 	e2:SetCode(EVENT_SPSUMMON_SUCCESS)
@@ -10,13 +11,25 @@ function this.initial_effect(c)
 	e2:SetTarget(this.settg)
 	e2:SetOperation(this.setop)
 	c:RegisterEffect(e2)
+	--
 	aux.EnableChangeCode(c,76200305,LOCATION_ONFIELD)
+	--
+	local e9=Effect.CreateEffect(c)
+	e9:SetDescription(aux.Stringid(id,0))
+	e9:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_F)
+	e9:SetCategory(CATEGORY_DESTROY)
+	e9:SetCode(EVENT_BATTLE_DESTROYING)
+	e9:SetCondition(aux.bdocon)
+	e9:SetTarget(this.detg)
+	e9:SetOperation(this.deop)
+	c:RegisterEffect(e9)
+	--
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_SINGLE)
 	e3:SetCode(EFFECT_IMMUNE_EFFECT)
 	e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
 	e3:SetRange(LOCATION_MZONE)
-    e3:SetCondition(this.imcon)
+	e3:SetCondition(this.imcon)
 	e3:SetValue(this.efilter)
 	c:RegisterEffect(e3)
 	if not this.global_check then
@@ -48,7 +61,7 @@ function this.filter(c)
 	return c:IsCode(76200360) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsSSetable()
 end
 function this.setcon(e,tp,eg,ep,ev,re,r,rp)
-    return e:GetHandler():IsSummonType(SUMMON_TYPE_XYZ)
+	return e:GetHandler():IsSummonType(SUMMON_TYPE_XYZ)
 end
 function this.settg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0
@@ -60,15 +73,27 @@ function this.setop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.SelectMatchingCard(tp,this.filter,tp,LOCATION_DECK,0,1,1,nil)
 	local tc=g:GetFirst()
 	if tc then
-        Duel.SSet(tp,tc)
+		Duel.SSet(tp,tc)
 	end
 end
 function this.imfilter(c)
-    return c:IsCode(76200306) and c:IsFaceup()
+	return c:IsCode(76200306) and c:IsFaceup()
 end
 function this.imcon(e,tp,eg,ep,ev,re,r,rp)
-    return Duel.GetMatchingGroupCount(this.imfilter,tp,LOCATION_SZONE,0,nil)>=1
+	return Duel.GetMatchingGroupCount(this.imfilter,tp,LOCATION_SZONE,0,nil)>=1
 end
 function this.efilter(e,te)
 	return te:GetOwner()~=e:GetOwner()
+end
+function this.descon(e)
+	return not Duel.IsExistingMatchingCard(Card.IsFaceup,0,LOCATION_FZONE,LOCATION_FZONE,1,nil)
+end
+function this.detg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,0,LOCATION_MZONE,nil)
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,g:GetCount(),0,0)
+end
+function this.deop(e,tp,eg,ep,ev,re,r,rp)
+	local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,0,LOCATION_MZONE,nil)
+	Duel.Destroy(g,REASON_EFFECT)
 end

@@ -39,7 +39,11 @@ function s.regop(e,tp,eg,ep,ev,re,r,rp)
             local label=Duel.GetFlagEffectLabel(p,id)
             if not label then label=0 else Duel.ResetFlagEffect(p,id) end
             label=label+1
-            Duel.RegisterFlagEffect(p,id,RESET_PHASE+PHASE_END,0,1,label)
+            if Duel.GetCurrentPhase()==PHASE_MAIN1 then
+                Duel.RegisterFlagEffect(p,id,RESET_PHASE+PHASE_MAIN1,0,1,label)
+            elseif Duel.GetCurrentPhase()==PHASE_MAIN2 then
+                Duel.RegisterFlagEffect(p,id,RESET_PHASE+PHASE_MAIN2,0,1,label)
+            end
         end
     end
 end

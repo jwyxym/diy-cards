@@ -1,6 +1,7 @@
 --挣扎着活下去，飞向自由
 local s,id,o=GetID()
 function s.initial_effect(c)
+	--negateeffect
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_NEGATE+CATEGORY_REMOVE)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
@@ -11,6 +12,18 @@ function s.initial_effect(c)
 	e1:SetOperation(s.activate)
 	c:RegisterEffect(e1)
 	Duel.AddCustomActivityCounter(s,ACTIVITY_SPSUMMON,s.counterfilter)
+	--to hand
+	local e4=Effect.CreateEffect(c)
+	e4:SetDescription(aux.Stringid(id,0))
+	e4:SetCategory(CATEGORY_TOHAND+CATEGORY_SPECIAL_SUMMON+CATEGORY_GRAVE_ACTION+CATEGORY_GRAVE_SPSUMMON)
+	e4:SetType(EFFECT_TYPE_IGNITION)
+	e4:SetRange(LOCATION_GRAVE)
+	e4:SetCost(aux.bfgcost)
+	e4:SetCountLimit(1,id)
+	e4:SetCost(s.thcost)
+	e4:SetTarget(s.thtg)
+	e4:SetOperation(s.thop)
+	c:RegisterEffect(e4)
 end
 function s.counterfilter(c)
 	return c:IsRace(RACE_DRAGON)
@@ -44,20 +57,15 @@ function s.splimit(e,c)
 	return not c:IsRace(RACE_DRAGON)
 end
 function s.thfilter(c,e,tp)
-	if not (c:IsFaceupEx() and c:IsSetCard(RACE_DRAGON)) then return false end
-	local ft=Duel.GetLocationCount(tp,LOCATION_MZONE)
-	return c:IsAbleToHand() or (ft>0 and c:IsCanBeSpecialSummoned(e,0,tp,false,false))
+	return c:IsSetCard(RACE_DRAGON) and (c:IsAbleToHand() or c:IsCanBeSpecialSummoned(e,0,tp,false,false)) and c:IsFaceupEx()
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_REMOVED,0,1,nil,e,tp) end
+	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,e,tp) end
 end
 function s.thop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_OPERATECARD)
-	local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_REMOVED,0,1,1,nil,e,tp)
-	local ft=Duel.GetLocationCount(tp,LOCATION_MZONE)
-	local tc=g:GetFirst()
+	local tc=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.thfilter),tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,e,tp):GetFirst()
 	if tc then
-		if tc:IsAbleToHand() and (not tc:IsCanBeSpecialSummoned(e,0,tp,false,false) or ft<=0 or Duel.SelectOption(tp,1190,1152)==0) then
+		if not tc:IsCanBeSpecialSummoned(e,0,tp,false,false) or Duel.SelectOption(tp,1190,1152)==0 then
 			Duel.SendtoHand(tc,nil,REASON_EFFECT)
 			Duel.ConfirmCards(1-tp,tc)
 		else

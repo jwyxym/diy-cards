@@ -34,7 +34,7 @@ function s.regop(e,tp,eg,ep,ev,re,r,rp)
     for tc in aux.Next(eg) do
         for p=0,1 do
             local label=Duel.GetFlagEffectLabel(p,id)
-            if not label then label=0 else Duel.ResetFlagEffect(tp,id) end
+            if not label then label=0 else Duel.ResetFlagEffect(p,id) end
             label=label+1
             Duel.RegisterFlagEffect(p,id,RESET_PHASE+PHASE_END,0,1,label)
         end

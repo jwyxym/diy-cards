@@ -35,7 +35,7 @@ function s.thfilter(c,tp)
         and not Duel.IsExistingMatchingCard(Card.IsCode,tp,LOCATION_GRAVE+LOCATION_ONFIELD,0,1,nil,c:GetCode())
 end
 function s.tg(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return Duel.GetMatchingGroup(Card.IsRace,tp,LOCATION_HAND+LOCATION_DECK,0,nil,RACE_DINOSAUR):CheckSubGroup(s.locfilter,2) end
+    if chk==0 then return Duel.IsExistingMatchingCard(Card.IsRace,tp,LOCATION_HAND,0,1,nil,RACE_DINOSAUR) and Duel.IsExistingMatchingCard(Card.IsRace,tp,LOCATION_DECK,0,1,nil,RACE_DINOSAUR) end
     local g=Duel.GetMatchingGroup(Card.IsRace,tp,LOCATION_HAND+LOCATION_DECK,0,nil,RACE_DINOSAUR)
     Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,2,0,0)
     Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)

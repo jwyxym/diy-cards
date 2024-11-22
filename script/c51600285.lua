@@ -121,7 +121,7 @@ function c51600285.splimit(e,c)
 	return c:IsLocation(LOCATION_EXTRA) and not c:IsType(TYPE_FUSION) and c:IsSetCard(0x911)
 end
 function c51600285.ffilter(c,e,tp)
-	return c:IsType(TYPE_FUSION) and Duel.IsExistingMatchingCard(c51600285.spfilter,tp,LOCATION_HAND+LOCATION_DECK,0,1,nil,c,e,tp)
+	return c:IsType(TYPE_FUSION) and c:IsSetCard(0x911) and Duel.IsExistingMatchingCard(c51600285.spfilter,tp,LOCATION_HAND+LOCATION_DECK,0,1,nil,c,e,tp)
 end
 function c51600285.spfilter(c,fc,e,tp)
 	return aux.IsMaterialListCode(fc,c:GetCode()) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)

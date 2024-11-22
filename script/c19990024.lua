@@ -11,12 +11,6 @@ function c19990024.initial_effect(c)
 	e1:SetTarget(c19990024.target)
 	e1:SetOperation(c19990024.activate)
 	c:RegisterEffect(e1)
-	--act in hand
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_SINGLE)
-	e2:SetCode(EFFECT_TRAP_ACT_IN_HAND)
-	e2:SetCondition(c19990024.handcon)
-	c:RegisterEffect(e2)
 	--set
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
@@ -47,12 +41,6 @@ function c19990024.activate(e,tp,eg,ep,ev,re,r,rp)
 		Duel.HintSelection(g)
 		Duel.Destroy(g,REASON_EFFECT)
 	end
-end
-function c19990024.filter(c)
-	return c:IsFaceup() and c:IsSetCard(0xb29) and c:IsType(TYPE_SYNCHRO+TYPE_XYZ+TYPE_LINK)
-end
-function c19990024.handcon(e,c)
-	return Duel.IsExistingMatchingCard(c19990024.filter,e:GetHandlerPlayer(),LOCATION_MZONE,0,1,nil)
 end
 function c19990024.settg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()

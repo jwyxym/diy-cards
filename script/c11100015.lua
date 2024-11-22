@@ -89,9 +89,6 @@ function cm.distg(e,tp,eg,ep,ev,re,r,rp,chk)
 		Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
 		Duel.SetOperationInfo(0,CATEGORY_DESTROY,eg,1,0,0)
 	end
-	if re:GetHandler():IsRelateToEffect(re) then
-		Duel.Destroy(eg,REASON_EFFECT)
-	end
 end
 function cm.disop(e,tp,eg,ep,ev,re,r,rp)
 local c=e:GetHandler()

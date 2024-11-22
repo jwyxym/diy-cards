@@ -1,8 +1,9 @@
 --邪龙使·蕾格蒂维
 local this,id,ofs=GetID()
 function this.initial_effect(c)
-	aux.AddFusionProcFun2(c,this.sfilter,aux.FilterBoolFunction(Card.IsRace,RACE_SPELLCASTER),true)
-	aux.EnablePendulumAttribute(c,false)
+	aux.AddFusionProcFun2(c,this.matfilter1,this.matfilter2,true)
+	aux.AddContactFusionProcedure(c,this.matfilter3,LOCATION_ONFIELD,0,Duel.Remove,POS_FACEUP,REASON_COST)
+	c:EnableReviveLimit()
 	local e3=Effect.CreateEffect(c)
 	e3:SetCategory(CATEGORY_DESTROY+CATEGORY_TOHAND+CATEGORY_SEARCH)
 	e3:SetType(EFFECT_TYPE_IGNITION)
@@ -38,8 +39,18 @@ function this.initial_effect(c)
 	e8:SetOperation(this.tpenop)
 	c:RegisterEffect(e8)
 end
-function this.sfilter(c)
-	return c:IsRace(RACE_DRAGON) and c:IsFusionAttribute(ATTRIBUTE_DARK)
+this.has_text_type=TYPE_UNION
+function this.splimit(e,se,sp,st)
+	return not e:GetHandler():IsLocation(LOCATION_EXTRA)
+end
+function this.matfilter1(c)
+	return c:IsRace(RACE_DRAGON) and c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_PENDULUM)
+end
+function this.matfilter2(c)
+	return c:IsRace(RACE_SPELLCASTER)
+end
+function this.matfilter3(c)
+	return c:IsAbleToRemoveAsCost() and c:IsLocation(LOCATION_MZONE)
 end
 function this.desfilter(c,tp)
 	return Duel.IsExistingMatchingCard(this.thfilter,tp,LOCATION_DECK,0,1,nil,c:GetBaseAttack())

@@ -1,11 +1,5 @@
 --
 function c19990023.initial_effect(c)
-	--act in hand
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_SINGLE)
-	e0:SetCode(EFFECT_TRAP_ACT_IN_HAND)
-	e0:SetCondition(c19990023.handcon)
-	c:RegisterEffect(e0)
 	--Activate
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_DISABLE_SUMMON+CATEGORY_DESTROY)
@@ -23,12 +17,6 @@ function c19990023.initial_effect(c)
 	local e3=e1:Clone()
 	e3:SetCode(EVENT_SPSUMMON)
 	c:RegisterEffect(e3)
-end
-function c19990023.filter(c)
-	return c:IsFaceup() and c:IsSetCard(0xb29) and c:IsType(TYPE_SYNCHRO+TYPE_XYZ+TYPE_LINK)
-end
-function c19990023.handcon(e,c)
-	return Duel.IsExistingMatchingCard(c19990023.filter,e:GetHandlerPlayer(),LOCATION_MZONE,0,1,nil)
 end
 function c19990023.cfilter(c)
 	return c:IsSetCard(0xb29) and not c:IsStatus(STATUS_BATTLE_DESTROYED)

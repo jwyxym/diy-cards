@@ -14,7 +14,7 @@ function cm.initial_effect(c)
 	e1:SetCondition(cm.sprcon)
 	e1:SetOperation(cm.sprop)
 	c:RegisterEffect(e1)
-	xiaoye.MonsterEffectAndGrant(c,m,0,EFFECT_TYPE_IGNITION,0,0,1,0,cm.thtg,cm.thop,0)
+	xiaoye.MonsterEffectAndGrant(c,m,CATEGORY_TOHAND+CATEGORY_SEARCH,EFFECT_TYPE_IGNITION,0,0,1,0,cm.thtg,cm.thop,0)
 end
 function cm.cfilter(c,tp)
 	return c:IsSetCard(0x5660) and c:IsType(TYPE_PENDULUM)

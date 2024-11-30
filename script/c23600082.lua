@@ -28,7 +28,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 end
 function s.rmfilter(c)
-	return c:IsSetCard(0xd8f) and c:IsAbleToGrave()
+	return c:IsSetCard(0xd80) and c:IsAbleToGrave()
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.rmfilter),tp,LOCATION_DECK+LOCATION_HAND+LOCATION_GRAVE,0,nil)
@@ -44,7 +44,7 @@ end
 function s.actcon(e)
 	local tc=Duel.GetAttacker()
 	local tp=e:GetHandlerPlayer()
-	return tc and tc:IsControler(tp) and tc:IsSetCard(0xd8f)
+	return tc and tc:IsControler(tp) and tc:IsSetCard(0xd80)
 end
 function s.spfilter(c,e,tp)
 	return c:IsFaceupEx() and c:IsRace(RACE_MACHINE) and c:IsLevel(9) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)

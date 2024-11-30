@@ -77,7 +77,7 @@ function this.setop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function this.imfilter(c)
-	return c:IsCode(76200306) and c:IsFaceup()
+	return c:IsCode(76200372) and c:IsFaceup()
 end
 function this.imcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetMatchingGroupCount(this.imfilter,tp,LOCATION_SZONE,0,nil)>=1

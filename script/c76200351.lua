@@ -1,12 +1,13 @@
 --环抱着你的希望之星
 local this,id,ofs=GetID()
 function this.initial_effect(c)
+	c:EnableCounterPermit(0x1)
 	--Active
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
-	e1:SetCountLimit(1,57103969+EFFECT_COUNT_CODE_OATH)
+	e1:SetCountLimit(1,id+EFFECT_COUNT_CODE_OATH)
 	e1:SetOperation(this.activate)
 	c:RegisterEffect(e1)
 	--Add Counter

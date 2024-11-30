@@ -2,7 +2,7 @@
 local this,id,ofs=GetID()
 function this.initial_effect(c)
 	c:EnableReviveLimit()
-    aux.AddFusionProcFun2(c,this.matfilter1,this.matfilter2,true)
+	aux.AddFusionProcFun2(c,this.matfilter1,this.matfilter2,true)
 	aux.EnableChangeCode(c,76200200,LOCATION_MZONE+LOCATION_GRAVE)
 	local e2=Effect.CreateEffect(c)
 	e2:SetCategory(CATEGORY_POSITION)
@@ -13,22 +13,22 @@ function this.initial_effect(c)
 	e2:SetTarget(this.postg)
 	e2:SetOperation(this.posop)
 	c:RegisterEffect(e2)
-    local e1=Effect.CreateEffect(c)
-    e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
-    e1:SetType(EFFECT_TYPE_IGNITION)
-    e1:SetRange(LOCATION_GRAVE)
-    e1:SetCountLimit(1,id+1)
-    e1:SetCondition(this.spcon)
-    e1:SetCost(aux.bfgcost)
-    e1:SetTarget(this.sptg)
-    e1:SetOperation(this.spop)
-    c:RegisterEffect(e1)
+	local e1=Effect.CreateEffect(c)
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e1:SetType(EFFECT_TYPE_IGNITION)
+	e1:SetRange(LOCATION_GRAVE)
+	e1:SetCountLimit(1,id+1)
+	e1:SetCondition(this.spcon)
+	e1:SetCost(aux.bfgcost)
+	e1:SetTarget(this.sptg)
+	e1:SetOperation(this.spop)
+	c:RegisterEffect(e1)
 end
 function this.matfilter1(c)
-    return c:IsFusionType(TYPE_FLIP) and c:IsRace(RACE_SPELLCASTER)
+	return c:IsFusionType(TYPE_FLIP) and c:IsRace(RACE_SPELLCASTER)
 end
 function this.matfilter2(c)
-    return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsRace(RACE_SPELLCASTER)
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsRace(RACE_SPELLCASTER)
 end
 function this.postg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsCanChangePosition() end
@@ -44,24 +44,24 @@ function this.posop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function this.acfilter(c)
-    return c:IsFaceup() and c:IsCode(76200306)
+	return c:IsFaceup() and c:IsCode(76200372)
 end
 function this.spfilter(c,e,tp)
-    return c:IsRace(RACE_SPELLCASTER) and c:IsAttack(1200) and c:IsType(TYPE_TUNER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsRace(RACE_SPELLCASTER) and c:IsAttack(1200) and c:IsType(TYPE_TUNER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function this.spcon(e,tp,eg,ep,ev,re,r,rp)
-    return Duel.IsExistingMatchingCard(this.acfilter,tp,LOCATION_ONFIELD,0,1,nil)
+	return Duel.IsExistingMatchingCard(this.acfilter,tp,LOCATION_ONFIELD,0,1,nil)
 end
 function this.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return Duel.IsExistingMatchingCard(this.spfilter,tp,LOCATION_GRAVE,0,1,nil,e,tp) end
-    Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_GRAVE)
+	if chk==0 then return Duel.IsExistingMatchingCard(this.spfilter,tp,LOCATION_GRAVE,0,1,nil,e,tp) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_GRAVE)
 end
 function this.spop(e,tp,eg,ep,ev,re,r,rp)
-    local c=e:GetHandler()
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-    local tc=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(this.spfilter),tp,LOCATION_GRAVE,0,1,1,nil,e,tp):GetFirst()
-    if tc and Duel.SpecialSummonStep(tc,0,tp,tp,false,false,POS_FACEUP) then
-        local e1=Effect.CreateEffect(c)
+	local c=e:GetHandler()
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local tc=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(this.spfilter),tp,LOCATION_GRAVE,0,1,1,nil,e,tp):GetFirst()
+	if tc and Duel.SpecialSummonStep(tc,0,tp,tp,false,false,POS_FACEUP) then
+		local e1=Effect.CreateEffect(c)
 		e1:SetType(EFFECT_TYPE_SINGLE)
 		e1:SetCode(EFFECT_DISABLE)
 		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
@@ -72,6 +72,6 @@ function this.spop(e,tp,eg,ep,ev,re,r,rp)
 		e2:SetValue(RESET_TURN_SET)
 		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
 		tc:RegisterEffect(e2)
-    end
-    Duel.SpecialSummonComplete()
+	end
+	Duel.SpecialSummonComplete()
 end

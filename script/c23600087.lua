@@ -56,6 +56,17 @@ function s.initial_effect(c)
 		Duel.Hint(24,0,aux.Stringid(id,4))
 	end)
 	c:RegisterEffect(e7)
+--召唤词
+local e4=Effect.CreateEffect(c)
+e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+e4:SetCode(EVENT_SPSUMMON_SUCCESS)
+e4:SetCountLimit(1,id+10000)
+e4:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+e4:SetOperation(s.aop)
+c:RegisterEffect(e4)
+end
+function s.aop(e,tp,eg,ep,ev,re,r,rp)
+Debug.Message("「如果你远道而来的意义只是为了倒退重来……」")
 end
 function s.matfilter(c)
 	return c:IsRace(RACE_MACHINE) and c:IsAttribute(ATTRIBUTE_DARK)

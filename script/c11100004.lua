@@ -53,7 +53,7 @@ function cm.thop(e,tp,eg,ep,ev,re,r,rp)
 		if not c:IsRelateToEffect(e) or c:IsImmuneToEffect(e) or not c:IsControler(tp) or Duel.GetLocationCount(tp,LOCATION_MZONE,PLAYER_NONE,0)<=0 then return end
 		local g=Duel.GetMatchingGroup(cm.filter,tp,LOCATION_DECK,0,nil)   
 		 Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOZONE)
-		local s=Duel.SelectDisableField(tp,1,0,LOCATION_MZONE,0)
+		local s=Duel.SelectDisableField(tp,1,LOCATION_MZONE,0,0)
 		local nseq=math.log(bit.rshift(s,16),2)
 	 	Duel.MoveSequence(c,nseq)
 		if g:GetCount()>0 then 

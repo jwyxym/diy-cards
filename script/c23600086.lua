@@ -47,24 +47,24 @@ function s.initial_effect(c)
 		Duel.Hint(24,0,aux.Stringid(id,4))
 	end)
 	c:RegisterEffect(e7)
---召唤词
-local e4=Effect.CreateEffect(c)
-e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-e4:SetCode(EVENT_SPSUMMON_SUCCESS)
-e4:SetCountLimit(1,id+10000)
-e4:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-e4:SetOperation(s.aop)
-c:RegisterEffect(e4)
+	--召唤词
+	local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+	e4:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e4:SetCountLimit(1,id+10000)
+	e4:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e4:SetOperation(s.aop)
+	c:RegisterEffect(e4)
 end
 function s.aop(e,tp,eg,ep,ev,re,r,rp)
-Debug.Message("自无际回音而来，湮灭一切临济死亡的生命！")
+	Debug.Message("自无际回音而来，湮灭一切临济死亡的生命！")
 end
 function s.matfilter(c)
 	return c:IsRace(RACE_MACHINE) and c:IsAttribute(ATTRIBUTE_DARK)
 end
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_XYZ)
-		and e:GetHandler():GetOverlayGroup():IsExists(Card.IsSetCard,1,nil,0xd8f)
+		and e:GetHandler():GetOverlayGroup():IsExists(Card.IsSetCard,1,nil,0xd80)
 end
 function s.filter(c)
 	return c:IsFaceupEx() and c:IsSetCard(0xd8f) and c:IsAbleToHand()
@@ -75,7 +75,7 @@ function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if not c:IsRelateToEffect(e) or not c:GetOverlayGroup():IsExists(Card.IsSetCard,1,nil,0xd8f) then return end
+	if not c:IsRelateToEffect(e) or not c:GetOverlayGroup():IsExists(Card.IsSetCard,1,nil,0xd80) then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
 	local g=Duel.SelectMatchingCard(tp,s.filter,tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil)
 	if g:GetCount()>0 then
@@ -84,7 +84,7 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function s.discon(e,tp,eg,ep,ev,re,r,rp)
-	return e:GetHandler():GetOverlayGroup():IsExists(Card.IsSetCard,1,nil,0xd8f)
+	return e:GetHandler():GetOverlayGroup():IsExists(Card.IsSetCard,1,nil,0xd80)
 end
 function s.discost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,2,REASON_COST) end
@@ -99,7 +99,7 @@ function s.distg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 end
 function s.disop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if not c:IsRelateToEffect(e) or not e:GetHandler():GetOverlayGroup():IsExists(Card.IsSetCard,1,nil,0xd8f) then return end
+	if not c:IsRelateToEffect(e) or not e:GetHandler():GetOverlayGroup():IsExists(Card.IsSetCard,1,nil,0xd80) then return end
 	local tc=Duel.GetFirstTarget()
 	if tc:IsFaceup() and tc:IsRelateToEffect(e) then
 		local e1=Effect.CreateEffect(e:GetHandler())
@@ -142,7 +142,7 @@ function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return c:IsPreviousLocation(LOCATION_ONFIELD) and bit.band(r,REASON_EFFECT+REASON_BATTLE)~=0
 end
 function s.xyzfilter(c,e,tp,mc)
-	return c:IsSetCard(0xd8f) and mc:IsCanBeXyzMaterial(c)
+	return c:IsSetCard(0xd80) and mc:IsCanBeXyzMaterial(c)
 		and not c:IsCode(id)
 		and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_XYZ,tp,false,false) and Duel.GetLocationCountFromEx(tp,tp,mc,c)>0
 end

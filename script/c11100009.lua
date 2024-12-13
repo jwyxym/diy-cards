@@ -29,27 +29,24 @@ function c11100009.initial_effect(c)
 	c:RegisterEffect(e4)
 end
 function cm.ttg(e,tp,eg,ep,ev,re,r,rp,chk)
-if chk==0 then return Duel.IsExistingMatchingCard(cm.filter2,tp,LOCATION_GRAVE,0,1,nil)
-end
+	if chk==0 then return Duel.IsExistingMatchingCard(cm.filter2,tp,LOCATION_GRAVE,0,1,nil)
+	end
 end
 function cm.top(e,tp,eg,ep,ev,re,r,rp)
-local g=Duel.SelectMatchingCard(tp,cm.filter2,tp,LOCATION_GRAVE,0,1,1,nil)
-if Duel.IsExistingMatchingCard(cm.filter3,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) and Duel.SelectYesNo(tp,aux.Stringid(m,0)) then
-local lg=Duel.GetMatchingGroup(cm.filter,tp,LOCATION_MZONE,0,nil)
-local zone=0
-	for tc in aux.Next(g) do
+	local g=Duel.SelectMatchingCard(tp,cm.filter2,tp,LOCATION_GRAVE,0,1,1,nil)
+	if Duel.IsExistingMatchingCard(cm.filter3,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) and Duel.SelectYesNo(tp,aux.Stringid(m,0)) then
+		local lg=Duel.GetMatchingGroup(cm.filter,tp,LOCATION_MZONE,0,nil)
+		local zone=0
+		for tc in aux.Next(lg) do
 		local seq=tc:GetSequence()
-		
-			if seq>0 then zone=zone|(1<<(seq-1)) end
-			if seq<4 then zone=zone|(1<<(seq+1)) end
-	  
+		if seq>0 then zone=zone|(1<<(seq-1)) end
+		if seq<4 then zone=zone|(1<<(seq+1)) end
+		end
+	Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP,zone)
+	else
+	Duel.SendtoHand(g,tp,REASON_EFFECT)
 	end
-Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP,zone)
-else
-Duel.SendtoHand(g,tp,REASON_EFFECT)
-
-end
-local e2=Effect.CreateEffect(e:GetHandler())
+	local e2=Effect.CreateEffect(e:GetHandler())
 	e2:SetType(EFFECT_TYPE_FIELD)
 	e2:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
 	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)

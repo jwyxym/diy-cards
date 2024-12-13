@@ -1,7 +1,7 @@
 --日冕灼耀龙
 function c21300701.initial_effect(c)
 	--xyz summon
-	aux.AddXyzProcedure(c,aux.FilterBoolFunction(Card.IsRace,RACE_DRAGON),12,2)
+	aux.AddXyzProcedure(c,aux.FilterBoolFunction(Card.IsRace,RACE_DRAGON),10,2)
 	c:EnableReviveLimit()
 	--destroy all
 	local e1=Effect.CreateEffect(c) 

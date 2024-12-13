@@ -1,16 +1,16 @@
 --日冕曝龙
 local s,id,o=GetID()
 function s.initial_effect(c)
-    --spsummon
+	--spsummon
 	local e1=Effect.CreateEffect(c)
-    e1:SetCategory(CATEGORY_DESTROY+CATEGORY_SPECIAL_SUMMON)
-    e1:SetRange(LOCATION_HAND+LOCATION_GRAVE)
-    e1:SetType(EFFECT_TYPE_IGNITION)
-    e1:SetCountLimit(1,id)
-    e1:SetTarget(s.sptg)
+	e1:SetCategory(CATEGORY_DESTROY+CATEGORY_SPECIAL_SUMMON)
+	e1:SetRange(LOCATION_HAND+LOCATION_GRAVE)
+	e1:SetType(EFFECT_TYPE_IGNITION)
+	e1:SetCountLimit(1,id)
+	e1:SetTarget(s.sptg)
 	e1:SetOperation(s.spop)
 	c:RegisterEffect(e1)
-    --xyzlv
+	--xyzlv
 	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_SINGLE)
 	e2:SetCode(EFFECT_XYZ_LEVEL)
@@ -19,14 +19,11 @@ function s.initial_effect(c)
 	e2:SetValue(s.xyzlv)
 	e2:SetLabel(8)
 	c:RegisterEffect(e2)
-	local e3=e2:Clone()
-	e3:SetLabel(10)
-	c:RegisterEffect(e3)
-    --search
+	--search
 	local e4=Effect.CreateEffect(c)
-    e4:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
+	e4:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
 	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-    e4:SetCode(EVENT_DESTROYED)
+	e4:SetCode(EVENT_DESTROYED)
 	e4:SetProperty(EFFECT_FLAG_DELAY)
 	e4:SetCountLimit(1,id+o)
 	e4:SetTarget(s.thtg)
@@ -38,7 +35,7 @@ function s.filter(c,tp)
 	return Duel.GetMZoneCount(tp,c)>0
 end
 function s.spfilter(c,e,tp)
-    return c:IsSetCard(0x680) and c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsSetCard(0x680) and c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
@@ -53,15 +50,15 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.SelectMatchingCard(tp,s.filter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,2,2,aux.ExceptThisCard(e),tp)
 	if Duel.Destroy(g,REASON_EFFECT)>0 and c:IsRelateToEffect(e) then
 		Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
-        local sg=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_DECK+LOCATION_HAND+LOCATION_GRAVE,0,nil,e,tp)
-        if sg:GetCount()>0 and Duel.SelectYesNo(tp,aux.Stringid(id,0)) then
+		local sg=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_DECK+LOCATION_HAND+LOCATION_GRAVE,0,nil,e,tp)
+		if sg:GetCount()>0 and Duel.SelectYesNo(tp,aux.Stringid(id,0)) then
 			Duel.BreakEffect()
-            Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-            local tc=sg:Select(tp,1,1,nil)
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+			local tc=sg:Select(tp,1,1,nil)
 			if sg:GetCount()>0 then
-            Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
+			Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
 			end
-        end
+		end
 	end
 end
 --xyzlv
@@ -74,7 +71,7 @@ function s.xyzlv(e,c,rc)
 end
 --search
 function s.thfilter(c)
-    return c:IsSetCard(0x680) and c:IsAbleToHand()
+	return c:IsSetCard(0x680) and c:IsAbleToHand()
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil) end

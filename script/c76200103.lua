@@ -6,6 +6,7 @@ function cm.initial_effect(c)
 	e0:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
 	e0:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 	e0:SetTargetRange(1,0)
+	e0:SetRange(LOCATION_MZONE)
 	e0:SetTarget(cm.splimit)
 	c:RegisterEffect(e0)
 	--level

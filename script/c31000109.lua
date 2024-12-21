@@ -1,7 +1,7 @@
 --布里玛托特 女王城塞·波涛铠壳装着
 function c31000109.initial_effect(c)
 	--xyz summon
-	aux.AddXyzProcedure(c,nil,8,3)
+	aux.AddXyzProcedure(c,nil,8,2)
 	c:EnableReviveLimit()
 	--ind
 	local e1=Effect.CreateEffect(c)

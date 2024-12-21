@@ -30,6 +30,7 @@ function c51900008.initial_effect(c)
 	local e1=Effect.CreateEffect(c) 
 	e1:SetCategory(CATEGORY_TOGRAVE+CATEGORY_REMOVE)
 	e1:SetType(EFFECT_TYPE_IGNITION) 
+	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e1:SetRange(LOCATION_SZONE) 
 	e1:SetCountLimit(1,11900008) 
 	e1:SetCost(c51900008.rmcost)
@@ -103,12 +104,14 @@ function c51900008.rmcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsDiscardable,tp,LOCATION_HAND,0,1,nil) end
 	Duel.DiscardHand(tp,Card.IsDiscardable,1,1,REASON_COST+REASON_DISCARD)
 end
-function c51900008.rmtg(e,tp,eg,ep,ev,re,r,rp,chk) 
+function c51900008.rmtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc) 
+	if chkc then return chkc:IsLocation(LOCATION_ONFIELD) and chkc:IsAbleToRemove(POS_FACEDOWN) 
 	local b1=Duel.IsPlayerCanDiscardDeck(tp,3) 
 	local b2=Duel.IsExistingMatchingCard(Card.IsAbleToGrave,tp,LOCATION_REMOVED,0,3,nil)
-	if chk==0 then return (b1 or b2) and Duel.IsExistingMatchingCard(Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil,POS_DEFENSE) end 
+	if chk==0 then return (b1 or b2) and Duel.IsExistingTarget(Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil,POS_FACEDOWN) end 
+	local g=Duel.SelectTarget(tp,Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil,POS_FACEDOWN)
 	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,3,tp,LOCATION_DECK+LOCATION_REMOVED)
-	Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,1,tp,LOCATION_ONFIELD)
+	Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,g:GetCount(),0,0)
 end 
 function c51900008.rmop(e,tp,eg,ep,ev,re,r,rp)  
 	local c=e:GetHandler() 
@@ -121,10 +124,10 @@ function c51900008.rmop(e,tp,eg,ep,ev,re,r,rp)
 			local sg=Duel.SelectMatchingCard(tp,Card.IsAbleToGrave,tp,LOCATION_REMOVED,0,3,3,nil) 
 			Duel.SendtoGrave(sg,REASON_EFFECT)
 		end 
-		if Duel.IsExistingMatchingCard(Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil,POS_DEFENSE) then 
-			Duel.BreakEffect()
-			local rg=Duel.SelectMatchingCard(tp,Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil,POS_DEFENSE)  
-			Duel.Remove(rg,POS_FACEDOWN,REASON_EFFECT) 
+		local tc=Duel.GetFirstTarget()
+		if tc and tc:IsRelateToEffect(e) then 
+			Duel.BreakEffect() 
+			Duel.Remove(tc,POS_FACEDOWN,REASON_EFFECT) 
 		end 
 	end 
 end 

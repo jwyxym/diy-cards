@@ -23,7 +23,7 @@ end
 function c51900207.tktg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 		and Duel.IsPlayerCanSpecialSummonMonster(tp,51900202,nil,TYPES_TOKEN_MONSTER,2000,2000,8,RACE_BEAST,ATTRIBUTE_DARK) and Duel.IsPlayerCanDiscardDeck(tp,4) end
-	Duel.SetOperationInfo(0,CATEGORY_DECKDES,nil,0,tp,4)
+	Duel.SetOperationInfo(0,CATEGORY_DECKDES,nil,0,tp,3)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,0,0)
 	Duel.SetOperationInfo(0,CATEGORY_TOKEN,nil,1,0,0)
 end

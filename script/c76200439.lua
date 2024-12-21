@@ -91,7 +91,7 @@ function this.thfilter(c)
 end
 function this.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsCanRemoveCounter(tp,0x1,3,REASON_COST) end
-	e:GetHandler():RemoveCounter(tp,0x721,3,REASON_COST)
+	e:GetHandler():RemoveCounter(tp,0x1,3,REASON_COST)
 end
 function this.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(this.thfilter,tp,LOCATION_DECK,0,1,nil) end

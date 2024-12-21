@@ -94,7 +94,7 @@ function c51900005.spfilter1(c,e)
 	return not c:IsImmuneToEffect(e)
 end
 function c51900005.spfilter2(c,e,tp,m,f,gc,chkf)
-	return c:IsType(TYPE_FUSION) and c:IsAttribute(ATTRIBUTE_LIGHT+ATTRIBUTE_DARK) and (not f or f(c))
+	return c:IsType(TYPE_FUSION) and c:IsRace(RACE_DRAGON+RACE_FAIRY) and c:IsAttribute(ATTRIBUTE_LIGHT+ATTRIBUTE_DARK) and (not f or f(c))
 		and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_FUSION,tp,false,false) and c:CheckFusionMaterial(m,gc,chkf)
 end
 function c51900005.futg(e,tp,eg,ep,ev,re,r,rp,chk)

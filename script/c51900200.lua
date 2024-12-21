@@ -49,7 +49,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 		end
 		if e:GetLabel()~=0
 			and Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-			and Duel.IsPlayerCanSpecialSummonMonster(tp,id+1,0,TYPES_TOKEN_MONSTER+TYPE_TUNER,2000,2000,8,e:GetLabel(),ATTRIBUTE_d) then
+			and Duel.IsPlayerCanSpecialSummonMonster(tp,51900202,0,TYPES_TOKEN_MONSTER+TYPE_TUNER,2000,2000,8,e:GetLabel(),ATTRIBUTE_d) then
 			ops[off]=aux.Stringid(id,1)
 			opval[off-1]=2
 			off=off+1
@@ -63,7 +63,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 			Duel.Draw(tp,1,REASON_EFFECT)
 		elseif opval[op]==2 then
 			Duel.BreakEffect()
-			local token=Duel.CreateToken(tp,id+1)
+			local token=Duel.CreateToken(tp,51900202)
 			local e1=Effect.CreateEffect(e:GetHandler())
 			e1:SetType(EFFECT_TYPE_SINGLE)
 			e1:SetCode(EFFECT_CHANGE_RACE)

@@ -67,7 +67,7 @@ function s.thcon(e,tp,eg,ep,ev,re,r,rp)
 		and e:GetHandler():GetOverlayGroup():IsExists(Card.IsSetCard,1,nil,0xd80)
 end
 function s.filter(c)
-	return c:IsFaceupEx() and c:IsSetCard(0xd8f) and c:IsAbleToHand()
+	return c:IsFaceupEx() and c:IsSetCard(0xd80) and c:IsAbleToHand()
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.filter,tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil) end

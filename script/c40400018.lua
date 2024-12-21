@@ -1,0 +1,136 @@
+--算子械-终-π
+local s,id,o=GetID()
+function s.initial_effect(c)
+	c:EnableReviveLimit()
+	aux.AddFusionProcFunRep(c,s.ffilter,12,true)
+	aux.AddContactFusionProcedure(c,Card.IsAbleToRemoveAsCost,LOCATION_HAND+LOCATION_MZONE+LOCATION_GRAVE,0,Duel.Remove,POS_FACEUP,REASON_COST)
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e1:SetCode(EFFECT_SPSUMMON_CONDITION)
+	e1:SetValue(aux.fuslimit)
+	c:RegisterEffect(e1)
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetCode(EFFECT_IMMUNE_EFFECT)
+	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetValue(s.efilter)
+	c:RegisterEffect(e2)
+	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,1))
+	e3:SetCategory(CATEGORY_DRAW)
+	e3:SetType(EFFECT_TYPE_IGNITION)
+	e3:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetCost(s.cost(0))
+	e3:SetTarget(s.drtg)
+	e3:SetOperation(s.drop)
+	c:RegisterEffect(e3)
+	local e4=Effect.CreateEffect(c)
+	e4:SetDescription(aux.Stringid(id,2))
+	e4:SetCategory(CATEGORY_REMOVE)
+	e4:SetType(EFFECT_TYPE_IGNITION)
+	e4:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e4:SetRange(LOCATION_MZONE)
+	e4:SetCost(s.cost(4))
+	e4:SetTarget(s.rmtg)
+	e4:SetOperation(s.rmop)
+	c:RegisterEffect(e4)
+	local e5=Effect.CreateEffect(c)
+	e5:SetDescription(aux.Stringid(id,3))
+	e5:SetCategory(CATEGORY_REMOVE)
+	e5:SetType(EFFECT_TYPE_IGNITION)
+	e5:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e5:SetRange(LOCATION_MZONE)
+	e5:SetCost(s.cost(8))
+	e5:SetTarget(s.destg)
+	e5:SetOperation(s.desop)
+	c:RegisterEffect(e5)
+	local e6=Effect.CreateEffect(c)
+	e6:SetDescription(aux.Stringid(id,4))
+	e6:SetCategory(CATEGORY_TOHAND)
+	e6:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e6:SetCode(EVENT_LEAVE_FIELD)
+	e6:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_CARD_TARGET)
+	e6:SetCondition(s.thcon)
+	e6:SetTarget(s.thtg)
+	e6:SetOperation(s.thop)
+	c:RegisterEffect(e6)
+end
+function s.ffilter(c,fc,sub,mg,sg)
+	return c:IsFusionType(TYPE_NORMAL) and (not sg or not sg:IsExists(Card.IsLevel,1,c,c:GetLevel()))
+end
+function s.efilter(e,re)
+	return e:GetHandlerPlayer()~=re:GetOwnerPlayer()
+end
+function s.cfilter(c,lv)
+	return c:IsFaceupEx() and c:IsType(TYPE_NORMAL)
+		and c:IsLevel(lv) and c:IsAbleToDeckAsCost()
+end
+function s.cost(lv)
+	return function(e,tp,eg,ep,ev,re,r,rp,chk)
+		if chk==0 then return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,lv+1)
+			and Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,lv+2)
+			and Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,lv+3)
+			and Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,lv+4) end
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
+		local g=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,lv+1)
+		local tc1=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,lv+2):GetFirst()
+		local tc2=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,lv+3):GetFirst()
+		local tc3=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,lv+4):GetFirst()
+		g:AddCard(tc1)
+		g:AddCard(tc2)
+		g:AddCard(tc3)
+		Duel.HintSelection(g)
+		Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_COST)
+	end
+end
+function s.drtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsPlayerCanDraw(tp,2) end
+	Duel.SetTargetPlayer(tp)
+	Duel.SetTargetParam(2)
+	Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,2)
+end
+function s.drop(e,tp,eg,ep,ev,re,r,rp)
+	local p,d=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER,CHAININFO_TARGET_PARAM)
+	if Duel.Draw(p,d,REASON_EFFECT)~=0 then
+		Duel.Recover(tp,4000,REASON_EFFECT)
+	end
+end
+function s.rmtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsAbleToRemove,tp,0,LOCATION_GRAVE,1,nil) end
+end
+function s.rmop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Remove(Duel.GetFieldGroup(tp,0,LOCATION_GRAVE),POS_FACEUP,REASON_EFFECT)
+end
+function s.destg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(aux.TRUE,tp,0,LOCATION_MZONE,1,nil) end
+	local sg=Duel.GetMatchingGroup(aux.TRUE,tp,0,LOCATION_MZONE,nil)
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,sg,sg:GetCount(),0,0)
+end
+function s.desop(e,tp,eg,ep,ev,re,r,rp)
+	local sg=Duel.GetMatchingGroup(aux.TRUE,tp,0,LOCATION_MZONE,nil)
+	Duel.Destroy(sg,REASON_EFFECT)
+end
+function s.thcon(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	return c:IsPreviousPosition(POS_FACEUP) and c:IsPreviousLocation(LOCATION_ONFIELD)
+end
+function s.thfilter(c)
+	return c:IsAbleToHand()
+end
+function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_REMOVED) and chkc:IsControler(tp) and s.thfilter(chkc) end
+	if chk==0 then return Duel.IsExistingTarget(s.thfilter,tp,LOCATION_REMOVED,0,3,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectTarget(tp,s.thfilter,tp,LOCATION_REMOVED,0,3,3,nil)
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,g,g:GetCount(),0,0)
+end
+function s.thop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tg=Duel.GetChainInfo(0,CHAININFO_TARGET_CARDS)
+	local rg=tg:Filter(Card.IsRelateToEffect,nil,e)
+	if rg:GetCount()~=3 then return end
+	Duel.SendtoHand(rg,nil,REASON_EFFECT)
+end

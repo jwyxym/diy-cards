@@ -2,7 +2,7 @@
 local s,id,o=GetID()
 function s.initial_effect(c)
 	--link summon
-	aux.AddLinkProcedure(c,nil,2,3,s.lcheck)
+	aux.AddLinkProcedure(c,aux.FilterBoolFunction(Card.IsLinkType,TYPE_EFFECT),2,3,s.lcheck)
 	c:EnableReviveLimit()
 	--tohand
 	local e1=Effect.CreateEffect(c)

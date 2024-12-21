@@ -32,7 +32,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 	local e4=e3:Clone()
 	e4:SetCode(EFFECT_UPDATE_ATTACK)
-	e4:SetValue(s.atkval)
+	e4:SetValue(700)
 	c:RegisterEffect(e4)
 end
 function s.mfilter(c,xyzc)
@@ -101,7 +101,4 @@ function s.tdop(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.condition(e)
 	return e:GetHandler():IsRank(7)
-end
-function s.atkval(e,c)
-	return c:GetOverlayCount()*700
 end

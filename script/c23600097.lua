@@ -87,7 +87,7 @@ function s.matfilter(sg,tp,g)
 	return Duel.IsExistingMatchingCard(s.xyzfilter,tp,LOCATION_EXTRA,0,1,nil,sg)
 end
 function s.xyzfilter(c,mg)
-	return c:IsSetCard(0xd80) and c:IsXyzSummonable(mg,#mg,#mg)
+	return c:IsSetCard(0xd80) and c:IsSpecialSummonable(SUMMON_TYPE_XYZ)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local mg=Duel.GetMatchingGroup(s.filter1,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,nil,e,tp)

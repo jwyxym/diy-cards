@@ -23,22 +23,19 @@ function c47700042.initial_effect(c)
 	e2:SetType(EFFECT_TYPE_QUICK_O)
 	e2:SetCode(EVENT_FREE_CHAIN)
 	e2:SetRange(LOCATION_GRAVE)
+	e2:SetCountLimit(1,44362883)
 	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
 	e2:SetCost(c47700042.spcost)
 	e2:SetTarget(c47700042.sptg)
 	e2:SetOperation(c47700042.spop)
 	c:RegisterEffect(e2)
-	Duel.AddCustomActivityCounter(47700042,ACTIVITY_SPSUMMON,c47700042.counterfilter)
 end
 function c47700042.hcfilter(c)
 	return c:IsFaceup() and c:IsType(TYPE_FUSION)
 end
 function c47700042.handcon(e)
 	return Duel.IsExistingMatchingCard(c47700042.hcfilter,e:GetHandlerPlayer(),LOCATION_MZONE,0,1,nil)
-end
-function c47700042.counterfilter(c)
-	return not c:IsSummonLocation(LOCATION_EXTRA) or c:IsType(TYPE_FUSION)
 end
 function c47700042.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetCustomActivityCount(47700042,tp,ACTIVITY_SPSUMMON)==0 end

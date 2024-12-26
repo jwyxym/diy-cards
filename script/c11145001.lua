@@ -149,13 +149,18 @@ function c11145001.damcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	return c:IsPreviousControler(tp) and c:GetReasonPlayer()==1-tp
 end
+function c11145001.damfilter(c,tp)
+	return c:IsType(TYPE_FIELD)
+end
 function c11145001.damtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end
-	local g=Duel.GetMatchingGroupCount(Card.IsType,c:GetControler(),LOCATION_GRAVE,0,nil,TYPE_FIELD)
+	local c=e:GetHandler()
+	local g=Duel.GetMatchingGroupCount(c11145001.damfilter,c:GetControler(),LOCATION_GRAVE,0,nil)
 	Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,g:GetCount()*500)
 end
 function c11145001.damop(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetMatchingGroupCount(Card.IsType,c:GetControler(),LOCATION_GRAVE,0,nil,TYPE_FIELD)
+	local c=e:GetHandler()
+	local g=Duel.GetMatchingGroupCount(c11145001.damfilter,c:GetControler(),LOCATION_GRAVE,0,nil)
 	if g:GetCount()==0 then return end
 	Duel.Damage(1-tp,g*500,REASON_EFFECT)
 end

@@ -38,7 +38,7 @@ function s.filter(c,race)
 	return c:IsRace(race) or c:IsLocation(LOCATION_HAND)
 end
 function s.tg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsRace,tp,LOCATION_HAND,0,1,nil,RACE_DINOSAUR) and Duel.IsExistingMatchingCard(s.filter,tp,LOCATION_DECK,0,1,nil,RACE_DINOSAUR) end
+	if chk==0 then return Duel.IsExistingMatchingCard(nil,tp,LOCATION_HAND,0,1,nil) and Duel.IsExistingMatchingCard(s.filter,tp,LOCATION_DECK,0,1,nil,RACE_DINOSAUR) end
 	local g=Duel.GetMatchingGroup(Card.IsRace,tp,LOCATION_HAND+LOCATION_DECK,0,nil,RACE_DINOSAUR)
 	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,2,0,0)
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)

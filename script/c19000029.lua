@@ -42,12 +42,11 @@ function c19000029.operation(e,tp,eg,ep,ev,re,r,rp)
 		Duel.SpecialSummon(e:GetHandler(),0,tp,tp,false,false,POS_FACEUP)
 	end
 end
-function c19000029.lvfilter(c,lv)
-	return c:GetLevel()>0 and (c:IsFaceup() or c:IsLocation(LOCATION_GRAVE)) and not c:IsLevel(lv) and (c:IsRace(RACE_FAIRY) or c:IsRace(RACE_WARRIOR))
+function c19000029.lvfilter(c)
+	return c:GetLevel()>0 and (c:IsFaceup() or c:IsLocation(LOCATION_GRAVE)) and (c:IsRace(RACE_FAIRY) or c:IsRace(RACE_WARRIOR))
 end
 function c19000029.lvtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	local lv=e:GetHandler():GetLevel()
-	if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_GRAVE+LOCATION_MZONE) and c19000029.lvfilter(chkc,lv) end
+	if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_GRAVE+LOCATION_MZONE) and c19000029.lvfilter(chkc) end
 	if chk==0 then return Duel.IsExistingTarget(c19000029.lvfilter,tp,LOCATION_GRAVE+LOCATION_MZONE,0,1,nil,lv) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
 	Duel.SelectTarget(tp,c19000029.lvfilter,tp,LOCATION_GRAVE+LOCATION_MZONE,0,1,1,nil,lv)

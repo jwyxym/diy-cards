@@ -58,7 +58,7 @@ function c11145002.chcon(e,tp,eg,ep,ev,re,r,rp)
 	return rp==1-tp and re:IsActiveType(TYPE_MONSTER)
 end
 function c11145002.chtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c11145002.filter,rp,0,LOCATION_SZONE,1,e:GetHandler()) end
+	if chk==0 then return Duel.IsExistingMatchingCard(c11145002.filter,rp,LOCATION_SZONE,LOCATION_SZONE,2,e:GetHandler()) end
 end
 function c11145002.chop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Group.CreateGroup()

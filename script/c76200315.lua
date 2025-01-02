@@ -1,7 +1,7 @@
 --乐园巡礼 阿尔托莉雅·卡斯特
 local this,id,ofs=GetID()
 function this.initial_effect(c)
-	aux.AddLinkProcedure(c,aux.FilterBoolFunction(Card.IsLinkRace,RACE_SPELLCASTER),2,99,this.check)
+	aux.AddLinkProcedure(c,aux.FilterBoolFunction(Card.IsType,TYPE_EFFECT),2,99,this.gchk)
 	c:EnableReviveLimit()
 	aux.AddCodeList(c,76200312)
 	local e4=Effect.CreateEffect(c)
@@ -24,8 +24,8 @@ function this.initial_effect(c)
 	e1:SetOperation(this.op)
 	c:RegisterEffect(e1)
 end
-function this.check(g)
-	return g:IsExists(Card.IsLinkType,1,nil,TYPE_PENDULUM)
+function this.gchk(g)
+	return g:IsExists(Card.IsType,1,nil,TYPE_PENDULUM)
 end
 function this.thcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_LINK)

@@ -56,7 +56,7 @@ function this.repfilter(c,tp)
 end
 function this.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return eg:IsExists(this.repfilter,1,nil,tp)
-		and Duel.IsCanRemoveCounter(tp,0x1,3,REASON_EFFECT) end
+		and c:IsCanRemoveCounter(tp,0x1,3,REASON_EFFECT) end
 	return Duel.SelectEffectYesNo(tp,e:GetHandler(),96)
 end
 function this.repval(e,c)

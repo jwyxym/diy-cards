@@ -102,6 +102,9 @@ function this.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return e:GetHandler():IsAbleToHand() end
     Duel.SetOperationInfo(0,CATEGORY_TOHAND,e:GetHandler(),1,tp,LOCATION_GRAVE)
 end
-function this.thop()
-    
+function this.thop(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+	if c:IsRelateToEffect(e) then
+		Duel.SendtoHand(c,tp,REASON_EFFECT)
+	end
 end

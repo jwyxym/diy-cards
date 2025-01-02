@@ -70,6 +70,10 @@ function cm.op1(e,tp,eg,ep,ev,re,r,rp)
 		if re:IsActivated(EFFECT_TYPE_ACTIVATE) then
 		rc:CancelToGrave()
 		end
+		local og=rc:GetOverlayGroup()
+		if og:GetCount()>0 then
+			Duel.SendtoGrave(og,REASON_RULE)
+		end
 		Duel.Overlay(c,Group.FromCards(rc))
 	end
 end

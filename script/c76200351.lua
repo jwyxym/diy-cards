@@ -55,6 +55,7 @@ function this.repfilter(c,tp)
 	return c:IsFaceup() and c:IsControler(tp) and c:IsLocation(LOCATION_MZONE) and c:IsReason(REASON_BATTLE+REASON_EFFECT) and not c:IsReason(REASON_REPLACE)
 end
 function this.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
 	if chk==0 then return eg:IsExists(this.repfilter,1,nil,tp)
 		and c:IsCanRemoveCounter(tp,0x1,3,REASON_EFFECT) end
 	return Duel.SelectEffectYesNo(tp,e:GetHandler(),96)

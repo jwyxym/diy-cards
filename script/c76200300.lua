@@ -109,17 +109,6 @@ function this.penop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOFIELD)
 	local tc=Duel.SelectMatchingCard(tp,this.penfilter,tp,LOCATION_DECK+LOCATION_EXTRA,0,1,1,nil):GetFirst()
 	Duel.MoveToField(tc,tp,tp,LOCATION_PZONE,POS_FACEUP,true)
-	local e1=Effect.CreateEffect(e:GetHandler())
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e1:SetTargetRange(1,0)
-	e1:SetTarget(this.splimit)
-	e1:SetReset(RESET_PHASE+PHASE_END)
-	Duel.RegisterEffect(e1,tp)
-end
-function this.splimit(e,c,sump,sumtype,sumpos,targetp,se)
-	return not c:IsRace(RACE_DRAGON) and sumtype&SUMMON_TYPE_PENDULUM==SUMMON_TYPE_PENDULUM
 end
 function this.tpencon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

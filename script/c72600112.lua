@@ -61,8 +61,8 @@ function s.efilter(e,re)
 end
 function s.acop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if re:IsActiveType(TYPE_MONSTER) and re:GetHandler():IsRace(RACE_WARRIOR) and c:GetFlagEffect(FLAG_ID_CHAINING)>0 then
-		c:AddCounter(0x1,1)
+	if re:IsActiveType(TYPE_MONSTER) and re:GetHandler():IsAttribute(ATTRIBUTE_LIGHT) and c:GetFlagEffect(FLAG_ID_CHAINING)>0 then
+		c:AddCounter(0x1,3)
 	end
 end
 function s.atkcon(e,tp,eg,ep,ev,re,r,rp)

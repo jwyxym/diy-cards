@@ -1,0 +1,69 @@
+--
+function c19980011.initial_effect(c)
+	--Activate
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_ACTIVATE)
+	e1:SetCode(EVENT_FREE_CHAIN)
+	e1:SetHintTiming(0,TIMINGS_CHECK_MONSTER)
+	e1:SetTarget(c19980011.target)
+	e1:SetOperation(c19980011.activate)
+	e1:SetCountLimit(1,19980011+EFFECT_COUNT_CODE_OATH)
+	c:RegisterEffect(e1)
+	--activate
+	local e2=Effect.CreateEffect(c)
+	e2:SetCategory(CATEGORY_EQUIP)
+	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
+	e2:SetType(EFFECT_TYPE_QUICK_O)
+	e2:SetRange(LOCATION_GRAVE)
+	e2:SetCode(EVENT_FREE_CHAIN)
+	e2:SetCost(aux.bfgcost)
+	e2:SetTarget(c19980011.eqtg)
+	e2:SetOperation(c19980011.eqop)
+	c:RegisterEffect(e2)
+end
+c19980011.has_text_type=TYPE_UNION
+function c19980011.target(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,PLAYER_ALL,LOCATION_REMOVED)
+	if Duel.GetLP(tp)==1 and e:IsHasType(EFFECT_TYPE_ACTIVATE) then
+		Duel.SetChainLimit(c19980011.chainlm)
+	end
+end
+function c19980011.chainlm(e,rp,tp)
+	return tp==rp
+end
+function c19980011.activate(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local g=Duel.GetFieldGroup(tp,LOCATION_REMOVED,LOCATION_REMOVED)
+	Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+end
+function c19980011.tgfilter(c,tp)
+	return c:IsFaceup() and Duel.IsExistingMatchingCard(c19980011.eqfilter,tp,LOCATION_REMOVED+LOCATION_HAND,0,1,nil,c,tp)
+end
+function c19980011.eqfilter(c,tc,tp)
+	return aux.CheckUnionEquip(c,tc) and c:CheckUnionTarget(tc) and c:IsType(TYPE_UNION) and (c:IsFaceup() or c:IsLocation(LOCATION_HAND)) and c:CheckUniqueOnField(tp) and not c:IsForbidden()
+end
+function c19980011.eqtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	local c=e:GetHandler()
+	local b=e:IsHasType(EFFECT_TYPE_ACTIVATE) and not c:IsLocation(LOCATION_SZONE)
+	local ft=Duel.GetLocationCount(tp,LOCATION_SZONE)
+	if b then ft=ft-1 end
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and c19980011.tgfilter(chkc,tp) end
+	if chk==0 then return ft>0 and Duel.IsExistingTarget(c19980011.tgfilter,tp,LOCATION_MZONE,0,1,nil,tp) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+	Duel.SelectTarget(tp,c19980011.tgfilter,tp,LOCATION_MZONE,0,1,1,nil,tp)
+	Duel.SetOperationInfo(0,CATEGORY_EQUIP,nil,1,tp,LOCATION_REMOVED+LOCATION_HAND)
+end
+function c19980011.eqop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tc=Duel.GetFirstTarget()
+	if tc:IsRelateToEffect(e) and tc:IsFaceup() and Duel.GetLocationCount(tp,LOCATION_SZONE)>0 then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
+		local g=Duel.SelectMatchingCard(tp,c19980011.eqfilter,tp,LOCATION_REMOVED+LOCATION_HAND,0,1,1,nil,tc,tp)
+		local ec=g:GetFirst()
+		if ec and aux.CheckUnionEquip(ec,tc) and Duel.Equip(tp,ec,tc) then
+			aux.SetUnionState(ec)
+		end
+	end
+end

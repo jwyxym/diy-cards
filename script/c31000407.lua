@@ -37,7 +37,7 @@ function c31000407.initial_effect(c)
 	
 end
 function c31000407.valcheck(e,c)
-	local ct=c:GetMaterial():Filter(Card.IsSetCard,nil,0x313):GetCount()
+	local ct=c:GetMaterial():Filter(Card.IsRace,nil,RACE_DRAGON+RACE_SEASERPENT+RACE_WINDBEAST):GetCount()
 	if ct>1 then
 		local e1=Effect.CreateEffect(c)
 		e1:SetType(EFFECT_TYPE_SINGLE)

@@ -33,6 +33,8 @@ function c47700018.initial_effect(c)
 	e3:SetOperation(c47700018.spop)
 	c:RegisterEffect(e3)
 	Duel.AddCustomActivityCounter(47700018,ACTIVITY_SPSUMMON,c47700018.counterfilter)
+	--redirect
+	aux.AddBanishRedirect(c,c47700018.recon)
 end
 function c47700018.counterfilter(c)
 	return not c:IsSummonLocation(LOCATION_EXTRA) or (c:IsType(TYPE_FUSION) or c:IsSetCard(0x470))
@@ -181,4 +183,8 @@ function c47700018.spop(e,tp,eg,ep,ev,re,r,rp)
 		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
 		c:RegisterEffect(e1)
 	end
+end
+function c47700018.recon(e)
+	local c=e:GetHandler()
+	return c:IsLocation(LOCATION_MZONE) and c:IsFaceup()
 end

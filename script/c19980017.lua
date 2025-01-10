@@ -1,0 +1,105 @@
+--
+function c19980017.initial_effect(c)
+	c:SetUniqueOnField(1,0,19980017)
+	--xyz summon
+	aux.AddXyzProcedure(c,nil,11,2)
+	c:EnableReviveLimit()
+	--
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_SINGLE)
+	e0:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e0:SetCode(EFFECT_ADD_RACE)
+	e0:SetRange(LOCATION_MZONE+LOCATION_HAND+LOCATION_EXTRA+LOCATION_GRAVE)
+	e0:SetValue(RACE_FISH)
+	c:RegisterEffect(e0)
+	--copy
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_F)
+	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e1:SetCountLimit(1)
+	e1:SetRange(LOCATION_MZONE)
+	e1:SetCondition(c19980017.condition)
+	e1:SetCost(c19980017.cost)
+	e1:SetOperation(c19980017.operation)
+	c:RegisterEffect(e1)
+	--remove
+	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(19980017,0))
+	e2:SetCategory(CATEGORY_REMOVE)
+	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e2:SetType(EFFECT_TYPE_QUICK_O)
+	e2:SetCode(EVENT_FREE_CHAIN)
+	e2:SetCountLimit(1,19980017)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetTarget(c19980017.rmtg)
+	e2:SetOperation(c19980017.rmop)
+	c:RegisterEffect(e2)
+end
+function c19980017.rmfilter(c)
+	return c:IsFaceup() and c:IsAbleToRemove()
+end
+function c19980017.rmtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_ONFIELD) and chkc:IsAbleToRemove() and c19980017.filter(chkc) end
+	if chk==0 then return Duel.IsExistingTarget(c19980017.rmfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+	local g=Duel.SelectTarget(tp,c19980017.rmfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
+	Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,1,0,0)
+end
+function c19980017.rmop(e,tp,eg,ep,ev,re,r,rp)
+	local tc=Duel.GetFirstTarget()
+	if tc:IsRelateToEffect(e) then
+		Duel.Remove(tc,POS_FACEUP,REASON_EFFECT)
+	end
+end
+function c19980017.condition(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():IsSummonType(SUMMON_TYPE_XYZ)
+end
+function c19980017.filter(c)
+	return c:IsType(TYPE_XYZ) and c:IsRank(11) and (c:IsRace(RACE_THUNDER) or c:IsSetCard(0xb34)) and c:IsAbleToRemoveAsCost()
+end
+function c19980017.cost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.PayLPCost(tp,math.floor(Duel.GetLP(tp)*(2/3)))
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+	local g=Duel.SelectMatchingCard(tp,c19980017.filter,tp,LOCATION_EXTRA+LOCATION_GRAVE,0,1,1,nil)
+	Duel.Remove(g,POS_FACEDOWN,REASON_COST)
+	e:SetLabelObject(g:GetFirst())
+end
+function c19980017.operation(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tc=e:GetLabelObject()
+	if c:IsRelateToEffect(e) and c:IsFaceup() then
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+		e1:SetCode(EFFECT_ADD_CODE)
+		e1:SetValue(tc:GetOriginalCode())
+		c:RegisterEffect(e1)
+		local code=tc:GetOriginalCode()
+		local cid=c:CopyEffect(code,RESET_EVENT+RESETS_STANDARD)
+		local e2=Effect.CreateEffect(c)
+		e2:SetDescription(aux.Stringid(19980017,1))
+		e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		e2:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+		e2:SetCountLimit(1)
+		e2:SetRange(LOCATION_MZONE)
+		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
+		e2:SetLabelObject(e1)
+		e2:SetLabel(cid)
+		e2:SetOperation(c19980017.rstop)
+		c:RegisterEffect(e2)
+	end
+end
+function c19980017.rstop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local cid=e:GetLabel()
+	if cid~=0 then
+		c:ResetEffect(cid,RESET_COPY)
+		c:ResetEffect(RESET_DISABLE,RESET_EVENT)
+	end
+	local e1=e:GetLabelObject()
+	e1:Reset()
+	Duel.HintSelection(Group.FromCards(c))
+	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
+end

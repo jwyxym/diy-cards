@@ -41,7 +41,7 @@ function c19980003.val(e,c)
 end
 function c19980003.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end
-	Duel.PayLPCost(tp,math.floor(Duel.GetLP(tp)/3))
+	Duel.PayLPCost(tp,math.floor(Duel.GetLP(tp)/2))
 end
 function c19980003.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()

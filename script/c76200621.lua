@@ -1,0 +1,115 @@
+--清晶之埃默洛尔德
+local s,id,o=GetID()
+function s.initial_effect(c)
+	--special summon
+	local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e1:SetType(EFFECT_TYPE_QUICK_O)
+	e1:SetRange(LOCATION_HAND)
+	e1:SetCode(EVENT_CHAINING)
+	e1:SetCountLimit(1,id)
+	e1:SetCondition(s.spcon)
+	e1:SetTarget(s.sptg)
+	e1:SetOperation(s.spop)
+	c:RegisterEffect(e1)
+	--disable
+	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,1))
+	e2:SetCategory(CATEGORY_DISABLE)
+	e2:SetType(EFFECT_TYPE_QUICK_O)
+	e2:SetCode(EVENT_CHAINING)
+	e2:SetRange(LOCATION_GRAVE)
+	e2:SetCountLimit(1,id+1)
+	e2:SetCondition(s.discon)
+	e2:SetCost(aux.bfgcost)
+	e2:SetTarget(s.distg)
+	e2:SetOperation(s.disop)
+	c:RegisterEffect(e2)
+end
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+	return re:IsActiveType(TYPE_SPELL+TYPE_TRAP)
+end
+function s.spfilter(c,e,tp)
+	return c:IsRace(RACE_ROCK) and not c:IsPublic() and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP)
+end
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return not Duel.IsPlayerAffectedByEffect(tp,59822133)
+		and Duel.GetLocationCount(tp,LOCATION_MZONE)>1
+		and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP)
+		and not c:IsPublic()
+		and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_HAND,0,1,c,e,tp) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
+	local g=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_HAND,0,1,1,c,e,tp)
+	local tc=g:GetFirst()
+	Duel.ConfirmCards(1-tp,g)
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetCode(EFFECT_PUBLIC)
+	e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_CHAIN)
+	c:RegisterEffect(e1)
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e2:SetCode(EVENT_CHAIN_SOLVED)
+	e2:SetRange(LOCATION_HAND)
+	e2:SetOperation(s.clearop)
+	e2:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_CHAIN)
+	e2:SetLabel(Duel.GetCurrentChain())
+	e2:SetLabelObject(e1)
+	c:RegisterEffect(e2)
+	local e3=e1:Clone()
+	tc:RegisterEffect(e3)
+	local e4=e2:Clone()
+	e4:SetLabelObject(e3)
+	tc:RegisterEffect(e4)
+	Duel.SetTargetCard(g)
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,2,tp,LOCATION_HAND)
+end
+function s.clearop(e,tp,eg,ep,ev,re,r,rp)
+	if ev~=e:GetLabel() then return end
+	e:GetLabelObject():Reset()
+	e:Reset()
+end
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tc=Duel.GetFirstTarget()
+	if not Duel.IsPlayerAffectedByEffect(tp,59822133) and Duel.GetLocationCount(tp,LOCATION_MZONE)>1
+		and c:IsRelateToEffect(e) and tc:IsRelateToEffect(e)
+		and c:IsCanBeSpecialSummoned(e,0,tp,false,false) and tc:IsCanBeSpecialSummoned(e,0,tp,false,false) then
+		Duel.SpecialSummonStep(c,0,tp,tp,false,false,POS_FACEUP)
+		Duel.SpecialSummonStep(tc,0,tp,tp,false,false,POS_FACEUP)
+	end
+	Duel.SpecialSummonComplete()
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e1:SetCode(EFFECT_CANNOT_ACTIVATE)
+	e1:SetTargetRange(1,0)
+	e1:SetValue(s.aclimit)
+	Duel.RegisterEffect(e1,tp)
+end
+function s.aclimit(e,re,tp)
+	return re:IsActiveType(TYPE_TRAP)
+end
+function s.discon(e,tp,eg,ep,ev,re,r,rp)
+	if not Duel.IsChainDisablable(ev) or rp~=1-tp then return false end
+	local te,p=Duel.GetChainInfo(ev-1,CHAININFO_TRIGGERING_EFFECT,CHAININFO_TRIGGERING_PLAYER)
+	if not te or p~=tp then return false end
+	local tc=te:GetHandler()
+	return tc:IsRace(RACE_ROCK) and te:IsActiveType(TYPE_MONSTER)
+end
+function s.distg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.SetOperationInfo(0,CATEGORY_DISABLE,eg,1,0,0)
+end
+function s.disop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.NegateEffect(ev)
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e1:SetCode(EFFECT_CANNOT_ACTIVATE)
+	e1:SetTargetRange(1,0)
+	e1:SetValue(s.aclimit)
+	Duel.RegisterEffect(e1,tp)
+end

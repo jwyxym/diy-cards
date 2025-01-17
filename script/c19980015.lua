@@ -69,7 +69,8 @@ end
 function c19980015.operation(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	local tc=e:GetLabelObject()
-	if c:IsRelateToEffect(e) and c:IsFaceup() then
+	local tg=Duel.GetFirstMatchingCard(c19980015.filter,tp,LOCATION_EXTRA+LOCATION_GRAVE,0,nil)
+	if c:IsRelateToEffect(e) and c:IsFaceup() and tg then
 		local e1=Effect.CreateEffect(c)
 		e1:SetType(EFFECT_TYPE_SINGLE)
 		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)

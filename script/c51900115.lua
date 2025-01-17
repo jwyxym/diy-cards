@@ -1,8 +1,8 @@
 --到临的奇迹之龙
 local s,id,o=GetID()
 function s.initial_effect(c)
-	aux.AddMaterialCodeList(c,51900101)
-	aux.AddSynchroMixProcedure(c,aux.FilterBoolFunction(Card.IsCode,51900101),s.mfilter,aux.Tuner(Card.IsRace,RACE_DRAGON+RACE_WARRIOR),aux.Tuner(Card.IsRace,RACE_DRAGON+RACE_WARRIOR),1,99)
+	aux.AddCodeList(c,51900101)
+	aux.AddSynchroMixProcedure(c,aux.NonTuner(s.matfilter1),nil,nil,s.matfilter2,1,99,s.syncheck(c))
 	c:EnableReviveLimit()
 	local e0=Effect.CreateEffect(c)
 	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
@@ -37,16 +37,31 @@ function s.initial_effect(c)
 	e3:SetOperation(s.spop)
 	c:RegisterEffect(e3)
 end
-function s.mfilter(c,syncard,c1)
-	return c:IsTuner(syncard) and c:IsRace(RACE_DRAGON+RACE_WARRIOR) and c:IsType(TYPE_SYNCHRO)
+function s.mfilter1(c)
+	return c:IsRace(RACE_DRAGON+RACE_WARRIOR) and c:IsType(TYPE_SYNCHRO)
 end
-function s.cfilter(c)
-	return c:IsType(TYPE_TUNER) and c:IsRace(RACE_DRAGON)
+function s.mfilter2(c,syncard,c1)
+	return c:IsTuner(syncard) and c:IsRace(RACE_DRAGON+RACE_WARRIOR)
+end
+function s.syncheck(syncard)
+	return	function(g)
+				return g:IsExists(s.cfilter,1,nil,g)
+			end
+end
+function s.cfilter(c,g)
+	return c:IsType(TYPE_TUNER) and c:IsRace(RACE_DRAGON) and c:IsType(TYPE_NORMAL)
+	and g:IsExists(s.cfilter2,2,c)
+end
+function s.cfilter2(c)
+	return c:IsRace(RACE_DRAGON+RACE_WARRIOR) and c:IsType(TYPE_TUNER)
 end
 function s.valcheck(e,c)
 	local g=c:GetMaterial()
-	local ct=g:FilterCount(s.cfilter,nil)
+	local ct=g:FilterCount(s.mcfilter,nil)
 	e:GetLabelObject():SetLabel(ct)
+end
+function s.mcfilter(c)
+	return c:IsCode(51900101)
 end
 function s.discon(e,tp,eg,ep,ev,re,r,rp)
 	return ep==1-tp and re:IsActiveType(TYPE_SPELL+TYPE_TRAP)

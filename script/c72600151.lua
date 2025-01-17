@@ -44,7 +44,6 @@ function this.initial_effect(c)
 	e5:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_MAIN_END)
 	e5:SetRange(LOCATION_MZONE)
 	e5:SetCountLimit(1,id)
-	e5:SetCondition(this.setcon)
 	e5:SetCost(this.rmcost)
 	e5:SetTarget(this.settg)
 	e5:SetOperation(this.setop)
@@ -78,9 +77,6 @@ function this.disop(e,tp,eg,ep,ev,re,r,rp)
 			Duel.ConfirmCards(1-tp,sg)
 		end
 	end
-end
-function this.setcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(Card.IsFaceup,tp,LOCATION_FZONE,LOCATION_FZONE,1,nil)
 end
 function this.rmfilter(c)
 	return c:IsRace(RACE_DRAGON) and (c:IsFaceup() or c:IsControler(tp))

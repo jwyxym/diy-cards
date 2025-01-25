@@ -26,7 +26,7 @@ function s.initial_effect(c)
 	e3:SetCountLimit(1,id)
 	e3:SetCondition(s.setcon)
 	e3:SetTarget(s.settg)
-	e3:SetOperation(s.settop)
+	e3:SetOperation(s.setop)
 	c:RegisterEffect(e3)
 end
 function s.thfilter(c)

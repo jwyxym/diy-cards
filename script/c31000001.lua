@@ -85,7 +85,7 @@ function cm.tg2(e,tp,eg,ep,ev,re,r,rp,chk)
 	end
 end
 function cm.filter(c)
-	return c:IsSetCard(0x310) and C:IsFaceup()
+	return c:IsSetCard(0x310) and c:IsFaceup()
 end
 function cm.op2(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.NegateEffect(ev) and re:GetHandler():IsRelateToEffect(re) then

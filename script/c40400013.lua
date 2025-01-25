@@ -39,7 +39,7 @@ function this.op(e,tp,eg,ep,ev,re,r,rp)
         Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
         local tc2=Duel.SelectMatchingCard(tp,this.spfilter2,tp,LOCATION_DECK,0,1,1,nil,e,tp,e:GetLabel(),tc1:GetLevel())
         if tc2 and #tc2==1 then
-            tc2:Merge(tc1)
+            tc2:AddCard(tc1)
             Duel.SpecialSummon(tc2,0,tp,tp,false,false,POS_FACEUP)
         end
     end

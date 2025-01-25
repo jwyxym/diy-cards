@@ -50,6 +50,7 @@ function this.cfilter(c,tp)
 end
 function this.spfilter(c,e,tp)
     return Duel.IsExistingMatchingCard(this.spfilter2,tp,LOCATION_GRAVE,0,1,nil,e,tp,c:GetOriginalRace(),c:GetOriginalAttribute())
+    and c:IsSetCard(0x675)
 end
 function this.spfilter2(c,e,tp,race,attr)
     return c:IsCanBeSpecialSummoned(e,0,tp,false,false) and c:GetOriginalRace()==race and c:GetOriginalAttribute()~=attr

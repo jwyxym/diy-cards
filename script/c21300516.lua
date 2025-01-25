@@ -13,8 +13,7 @@ function c21300516.initial_effect(c)
 	e1:SetCost(c21300516.spcost)
 	e1:SetTarget(c21300516.sptg)
 	e1:SetOperation(c21300516.spop)
-	c:RegisterEffect(e1)
-	Duel.AddCustomActivityCounter(21300516,ACTIVITY_SPSUMMON,c21300516.counterfilter)
+	c:RegisterEffect(e1) 
 	--cannot be link material
 	local e4=Effect.CreateEffect(c)
 	e4:SetType(EFFECT_TYPE_SINGLE)
@@ -23,24 +22,9 @@ function c21300516.initial_effect(c)
 	e4:SetValue(1)
 	c:RegisterEffect(e4)
 end
-function c21300516.counterfilter(c)
-	return c:IsSetCard(0x674)
-end
 function c21300516.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
 	if chk==0 then return Duel.GetCustomActivityCount(21300516,tp,ACTIVITY_SPSUMMON)==0 end
-	--splimit
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetReset(RESET_PHASE+PHASE_END)
-	e1:SetTargetRange(1,0)
-	e1:SetTarget(c21300516.splimit)
-	Duel.RegisterEffect(e1,tp)
-end
-function c21300516.splimit(e,c,sump,sumtype,sumpos,targetp,se)
-	return not c:IsSetCard(0x674)
 end
 function c21300516.filter(c,e)
 	local seq=e:GetHandler():GetSequence()

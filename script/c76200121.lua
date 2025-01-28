@@ -24,15 +24,16 @@ function s.initial_effect(c)
 	e2:SetTarget(s.thtg)
 	e2:SetOperation(s.thop)
 	c:RegisterEffect(e2)
-	--get effect
+	--Gains Effect
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
-	e3:SetType(EFFECT_TYPE_XMATERIAL)
-	e3:SetCode(EFFECT_UPDATE_ATTACK)
-	e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-	e3:SetRange(LOCATION_MZONE)
-	e3:SetValue(s.val)
-	e3:SetCondition(s.gfcon)
+	e3:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
+	e3:SetType(EFFECT_TYPE_XMATERIAL+EFFECT_TYPE_IGNITION)
+	e3:SetCountLimit(1)
+	e3:SetCondition(s.th1con)
+	e3:SetCost(s.th1cost)
+	e3:SetTarget(s.th1tg)
+	e3:SetOperation(s.th1op)
 	c:RegisterEffect(e3)
 end
 function s.atkfilter(c)
@@ -67,10 +68,26 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.ConfirmCards(1-tp,g)
 	end
 end
-function s.val(e,c)
-	return c:GetRank()*100
+function s.th1con(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():GetOriginalRace()==RACE_FAIRY
 end
-function s.gfcon(e)
-	local c=e:GetHandler()
-	return c:IsRace(RACE_FAIRY) and c:IsType(TYPE_XYZ)
+function s.th1cost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,1,REASON_COST) end
+	e:GetHandler():RemoveOverlayCard(tp,1,1,REASON_COST)
+end
+function s.th1filter(c)
+	return c:IsSetCard(0x721) and c:IsType(TYPE_SPELL) and c:IsAbleToHand()
+end
+function s.th1tg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.th1filter,tp,LOCATION_DECK,0,1,nil) end
+	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
+end
+function s.th1op(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,s.th1filter,tp,LOCATION_DECK,0,1,1,nil)
+	if g:GetCount()>0 then
+		Duel.SendtoHand(g,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,g)
+	end
 end

@@ -39,7 +39,7 @@ function cm.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.RegisterEffect(e0,tp)
 end
 function cm.splimit(e,c)
-	return not c:IsRace(RACE_MACHINE)
+	return not (c:IsRace(RACE_MACHINE) and c:IsAttribute(ATTRIBUTE_LIGHT+ATTRIBUTE_FIRE+ATTRIBUTE_EARTH))
 end
 function cm.filter1(c,e)
 	local tp=e:GetHandlerPlayer()

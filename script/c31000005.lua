@@ -2,7 +2,7 @@
 local cm,m,o=GetID()
 function cm.initial_effect(c)
 	--xyz summon
-	aux.AddXyzProcedure(c,cm.mfilter,10,3,cm.ovfilter,aux.Stringid(m,0),3,cm.xyzop)
+	aux.AddXyzProcedure(c,cm.mfilter,7,3,cm.ovfilter,aux.Stringid(m,0),3,cm.xyzop)
 	c:EnableReviveLimit()
 	--tograve
 	local e1=Effect.CreateEffect(c)
@@ -61,7 +61,7 @@ function cm.op(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function cm.splimit(e,c)
-	return not c:IsRace(RACE_MACHINE)
+	return not (c:IsRace(RACE_MACHINE) and c:IsAttribute(ATTRIBUTE_LIGHT+ATTRIBUTE_FIRE+ATTRIBUTE_EARTH))
 end
 function cm.cost1(e,tp,eg,ep,ev,re,r,rp,chk)
 	e:SetLabel(1)

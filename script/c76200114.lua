@@ -22,7 +22,7 @@ function cm.condition(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetCurrentPhase()==PHASE_MAIN1 or Duel.GetCurrentPhase()==PHASE_MAIN2
 end
 function cm.limit(e,c,sump,sumtyp,sumpos,targetp,se)
-	return not (c:IsType(TYPE_XYZ) and c:IsAttribute(ATTRIBUTE_FIRE)) and c:IsLocation(LOCATION_EXTRA)
+	return not (c:IsType(TYPE_XYZ) and c:IsRace(RACE_FAIRY)) and c:IsLocation(LOCATION_EXTRA)
 end
 function cm.mfilter(c)
 	return bit.band(c:GetOriginalType(),TYPE_TRAP)>0

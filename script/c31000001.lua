@@ -61,12 +61,11 @@ function cm.tg1(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 end
 function cm.op1(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	local g=Duel.GetMatchingGroup(Card.IsCanOverlay,tp,LOCATION_GRAVE,LOCATION_GRAVE,nil)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
-	local mg=g:SelectWithSumEqual(tp,Card.GetControler,1,2,2)
-	if #mg==2 then
-		Duel.Overlay(c,mg)
-	end
+	local mg1=Duel.SelectMatchingCard(tp,Card.IsCanOverlay,tp,LOCATION_GRAVE,0,1,1,nil)
+	local mg2=Duel.SelectMatchingCard(tp,Card.IsCanOverlay,tp,0,LOCATION_GRAVE,1,1,nil)
+	mg1:Merge(mg2)
+	Duel.Overlay(c,mg1)
 end
 function cm.con2(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

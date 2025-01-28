@@ -1,5 +1,7 @@
 --沉沦虚幻的龙神
 function c21300003.initial_effect(c)
+	--pendulum summon
+	aux.EnablePendulumAttribute(c)
 	--SpecialSummon
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(21300003,0))

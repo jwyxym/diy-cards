@@ -24,8 +24,11 @@ function cm.initial_effect(c)
 	--get effect
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_XMATERIAL)
-	e3:SetCode(EFFECT_PIERCE)
-	e3:SetCondition(cm.mcon)
+	e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+	e3:SetCondition(cm.xmatcon)
+	e3:SetValue(aux.tgoval)
 	c:RegisterEffect(e3)
 end
 function cm.splimit(e,c)
@@ -49,6 +52,6 @@ end
 function cm.effcon(e,tp,eg,ep,ev,re,r,rp)
 	return r==REASON_XYZ and e:GetHandler():GetReasonCard():GetOriginalRace()&RACE_FAIRY~=0
 end
-function cm.mcon(e)
+function cm.xmatcon(e)
 	return e:GetHandler():GetOriginalRace()==RACE_FAIRY
 end

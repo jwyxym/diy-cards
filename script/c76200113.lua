@@ -117,7 +117,7 @@ function cm.activate(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e1,tp)
 end
 function cm.splimit(e,c)
-	return not c:IsRace(RACE_FAIRY) and c:IsLocation(LOCATION_EXTRA)
+	return not c:IsType(TYPE_XYZ) and c:IsLocation(LOCATION_EXTRA)
 end
 function cm.thfilter(c)
 	return c:IsSetCard(0x721) and c:IsFaceup() and c:IsAbleToHand() and not c:IsCode(m)

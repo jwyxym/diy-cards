@@ -28,13 +28,13 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 end
 function s.filter(c,e,tp,chk)
-	return c:IsRace(RACE_BEASTWARRIOR) and c:IsAttribute(ATTRIBUTE_FIRE)
+	return c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST) and c:IsAttribute(ATTRIBUTE_FIRE)
 end
 function s.matfilter(c,e,tp,chk)
 	return true
 end
 function s.cfilter(c)
-	return aux.IsCodeListed(c,31000201) or c:IsType(TYPE_RITUAL) and c:IsRace(RACE_BEASTWARRIOR)
+	return aux.IsCodeListed(c,31000201) or c:IsType(TYPE_RITUAL) and c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST)
 end
 function s.rscon1(e,tp,eg,ep,ev,re,r,rp)
 	return not Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_MZONE,0,1,nil)
@@ -47,7 +47,7 @@ function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.spfilter(c,e,tp)
 	return c:IsLevelBelow(4)
-		and c:IsRace(RACE_BEASTWARRIOR) and c:IsAttribute(ATTRIBUTE_FIRE)
+		and c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST) and c:IsAttribute(ATTRIBUTE_FIRE)
 		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -72,7 +72,7 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 			e1:SetType(EFFECT_TYPE_SINGLE)
 			e1:SetCode(EFFECT_UPDATE_LEVEL)
 			e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-			e1:SetValue(3)
+			e1:SetValue(4)
 			tc:RegisterEffect(e1)
 		end
 	end

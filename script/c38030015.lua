@@ -57,7 +57,9 @@ function cm.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	e:GetHandler():RemoveOverlayCard(tp,3,3,REASON_COST)
 end
 function cm.con1(e,tp,eg,ep,ev,re,r,rp)
-	return not e:GetHandler():IsStatus(STATUS_BATTLE_DESTROYED) and Duel.IsChainDisablable(ev) and rp~=tp
+	local c=e:GetHandler()
+	return not e:GetHandler():IsStatus(STATUS_BATTLE_DESTROYED)
+	and ep~=tp and re:IsActiveType(TYPE_SPELL+TYPE_TRAP) and Duel.IsChainNegatable(ev)
 end
 function cm.tg1(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end

@@ -22,8 +22,12 @@ function s.initial_effect(c)
 	e2:SetTarget(s.thtg)
 	e2:SetOperation(s.thop)
 	c:RegisterEffect(e2)
+	Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,s.counterfilter)
 end
 s.fusion_effect=true
+function s.counterfilter(c)
+	return not c:IsSummonLocation(LOCATION_EXTRA) or c:IsType(TYPE_PENDULUM)
+end
 function s.filter0(c)
 	return (c:IsLocation(LOCATION_ONFIELD+LOCATION_GRAVE) or c:IsFaceup()) and c:IsType(TYPE_MONSTER) and c:IsCanBeFusionMaterial() and c:IsAbleToDeck()
 end
@@ -38,9 +42,9 @@ function s.costfilter(c,g)
 	return c:IsRace(RACE_DRAGON) and c:IsAbleToRemoveAsCost()
 end
 function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckLPCost(tp,1000) end
+	if chk==0 then return Duel.CheckLPCost(tp,1000) and Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0 end
 	Duel.PayLPCost(tp,1000)
-	local e1=Effect.CreateEffect(c)
+	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
 	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -49,33 +53,35 @@ function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	e1:SetTarget(s.splimit)
 	Duel.RegisterEffect(e1,tp)
 end
-function s.splimit(e,c,sump,sumtype,sumpos,targetp,se)
-	return not c:IsType(TYPE_PENDULUM) and c:IsLocation(LOCATION_EXTRA)
+function s.splimit(e,c)
+	return c:IsLocation(LOCATION_EXTRA) and not c:IsType(TYPE_PENDULUM)
+end
+function s.exfilter(c,e,tp,mg,chkf)
+	local g=mg:Clone()
+	g:AddCard(c)
+	local res=Duel.IsExistingMatchingCard(s.filter2,tp,LOCATION_EXTRA,0,1,c,e,tp,g,nil,chkf)
+	if not res then
+		local ce=Duel.GetChainMaterial(tp)
+		if ce~=nil then
+			local fgroup=ce:GetTarget()
+			local mg3=fgroup(ce,e,tp)
+			local mf=ce:GetValue()
+			res=Duel.IsExistingMatchingCard(s.filter2,tp,LOCATION_EXTRA,0,1,c,e,tp,mg3,mf,chkf)
+		end
+	end
+	return res
 end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_EXTRA,0,1,nil,g) end
+	local chkf=tp
+	local mg=Duel.GetMatchingGroup(s.filter0,tp,LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,nil)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.exfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp,mg,chkf) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-	local sg=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_EXTRA,0,1,1,nil,g)
-	e:SetLabel(sg:GetFirst():GetLevel())
-	Duel.Remove(sg,POS_FACEUP,REASON_COST)
-		local chkf=tp
-		local mg=Duel.GetMatchingGroup(s.filter0,tp,LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,nil)
-		local res=Duel.IsExistingMatchingCard(s.filter2,tp,LOCATION_EXTRA,0,1,nil,e,tp,mg,nil,chkf)
-		if not res then
-			local ce=Duel.GetChainMaterial(tp)
-			if ce~=nil then
-				local fgroup=ce:GetTarget()
-				local mg3=fgroup(ce,e,tp)
-				local mf=ce:GetValue()
-				res=Duel.IsExistingMatchingCard(s.filter2,tp,LOCATION_EXTRA,0,1,nil,e,tp,mg3,mf,chkf)
-			end
-		return res
-	end
+	local tc=Duel.SelectMatchingCard(tp,s.exfilter,tp,LOCATION_EXTRA,0,1,1,nil,e,tp,mg,chkf)
+	Duel.Remove(tc,POS_FACEUP,REASON_COST)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 	Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,tp,LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED)
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
-	if e:IsHasType(EFFECT_TYPE_ACTIVATE) then
 	local chkf=tp
 	local mg=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.filter1),tp,LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,nil,e)
 	local sg1=Duel.GetMatchingGroup(s.filter2,tp,LOCATION_EXTRA,0,nil,e,tp,mg,nil,chkf)

@@ -22,7 +22,7 @@ function this.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 function this.costfilter(c,tp)
-	return (c:IsFaceup() or c:IsLocation(LOCATION_HAND)) and (c:IsRace(RACE_BEASTWARRIOR) or c:IsType(TYPE_RITUAL))
+	return (c:IsFaceup() or c:IsLocation(LOCATION_HAND)) and (c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST) or c:IsType(TYPE_RITUAL))
 		and c:IsAbleToGraveAsCost() and Duel.GetMZoneCount(tp,c)>0
 end
 function this.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -49,10 +49,10 @@ function this.spop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e1,tp)
 end
 function this.splimit(e,c)
-	return c:IsLocation(LOCATION_EXTRA) and not c:IsRace(RACE_BEASTWARRIOR)
+	return c:IsLocation(LOCATION_EXTRA) and not c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST)
 end
 function this.cfilter(c)
-	return (c:IsRace(RACE_BEASTWARRIOR) and c:IsType(TYPE_RITUAL) or aux.IsCodeListed(c,31000201) and c:IsType(TYPE_SPELL+TYPE_RITUAL)) and c:IsAbleToGraveAsCost()
+	return (c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST) and c:IsType(TYPE_RITUAL) or aux.IsCodeListed(c,31000201) and c:IsType(TYPE_SPELL+TYPE_TRAP)) and c:IsAbleToGraveAsCost()
 end
 function this.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(this.cfilter,tp,LOCATION_HAND+LOCATION_DECK,0,1,nil) end
@@ -98,5 +98,5 @@ function this.op(e,tp,eg,ep,ev,re,r,rp)
 end
 function this.lklimit(e,c)
 	if not c then return false end
-	return not c:IsRace(RACE_BEASTWARRIOR)
+	return not c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST)
 end

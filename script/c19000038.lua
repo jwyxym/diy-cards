@@ -78,7 +78,6 @@ function c19000038.rmop(e,tp,eg,ep,ev,re,r,rp)
 		e2:SetValue(1)
 		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
 		e2:SetDescription(aux.Stringid(19000038,0))
-		e2:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
 		e2:SetProperty(EFFECT_FLAG_CLIENT_HINT)
 		c:RegisterEffect(e2)
 	end

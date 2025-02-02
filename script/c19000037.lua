@@ -82,7 +82,6 @@ function c19000037.rmop(e,tp,eg,ep,ev,re,r,rp)
 		e3:SetValue(1)
 		e3:SetReset(RESET_EVENT+RESETS_STANDARD)
 		e3:SetDescription(aux.Stringid(19000037,0))
-		e3:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
 		e3:SetProperty(EFFECT_FLAG_CLIENT_HINT)
 		c:RegisterEffect(e3)
 	end

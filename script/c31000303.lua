@@ -47,17 +47,17 @@ function c31000303.ctcon(e,tp,eg,ep,ev,re,r,rp)
 end
 function c31000303.cttg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
-	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsCanAddCounter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil,0x312,1) end
-	local g=Duel.GetMatchingGroup(Card.IsCanAddCounter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,0x312,1)
+	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsCanAddCounter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil,0x312,2) end
+	local g=Duel.GetMatchingGroup(Card.IsCanAddCounter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,0x312,2)
 	g:AddCard(c)
 	Duel.SetOperationInfo(0,CATEGORY_COUNTER,g,#g,0,0)
 end
 function c31000303.ctop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	local g=Duel.GetMatchingGroup(Card.IsCanAddCounter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,0x312,1)
+	local g=Duel.GetMatchingGroup(Card.IsCanAddCounter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,0x312,2)
 	for tc in aux.Next(g) do
-		if tc:IsCanAddCounter(0x312,1) then
-			tc:AddCounter(0x312,1)
+		if tc:IsCanAddCounter(0x312,2) then
+			tc:AddCounter(0x312,2)
 		end
 	end
 end

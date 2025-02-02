@@ -2,7 +2,7 @@
 local this,id,ofs=GetID()
 function this.initial_effect(c)
 	aux.AddCodeList(c,31000201)
-	aux.AddRitualProcGreater2(c,aux.FilterBoolFunction(Card.IsRace,RACE_BEASTWARRIOR),LOCATION_HAND,nil,nil)
+	aux.AddRitualProcGreater2(c,aux.FilterBoolFunction(Card.IsRace,RACE_BEASTWARRIOR+RACE_BEAST),LOCATION_HAND,nil,nil)
 	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_QUICK_O)
 	e2:SetCode(EVENT_FREE_CHAIN)

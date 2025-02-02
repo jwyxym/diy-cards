@@ -1,7 +1,7 @@
 --妖精骑士 高文
 local this,id,ofs=GetID()
 function this.initial_effect(c)
-    aux.AddCodeList(c,31000201)
+	aux.AddCodeList(c,31000201)
 	aux.AddLinkProcedure(c,nil,2,2,this.lcheck)
 	c:EnableReviveLimit()
 	local e1=Effect.CreateEffect(c)
@@ -25,7 +25,7 @@ function this.initial_effect(c)
 	c:RegisterEffect(e5)
 end
 function this.lfilter(c)
-	return c:IsLinkRace(RACE_BEASTWARRIOR)
+	return c:IsLinkRace(RACE_BEASTWARRIOR+RACE_BEAST)
 end
 function this.lcheck(g)
 	return g:IsExists(this.lfilter,1,nil)
@@ -49,7 +49,7 @@ function this.thop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function this.thfilter2(c)
-	return c:IsRace(RACE_BEASTWARRIOR) and c:IsType(TYPE_RITUAL) and c:IsAbleToHand()
+	return c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST) and c:IsType(TYPE_RITUAL) and c:IsAbleToHand()
 end
 function this.thtg2(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(this.thfilter2,tp,LOCATION_GRAVE,0,1,nil) end

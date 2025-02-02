@@ -83,13 +83,13 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function s.cfilter(c)
-	return c:IsFaceup() and c:IsType(TYPE_PENDULUM) and c:IsRace(RACE_DRAGON+RACE_SPELLCASTER)
+	return c:IsFaceup() and c:IsType(TYPE_PENDULUM) and c:IsRace(RACE_DRAGON)
 end
 function s.ricon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(s.cfilter,1,nil)
 end
 function s.rfilter(c,e,tp)
-	return c:IsType(TYPE_RITUAL) and c:IsRace(RACE_DRAGON)
+	return c:IsType(TYPE_RITUAL) and c:IsRace(RACE_DRAGON+RACE_SPELLCASTER)
 end
 function s.ritg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then

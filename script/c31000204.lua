@@ -1,7 +1,7 @@
 --UDK-巴格斯特
 local this,id,ofs=GetID()
 function this.initial_effect(c)
-    aux.AddCodeList(c,31000201)
+	aux.AddCodeList(c,31000201)
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e1:SetType(EFFECT_TYPE_IGNITION)
@@ -23,14 +23,14 @@ function this.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 function this.costfilter(c,tp)
-	return c:IsRace(RACE_BEASTWARRIOR) and c:IsType(TYPE_RITUAL) and c:IsAbleToGraveAsCost() and Duel.GetMZoneCount(tp,c)>0
+	return c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST) and c:IsType(TYPE_RITUAL) and c:IsAbleToGraveAsCost() and Duel.GetMZoneCount(tp,c)>0
 end
 function this.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(this.costfilter,tp,LOCATION_HAND+LOCATION_DECK,0,1,e:GetHandler(),tp) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
 	local g=Duel.SelectMatchingCard(tp,this.costfilter,tp,LOCATION_HAND+LOCATION_DECK,0,1,1,e:GetHandler(),tp):GetFirst()
 	Duel.SendtoGrave(g,REASON_COST)
-    e:SetLabel(g:GetLevel())
+	e:SetLabel(g:GetLevel())
 end
 function this.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
@@ -40,16 +40,16 @@ function this.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if not c:IsRelateToEffect(e) then return end
 	if Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)>0 then
-        Duel.BreakEffect()
-        local v=e:GetLabel()
-        local e1=Effect.CreateEffect(c)
+		Duel.BreakEffect()
+		local v=e:GetLabel()
+		local e1=Effect.CreateEffect(c)
 		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
 		e1:SetType(EFFECT_TYPE_SINGLE)
 		e1:SetCode(EFFECT_UPDATE_LEVEL)
 		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
 		e1:SetValue(v)
 		c:RegisterEffect(e1)
-    end
+	end
 	local e1=Effect.CreateEffect(c)
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -60,7 +60,7 @@ function this.spop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e1,tp)
 end
 function this.splimit(e,c)
-	return c:IsLocation(LOCATION_EXTRA) and not c:IsRace(RACE_BEASTWARRIOR)
+	return c:IsLocation(LOCATION_EXTRA) and not c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST)
 end
 function this.thfilter(c)
 	return (c:IsCode(31000201) or aux.IsCodeListed(c,31000201)) and c:IsAbleToHand()
@@ -70,16 +70,16 @@ function this.con(e,tp,eg,ep,ev,re,r,rp)
 	return bit.band(r,REASON_RITUAL)~=0 and c:IsPreviousLocation(LOCATION_HAND+LOCATION_ONFIELD)
 end
 function this.tg(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return Duel.IsExistingMatchingCard(this.thfilter,tp,LOCATION_DECK,0,1,e:GetHandler()) end
-    Duel.SetOperationInfo(0,CATEGORY_TOHAND+CATEGORY_SEARCH,nil,1,tp,LOCATION_DECK)
+	if chk==0 then return Duel.IsExistingMatchingCard(this.thfilter,tp,LOCATION_DECK,0,1,e:GetHandler()) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND+CATEGORY_SEARCH,nil,1,tp,LOCATION_DECK)
 end
 function this.op(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-    local tc=Duel.SelectMatchingCard(tp,this.thfilter,tp,LOCATION_DECK,0,1,1,e:GetHandler()):GetFirst()
-    if tc then
-        Duel.SendtoHand(tc,tp,REASON_EFFECT)
-        Duel.ConfirmCards(1-tp,tc)
-    end
+	local tc=Duel.SelectMatchingCard(tp,this.thfilter,tp,LOCATION_DECK,0,1,1,e:GetHandler()):GetFirst()
+	if tc then
+		Duel.SendtoHand(tc,tp,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,tc)
+	end
 	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)

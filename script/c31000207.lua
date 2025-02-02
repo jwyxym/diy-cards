@@ -1,10 +1,10 @@
 --黑犬公 巴格斯特
 local this,id,ofs=GetID()
 function this.initial_effect(c)
-    aux.AddCodeList(c,31000201)
-    c:EnableReviveLimit()
+	aux.AddCodeList(c,31000201)
+	c:EnableReviveLimit()
 	local e1=Effect.CreateEffect(c)
-    e1:SetDescription(aux.Stringid(id,0))
+	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_DESTROY)
 	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e1:SetProperty(EFFECT_FLAG_DELAY)
@@ -37,14 +37,6 @@ function this.initial_effect(c)
 	local e6=e3:Clone()
 	e6:SetCode(EVENT_BATTLE_DESTROYED)
 	c:RegisterEffect(e6)
-	local e4=e3:Clone()
-	e4:SetCode(EVENT_SUMMON_SUCCESS)
-	e4:SetCondition(this.acon)
-	e4:SetOperation(this.aop2)
-	c:RegisterEffect(e4)
-	local e5=e4:Clone()
-	e5:SetCode(EVENT_SPSUMMON_SUCCESS)
-	c:RegisterEffect(e5)
 end
 function this.descon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_RITUAL)
@@ -90,23 +82,6 @@ function this.aop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if c:IsFaceup() and c:IsRelateToEffect(e) then
 		local ct=#eg
-		if ct>0 then
-			local e1=Effect.CreateEffect(c)
-			e1:SetType(EFFECT_TYPE_SINGLE)
-			e1:SetCode(EFFECT_UPDATE_ATTACK)
-			e1:SetValue(ct*300)
-			e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_DISABLE)
-			c:RegisterEffect(e1)
-		end
-	end
-end
-function this.acon(e,tp,eg,ep,ev,re,r,rp)
-	return eg:IsExists(aux.IsCodeListed,1,nil,31000201)
-end
-function this.aop2(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsFaceup() and c:IsRelateToEffect(e) then
-		local ct=eg:FilterCount(aux.IsCodeListed,nil,31000201)
 		if ct>0 then
 			local e1=Effect.CreateEffect(c)
 			e1:SetType(EFFECT_TYPE_SINGLE)

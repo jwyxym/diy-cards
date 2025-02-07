@@ -119,7 +119,7 @@ function s.lvop(e,tp,eg,ep,ev,re,r,rp)
 	local tc=Duel.GetFirstTarget()
 	if tc and tc:IsFaceup() and tc:IsRelateToEffect(e) then
 		local t={}
-		for i=1,3 do
+		for i=1,4 do
 			if tc:GetLevel()-i>0 then table.insert(t,i) end
 		end
 		if #t==0 then return end

@@ -29,7 +29,7 @@ end
 function this.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
     local mg=eg:GetFirst():GetMaterial()
 	if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and mg:IsContains(chkc) and this.filter(c,e,tp) end
-	if chk==0 then return aux.IsCodeListed(eg:GetFirst(),21300801) and mg:IsExists(this.filter,1,nil,e,tp) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 end
+	if chk==0 then return eg:GetFirst():IsSummonType(SUMMON_TYPE_FUSION) and aux.IsCodeListed(eg:GetFirst(),21300801) and mg:IsExists(this.filter,1,nil,e,tp) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 	local g=mg:FilterSelect(tp,this.filter,1,1,nil,e,tp)
     Duel.SetTargetCard(g)

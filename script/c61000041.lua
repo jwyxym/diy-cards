@@ -58,16 +58,16 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	local tc=g:GetFirst()
 	if tc and Duel.SendtoHand(g,nil,REASON_EFFECT)~=0 then
 		Duel.ConfirmCards(1-tp,g)
-		if Duel.IsPlayerCanDraw(tp,1) then
+		if Duel.IsPlayerCanDraw(tp,1)
 			and Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
 			Duel.BreakEffect()
 			Duel.Draw(tp,1,REASON_EFFECT)
 		end
-	end
-	local c=e:GetHandler()
+		local c=e:GetHandler()
 	if c:IsRelateToEffect(e) then
 		Duel.Remove(c,POS_FACEUP,REASON_EFFECT)
 	end
+end
 end
 function s.handcon(e)
 	return Duel.GetFieldGroupCount(e:GetHandlerPlayer(),LOCATION_MZONE,0)<=1

@@ -69,12 +69,14 @@ end
 function this.tgtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
 	local ct=c:GetOverlayCount()
-	if chk==0 then return Duel.IsPlayerCanDiscardDeck(tp,ct) end
+	if chk==0 then return ct>0 and Duel.IsPlayerCanDiscardDeck(tp,ct) end
+	Duel.SendtoGrave(c:GetOverlayGroup(),REASON_COST)
 	Duel.SetOperationInfo(0,CATEGORY_DECKDES,nil,0,tp,ct)
+	e:SetLabel(ct)
 end
 function this.tgop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	local ct=c:GetOverlayCount()
+	local ct=e:GetLabel()
 	local g=Duel.GetDecktopGroup(tp,ct)
 	Duel.DisableShuffleCheck()
 	Duel.SendtoGrave(g,REASON_EFFECT)

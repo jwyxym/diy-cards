@@ -69,7 +69,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 			Duel.Destroy(g,REASON_EFFECT)
 			end
 		end
-		if tc:IsType(TYPE_RITUAL+TYPE_PENDULUM~=0) then
+		if tc:IsType(TYPE_RITUAL+TYPE_PENDULUM) then
 			Duel.BreakEffect()
 			Duel.ShuffleDeck(tp)
 			Duel.Draw(tp,1,REASON_EFFECT)

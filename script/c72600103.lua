@@ -1,6 +1,7 @@
 --冥界的女主人 埃列什基伽勒
 local cm,m=GetID()
 function c72600103.initial_effect(c)
+	c:SetUniqueOnField(1,0,72300103)
 	aux.AddLinkProcedure(c,nil,3,nil,cm.lcheck)
 	c:EnableReviveLimit()
 	local e1=Effect.CreateEffect(c)

@@ -66,5 +66,5 @@ function cm.op1(e,tp,eg,ep,ev,re,r,rp)
 		Duel.ShuffleHand(tp)
 end
 function cm.splimit(e,c)
-	return not (c:IsRace(RACE_MACHINE) and c:IsAttribute(ATTRIBUTE_LIGHT+ATTRIBUTE_FIRE+ATTRIBUTE_EARTH))
+	return not c:IsRace(RACE_MACHINE)
 end

@@ -101,5 +101,5 @@ function cm.lvval(e,c,rc)
 	else return lv end
 end
 function cm.splimit(e,c)
-	return not (c:IsRace(RACE_MACHINE) and c:IsAttribute(ATTRIBUTE_LIGHT+ATTRIBUTE_FIRE+ATTRIBUTE_EARTH))
+	return not c:IsRace(RACE_MACHINE)
 end

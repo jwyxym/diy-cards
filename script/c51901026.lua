@@ -1,7 +1,7 @@
 --《次元·超越》卡洛特勒斯
 local this,id,ofs=GetID()
 function this.initial_effect(c)
-	aux.AddLinkProcedure(c,aux.FilterBoolFunction(Card.IsLinkAttribute,ATTRIBUTE_WIND),2)
+	aux.AddLinkProcedure(c,aux.FilterBoolFunction(Card.IsLinkAttribute,ATTRIBUTE_WIND),3,99,this.lcheck)
 	c:EnableReviveLimit()
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_REMOVE+CATEGORY_SPECIAL_SUMMON)
@@ -11,6 +11,7 @@ function this.initial_effect(c)
     e1:SetRange(LOCATION_MZONE)
 	e1:SetCountLimit(1,id+EFFECT_COUNT_CODE_OATH)
 	e1:SetCost(aux.bfgcost)
+	e1:SetCondition(this.con1)
 	e1:SetTarget(this.target)
 	e1:SetOperation(this.activate)
 	c:RegisterEffect(e1)
@@ -28,6 +29,12 @@ function this.initial_effect(c)
     e1:SetTarget(this.sptg)
     e1:SetOperation(this.spop)
     c:RegisterEffect(e1)
+end
+function this.lcheck(g)
+	return g:IsExists(Card.IsLinkSetCard,1,nil,0x51b)
+end
+function this.con1(e,tp,eg,ep,ev,re,r,rp)
+    return Duel.GetTurnPlayer()==1-tp
 end
 function this.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_ONFIELD+LOCATION_GRAVE) and chkc:IsControler(1-tp) and chkc:IsAbleToRemove() end

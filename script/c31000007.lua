@@ -94,7 +94,7 @@ function cm.actlimit(e,re,tp)
 	return re:IsActiveType(TYPE_MONSTER)
 end
 function cm.splimit(e,c)
-	return not (c:IsRace(RACE_MACHINE) and c:IsAttribute(ATTRIBUTE_LIGHT+ATTRIBUTE_FIRE+ATTRIBUTE_EARTH))
+	return not c:IsRace(RACE_MACHINE)
 end
 function cm.discon(e)
 	local tp=e:GetHandlerPlayer()

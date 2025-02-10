@@ -61,7 +61,7 @@ function cm.op(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function cm.splimit(e,c)
-	return not (c:IsRace(RACE_MACHINE) and c:IsAttribute(ATTRIBUTE_LIGHT+ATTRIBUTE_FIRE+ATTRIBUTE_EARTH))
+	return not c:IsRace(RACE_MACHINE)
 end
 function cm.cost1(e,tp,eg,ep,ev,re,r,rp,chk)
 	e:SetLabel(1)

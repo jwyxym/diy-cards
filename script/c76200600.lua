@@ -30,14 +30,11 @@ function s.initial_effect(c)
 	--Negate
 	local e4=Effect.CreateEffect(c)
 	e4:SetDescription(aux.Stringid(id,1))
-	e4:SetCategory(CATEGORY_NEGATE+CATEGORY_TODECK)
-	e4:SetType(EFFECT_TYPE_QUICK_O)
-	e4:SetCode(EVENT_CHAINING)
-	e4:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL)
+	e4:SetCategory(CATEGORY_DISABLE+CATEGORY_TODECK)
+	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e4:SetCode(EVENT_CHAIN_SOLVING)
 	e4:SetRange(LOCATION_MZONE)
 	e4:SetCondition(s.negcon)
-	e4:SetCost(s.negcost)
-	e4:SetTarget(s.negtg)
 	e4:SetOperation(s.negop)
 	c:RegisterEffect(e4)
 end
@@ -73,24 +70,23 @@ function s.rvop(e,tp,eg,ep,ev,re,r,rp)
 	elseif op==2 then Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP) end
 end
 function s.negcon(e,tp,eg,ep,ev,re,r,rp)
-	if ep==tp or e:GetHandler():IsStatus(STATUS_BATTLE_DESTROYED) then return false end
-	return re:IsActiveType(TYPE_SPELL+TYPE_TRAP) and Duel.IsChainNegatable(ev)
+	return rp==1-tp and re:IsActiveType(TYPE_SPELL+TYPE_TRAP) and Duel.IsChainDisablable(ev)
 end
 function s.negcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsReleasable() end
 	Duel.Release(e:GetHandler(),REASON_COST)
 end
-function s.filter2(c)
-	return c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToDeck()
-end
-function s.negtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return true end
-	Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
-	local g=Duel.GetMatchingGroup(s.filter2,tp,0,LOCATION_ONFIELD,nil)
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,g,g:GetCount(),0,0)
-end
 function s.negop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.NegateActivation(ev)
-	local g=Duel.GetMatchingGroup(s.filter2,tp,0,LOCATION_ONFIELD,nil)
-	Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+	local g=Duel.GetFieldGroup(tp,0,LOCATION_SZONE)
+	local ec=re:GetHandler()
+	if Duel.SelectEffectYesNo(tp,e:GetHandler(),aux.Stringid(id,2)) and Duel.Release(e:GetHandler(),REASON_EFFECT)~=0 then
+		if Duel.NegateEffect(ev) and g:GetCount()>0 then
+			if ec:IsLocation(LOCATION_ONFIELD) then
+			ec:CancelToGrave()
+			Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+			else
+			Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+			end
+		end
+	end
 end

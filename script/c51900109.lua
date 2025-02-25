@@ -1,7 +1,7 @@
 --《戒律·骑士》肃清骑士
 local s,id,o=GetID()
 function s.initial_effect(c)
-	aux.AddSynchroProcedure(c,nil,aux.NonTuner(Card.IsSetCard,0x512),1)
+	aux.AddSynchroProcedure(c,aux.FilterBoolFunction(Card.IsSynchroType,TYPE_SYNCHRO),aux.NonTuner(s.sfilter),1,1)
 	c:EnableReviveLimit()
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
@@ -44,6 +44,10 @@ function s.initial_effect(c)
 	local e5=e4:Clone()
 	e5:SetCode(EFFECT_UNRELEASABLE_NONSUM)
 	c:RegisterEffect(e5)
+end
+s.material_type=TYPE_SYNCHRO
+function s.sfilter(c)
+	return c:IsSetCard(0x512) and c:IsType(TYPE_SYNCHRO)
 end
 function s.seqcon(e,tp,eg,ep,ev,re,r,rp)
 	local ph=Duel.GetCurrentPhase()

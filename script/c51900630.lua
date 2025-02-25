@@ -1,0 +1,118 @@
+--《萌素魔女和契约者》
+local s,id,o=GetID()
+function s.initial_effect(c)
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_ACTIVATE)
+	e1:SetCode(EVENT_FREE_CHAIN)
+	c:RegisterEffect(e1)
+	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,0))
+	e2:SetType(EFFECT_TYPE_QUICK_O)
+	e2:SetCode(EVENT_FREE_CHAIN)
+	e2:SetRange(LOCATION_SZONE)
+	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER)
+	e2:SetCountLimit(1,id)
+	e2:SetTarget(s.atttg)
+	e2:SetOperation(s.attop)
+	c:RegisterEffect(e2)
+	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,1))
+	e3:SetCategory(CATEGORY_TODECK)
+	e3:SetType(EFFECT_TYPE_QUICK_O)
+	e3:SetCode(EVENT_FREE_CHAIN)
+	e3:SetCountLimit(1,id+o*10000)
+	e3:SetRange(LOCATION_SZONE)
+	e3:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e3:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
+	e3:SetTarget(s.tdtg)
+	e3:SetOperation(s.tdop)
+	c:RegisterEffect(e3)
+	local e4=Effect.CreateEffect(c)
+	e4:SetDescription(aux.Stringid(id,2))
+	e4:SetCategory(CATEGORY_TODECK+CATEGORY_DRAW)
+	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e4:SetCode(EVENT_PHASE+PHASE_END)
+	e4:SetRange(LOCATION_GRAVE)
+	e4:SetCountLimit(1,id+o*20000)
+	e4:SetTarget(s.drtg)
+	e4:SetOperation(s.drop)
+	c:RegisterEffect(e4)
+end
+function s.atttg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATTRIBUTE)
+	local att=Duel.AnnounceAttribute(tp,1,ATTRIBUTE_ALL)
+	e:SetLabel(att)
+end
+function s.attop(e,tp,eg,ep,ev,re,r,rp)
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_ADD_ATTRIBUTE)
+	e1:SetTargetRange(LOCATION_GRAVE,LOCATION_GRAVE)
+	e1:SetTarget(s.att)
+	e1:SetValue(e:GetLabel())
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+	local e2=Effect.CreateEffect(e:GetHandler())
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetValue(s.efilter)
+	local e3=Effect.CreateEffect(e:GetHandler())
+	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_GRANT)
+	e3:SetTargetRange(LOCATION_MZONE,0)
+	e3:SetTarget(s.att)
+	e3:SetLabelObject(e2)
+	Duel.RegisterEffect(e3,tp)
+end
+function s.att(e,c)
+	return c:IsRace(RACE_SPELLCASTER)
+end
+function s.efilter(e,re)
+	return re:IsActiveType(TYPE_EFFECT) and e:GetHandler():IsAttribute(re:GetHandler():GetAttribute())
+end
+function s.tdfilter(c)
+	return c:IsFaceupEx() and c:IsSetCard(0x516) and c:IsAbleToDeck()
+end
+function s.sdc(c,tp)
+	return c:IsAbleToDeck()
+		and Duel.IsExistingTarget(s.tdfilter,tp,LOCATION_REMOVED+LOCATION_GRAVE,0,2,nil)
+end
+function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return false end
+	if chk==0 then return Duel.IsExistingTarget(s.tdfilter,tp,LOCATION_REMOVED+LOCATION_GRAVE,0,2,nil)
+		and Duel.IsExistingTarget(s.sdc,tp,LOCATION_GRAVE,LOCATION_GRAVE,1,nil,tp) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+	local g1=Duel.SelectTarget(tp,s.tdfilter,tp,LOCATION_REMOVED+LOCATION_GRAVE,0,2,2,nil)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
+	local g2=Duel.SelectTarget(tp,Card.IsAbleToDeck,tp,LOCATION_GRAVE,LOCATION_GRAVE,1,1,g1)
+	g1:Merge(g2)
+	Duel.SetOperationInfo(0,CATEGORY_TODECK,g1,g1:GetCount(),0,0)
+end
+function s.tdop(e,tp,eg,ep,ev,re,r,rp)
+	local g=Duel.GetChainInfo(0,CHAININFO_TARGET_CARDS)
+	local tg=g:Filter(Card.IsRelateToEffect,nil,e)
+	if tg:GetCount()>0 then
+		Duel.SendtoDeck(tg,nil,2,REASON_EFFECT)
+	end
+end
+function s.rccfilter(c)
+	return c:IsFaceup() and c:IsSetCard(0x516)
+end
+function s.drcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.IsExistingMatchingCard(s.rccfilter,tp,LOCATION_MZONE,0,1,nil)
+end
+function s.drtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return e:GetHandler():IsAbleToDeck() and Duel.IsPlayerCanDraw(tp,1) end
+	Duel.SetOperationInfo(0,CATEGORY_TODECK,e:GetHandler(),1,0,0)
+	Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,1)
+end
+function s.drop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsRelateToEffect(e) and Duel.SendtoDeck(c,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)~=0 and c:IsLocation(LOCATION_DECK) then
+		Duel.ShuffleDeck(tp)
+		Duel.BreakEffect()
+		Duel.Draw(tp,1,REASON_EFFECT)
+	end
+end

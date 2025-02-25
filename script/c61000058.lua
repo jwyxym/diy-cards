@@ -2,7 +2,6 @@
 local this,id,ofs=GetID()
 function this.initial_effect(c)
     local e1=Effect.CreateEffect(c)
-    e1:SetCategory(CATEGORY_REMOVE+CATEGORY_DRAW+CATEGORY_DISABLE)
     e1:SetType(EFFECT_TYPE_ACTIVATE)
     e1:SetCode(EVENT_CHAINING)
     e1:SetCountLimit(1,id+EFFECT_COUNT_CODE_OATH)
@@ -28,23 +27,23 @@ end
 function this.tg(e,tp,eg,ep,ev,re,r,rp,chk)
     local ct=Duel.GetFlagEffect(tp,id)
     if chk==0 then return
-        ct>=1 and Duel.IsExistingMatchingCard(Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,e:GetHandler())
-    and (ct<2 or Duel.IsPlayerCanDraw(tp,1))
+        Duel.IsExistingMatchingCard(Card.IsDestructable,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,e:GetHandler())
     end
     local cat=0
-    if ct>=1 then
+    if ct>=3 then
         cat=cat|CATEGORY_REMOVE
         Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,1,tp,LOCATION_ONFIELD)
     end
-    if ct>=2 then
+    if ct>=1 then
         cat=cat|CATEGORY_DRAW
         Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,1)
     end
-    if ct>=3 then
+    if ct>=2 then
         cat=cat|CATEGORY_DISABLE
         Duel.SetOperationInfo(0,CATEGORY_DISABLE,eg,1,0,0)
     end
-    e:SetCategory(cat)
+    Duel.SetOperationInfo(0,CATEGORY_DESTROY,nil,1,0,0)
+    e:SetCategory(cat|CATEGORY_DESTROY)
     if ct>=2 and e:IsHasType(EFFECT_TYPE_ACTIVATE) then
 		Duel.SetChainLimit(this.chainlm)
 	end
@@ -53,18 +52,22 @@ function this.chainlm(e,rp,tp)
 	return tp==rp
 end
 function this.op(e,tp,eg,ep,ev,re,r,rp)
-    local ct=Duel.GetFlagEffect(tp,id)
-    if ct>=1 then
-        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-        local tc=Duel.SelectMatchingCard(tp,Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,aux.ExceptThisCard(e))
-        if tc then Duel.Remove(tc,POS_FACEUP,REASON_EFFECT) end
-    end
-    if ct>=2 then
-        Duel.BreakEffect()
-        Duel.Draw(tp,1,REASON_EFFECT)
-    end
-    if ct>=3 then
-        Duel.BreakEffect()
-        Duel.NegateEffect(ev)
+    local dc=Duel.SelectMatchingCard(tp,Card.IsDestructable,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,e:GetHandler()):GetFirst()
+    if dc and Duel.Destroy(dc,REASON_EFFECT)>0 then
+        local ct=Duel.GetFlagEffect(tp,id)
+        if ct>=1 then
+            Duel.BreakEffect()
+            Duel.Draw(tp,1,REASON_EFFECT)
+        end
+        if ct>=2 then
+            Duel.BreakEffect()
+            Duel.NegateEffect(ev)
+        end
+        if ct>=3 then
+            Duel.BreakEffect()
+            Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+            local tc=Duel.SelectMatchingCard(tp,Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,aux.ExceptThisCard(e))
+            if tc then Duel.Remove(tc,POS_FACEUP,REASON_EFFECT) end
+        end
     end
 end

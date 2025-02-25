@@ -48,7 +48,7 @@ function s.ovfilter(c)
 	return c:IsFaceup() and (c:IsRank(3) or c:IsRank(4)) and c:IsAttribute(ATTRIBUTE_DARK+ATTRIBUTE_LIGHT) and c:GetOverlayCount()==0
 end
 function s.thfilter(c)
-	return aux.IsCodeListed(c,72600560) and c:IsAbleToHand()
+	return aux.IsCodeListed(c,72600560) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand()
 end
 function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,1,REASON_COST) end

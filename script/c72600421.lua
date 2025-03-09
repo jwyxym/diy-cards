@@ -37,7 +37,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 end
 function s.mfilter(c,xyzc)
-	return c:IsType(TYPE_XYZ) and c:IsRace(RACE_ZOMBIE)
+	return (c:IsType(TYPE_XYZ) and c:IsRace(RACE_ZOMBIE)) or c:IsXyzLevel(xyzc,10)
 end
 function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,1,REASON_COST) end

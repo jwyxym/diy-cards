@@ -64,5 +64,5 @@ function this.repval(e,c)
 	return this.repfilter(c,e:GetHandlerPlayer())
 end
 function this.repop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.RemoveCounter(tp,0x1,3,REASON_EFFECT)
+	Duel.RemoveCounter(tp,1,0,0x1,3,REASON_EFFECT)
 end

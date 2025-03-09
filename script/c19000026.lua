@@ -3,7 +3,7 @@ function c19000026.initial_effect(c)
 	c:SetUniqueOnField(1,0,19000026)
 	--xyz summon
 	c:EnableReviveLimit()
-	aux.AddXyzProcedureLevelFree(c,c19000026.mfilter,nil,2,99)
+	aux.AddXyzProcedureLevelFree(c,c19000026.mfilter,nil,3,99)
 	--spsummon1
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(19000026,0))
@@ -37,6 +37,11 @@ function c19000026.initial_effect(c)
 		ge1:SetOperation(c19000026.regop)
 		Duel.RegisterEffect(ge1,0)
 	end
+	--
+	Duel.AddCustomActivityCounter(19000026,ACTIVITY_SPSUMMON,c19000026.counterfilter)
+end
+function c19000026.counterfilter(c)
+	return not (c:IsRace(RACE_DRAGON) and c:IsAttribute(ATTRIBUTE_FIRE))
 end
 function c19000026.mfilter(c,xyzc)
 	return c:IsXyzLevel(xyzc,10) or (c:IsType(TYPE_LINK) and (c:IsLinkMarker(LINK_MARKER_LEFT) or c:IsLinkMarker(LINK_MARKER_RIGHT)) and (c:IsAttribute(ATTRIBUTE_FIRE) or c:IsRace(RACE_DRAGON)))
@@ -63,8 +68,8 @@ function c19000026.spop(e,tp,eg,ep,ev,re,r,rp)
 	if not tc then return end
 	tc:SetMaterial(nil)
 	if Duel.SpecialSummon(tc,SUMMON_TYPE_LINK,tp,tp,false,false,POS_FACEUP)~=0 then
-	    tc:CompleteProcedure()
-    end
+		tc:CompleteProcedure()
+	end
 end
 function c19000026.spcfilter(c,tp)
 	return c:IsReason(REASON_BATTLE+REASON_EFFECT) and c:IsPreviousControler(tp)

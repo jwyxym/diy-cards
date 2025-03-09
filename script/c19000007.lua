@@ -1,7 +1,7 @@
 --神力使者
 function c19000007.initial_effect(c)
 	--xyz summon
-	aux.AddXyzProcedure(c,nil,8,2)
+	aux.AddXyzProcedure(c,nil,8,3)
 	c:EnableReviveLimit()
 	--lv change
 	local e0=Effect.CreateEffect(c)
@@ -76,7 +76,7 @@ function c19000007.atkval(e,c)
 	return Duel.GetMatchingGroupCount(c19000007.atkfilter,c:GetControler(),LOCATION_GRAVE+LOCATION_MZONE,0,nil)*200
 end
 function c19000007.discon(e,tp,eg,ep,ev,re,r,rp)
-	return not e:GetHandler():IsStatus(STATUS_BATTLE_DESTROYED) and Duel.IsChainNegatable(ev) and re:IsActiveType(TYPE_MONSTER)
+	return not e:GetHandler():IsStatus(STATUS_BATTLE_DESTROYED) and re:GetActivateLocation()==LOCATION_MZONE and Duel.IsChainNegatable(ev) and re:IsActiveType(TYPE_MONSTER)
 end
 function c19000007.discost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,1,REASON_COST) end

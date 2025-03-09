@@ -50,7 +50,7 @@ function c13131378.lcheck(g,lc)
 	return g:IsExists(Card.IsSetCard,1,nil,0x3b00)
 end
 function c13131378.dcfilter(c)
-	return c:IsSetCard(0x3b00) and c:IsAbleToDeckAsCost()
+	return c:IsSetCard(0x3b00) and c:IsAbleToDeckAsCost() and c:IsType(TYPE_MONSTER)
 end
 function c13131378.tdcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(c13131378.dcfilter,tp,LOCATION_GRAVE,0,1,nil) end

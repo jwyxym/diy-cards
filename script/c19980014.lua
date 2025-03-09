@@ -30,9 +30,13 @@ function c19980014.initial_effect(c)
 	e2:SetProperty(EFFECT_FLAG_SET_AVAILABLE+EFFECT_FLAG_IGNORE_RANGE+EFFECT_FLAG_IGNORE_IMMUNE)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetTargetRange(LOCATION_DECK,LOCATION_DECK)
+	e2:SetCondition(c19980014.rmdcon)
 	e2:SetTarget(c19980014.rmtarget)
 	e2:SetValue(LOCATION_REMOVED)
 	c:RegisterEffect(e2)
+end
+function c19980014.rmdcon(e)
+	return Duel.GetLP(e:GetHandlerPlayer())<=333
 end
 function c19980014.rmtarget(e,c)
 	return not c:IsSetCard(0xb34)

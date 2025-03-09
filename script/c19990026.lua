@@ -2,7 +2,7 @@
 function c19990026.initial_effect(c)
 	c:SetSPSummonOnce(19990026)
 	--xyz summon
-	aux.AddXyzProcedure(c,nil,4,2,nil,nil,99)
+	aux.AddXyzProcedure(c,aux.FilterBoolFunction(Card.IsRace,RACE_BEAST),4,2,nil,nil,99)
 	c:EnableReviveLimit()
 	--pendulum summon
 	aux.EnablePendulumAttribute(c,false)

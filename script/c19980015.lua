@@ -30,14 +30,19 @@ function c19980015.initial_effect(c)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetDescription(aux.Stringid(19980015,0))
 	e2:SetTargetRange(1,1)
+	e2:SetCondition(c19980015.actdcon)
 	e2:SetValue(c19980015.aclimit)
 	c:RegisterEffect(e2)
 	local e3=Effect.CreateEffect(c)
+	e3:SetCondition(c19980015.actdcon)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e3:SetCode(EVENT_SSET)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetOperation(c19980015.aclimset)
 	c:RegisterEffect(e3)
+end
+function c19980015.actdcon(e)
+	return Duel.GetLP(e:GetHandlerPlayer())<=333
 end
 function c19980015.aclimit(e,re,tp)
 	if not re:IsHasType(EFFECT_TYPE_ACTIVATE) then return false end

@@ -48,7 +48,7 @@ function c47700006.splimit(e,se,sp,st)
 	return not e:GetHandler():IsLocation(LOCATION_EXTRA) or aux.fuslimit(e,se,sp,st)
 end
 function c47700006.mfilter1(c)
-	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsFusionType(TYPE_PENDULUM) and c:IsRace(RACE_DRAGON)
+	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsFusionType(TYPE_PENDULUM) and c:IsRace(RACE_DRAGON+RACE_PLANT)
 end
 function c47700006.mfilter2(c)
 	return c:IsFusionAttribute(ATTRIBUTE_DARK) and c:IsFusionType(TYPE_FUSION)

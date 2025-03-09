@@ -2,7 +2,7 @@
 local this,id,ofs=GetID()
 function this.initial_effect(c)
 	local e1=Effect.CreateEffect(c)
-    e1:SetCategory(CATEGORY_REMOVE+CATEGORY_SPECIAL_SUMMON)
+    e1:SetCategory(CATEGORY_REMOVE+CATEGORY_SPECIAL_SUMMON+CATEGORY_TOHAND+CATEGORY_SEARCH)
     e1:SetType(EFFECT_TYPE_QUICK_O)
     e1:SetCode(EVENT_FREE_CHAIN)
     e1:SetRange(LOCATION_HAND)
@@ -10,48 +10,48 @@ function this.initial_effect(c)
     e1:SetTarget(this.sptg)
     e1:SetOperation(this.spop)
     c:RegisterEffect(e1)
-	local e4=Effect.CreateEffect(c)
-	e4:SetType(EFFECT_TYPE_SINGLE)
-	e4:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-	e4:SetRange(LOCATION_MZONE)
-	e4:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
-	e4:SetValue(1)
-	c:RegisterEffect(e4)
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-	e1:SetCode(EVENT_REMOVE)
-	e1:SetOperation(this.rmop)
-	c:RegisterEffect(e1)
 	local e2=Effect.CreateEffect(c)
-	e2:SetCategory(CATEGORY_TOHAND+CATEGORY_REMOVE)
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_F)
-	e2:SetCode(EVENT_PHASE+PHASE_END)
-	e2:SetRange(LOCATION_REMOVED)
-	e2:SetCondition(this.condition)
-	e2:SetOperation(this.operation)
+	e2:SetCategory(CATEGORY_TOHAND)
+	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e2:SetCode(EVENT_TO_GRAVE)
+	e2:SetProperty(EFFECT_FLAG_DELAY)
+	e2:SetCost(aux.bfgcost)
+	e2:SetTarget(this.tg)
+	e2:SetOperation(this.op)
 	c:RegisterEffect(e2)
 end
 function this.spcon(e,tp,eg,ep,ev,re,r,rp)
 	local ph=Duel.GetCurrentPhase()
 	return ph>=PHASE_BATTLE_START and ph<=PHASE_BATTLE
 end
+function this.thfilter(c)
+	return c:IsSetCard(0x97c0) and c:IsType(TYPE_TRAP) and c:IsAbleToHand()
+end
 function this.spfilter(c)
     return c:IsAbleToRemove() and not c:IsHasEffect(EFFECT_NECRO_VALLEY)
 end
 function this.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
     local c=e:GetHandler()
-    if chk==0 then return Duel.IsExistingMatchingCard(this.spfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,c)
-    and c:IsCanBeSpecialSummoned(e,0,tp,false,false) end
-    Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,1,tp,LOCATION_HAND+LOCATION_GRAVE)
+    if chk==0 then return Duel.IsExistingMatchingCard(this.spfilter,tp,LOCATION_GRAVE,0,1,nil)
+    and c:IsCanBeSpecialSummoned(e,0,tp,false,false) and Duel.GetMZoneCount(tp)>0 and Duel.IsExistingMatchingCard(this.thfilter,tp,LOCATION_DECK,0,1,nil) end
+    Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,1,tp,LOCATION_GRAVE)
     Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,tp,LOCATION_HAND)
 end
 function this.spop(e,tp,eg,ep,ev,re,r,rp)
     local c=e:GetHandler()
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-    local tc=Duel.SelectMatchingCard(tp,this.spfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,1,c)
+    local tc=Duel.SelectMatchingCard(tp,this.spfilter,tp,LOCATION_GRAVE,0,1,1,nil)
     if tc and Duel.Remove(tc,POS_FACEUP,REASON_EFFECT)>0 and c:IsRelateToEffect(e) then
         Duel.BreakEffect()
-        Duel.SpecialSummon(c,SUMMON_TYPE_SPECIAL,tp,tp,false,false,POS_FACEUP)
+        if Duel.SpecialSummon(c,SUMMON_TYPE_SPECIAL,tp,tp,false,false,POS_FACEUP)>0 then
+			Duel.BreakEffect()
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+			local tc2=Duel.SelectMatchingCard(tp,this.thfilter,tp,LOCATION_DECK,0,1,1,nil)
+			if tc2 then
+				Duel.SendtoHand(tc2,tp,REASON_EFFECT)
+				Duel.ConfirmCards(1-tp,tc2)
+			end
+		end
 		local e1=Effect.CreateEffect(c)
 		e1:SetType(EFFECT_TYPE_FIELD)
 		e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -66,22 +66,18 @@ end
 function this.splimit(e,c)
 	return c:IsLocation(LOCATION_EXTRA)
 end
-function this.rmop(e,tp,eg,ep,ev,re,r,rp)
-	if e:GetHandler():IsFacedown() then return end
-	e:GetHandler():RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,0,1)
-end
-function this.condition(e,tp,eg,ep,ev,re,r,rp)
-	return e:GetHandler():GetFlagEffect(id)~=0
-end
 function this.filter(c)
-    return c:IsSetCard(0x97c0) and c:IsAbleToRemove()
+	return c:IsSetCard(0x97c0) and c:IsFaceup() and c:IsAbleToHand()
 end
-function this.operation(e,tp,eg,ep,ev,re,r,rp)
-    local c=e:GetHandler()
-    if c:IsRelateToEffect(e) and Duel.SendtoHand(c,nil,REASON_EFFECT)>0 and Duel.IsExistingMatchingCard(this.filter,tp,LOCATION_HAND,0,1,nil) then
-        Duel.BreakEffect()
-        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-        local tc=Duel.SelectMatchingCard(tp,this.filter,tp,LOCATION_HAND,0,1,1,nil)
-        if tc then Duel.Remove(tc,POS_FACEUP,REASON_EFFECT) end
-    end
+function this.tg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(this.filter,tp,LOCATION_REMOVED,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_REMOVED)
+end
+function this.op(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local tc=Duel.SelectMatchingCard(tp,this.filter,tp,LOCATION_REMOVED,0,1,1,nil)
+	if tc then
+		Duel.SendtoHand(tc,tp,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,tc)
+	end
 end

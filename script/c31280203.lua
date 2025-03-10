@@ -33,7 +33,7 @@ function c31280203.initial_effect(c)
 end
 --c31280203.SetCard_TnT_Lwsteam=true 
 function c31280203.cfilter(c)
-	return c:IsFaceup() and c:IsSetCard(0x3a21) 
+	return c:IsFaceup() and c:IsSetCard(0xca0) 
 end
 function c31280203.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsExistingMatchingCard(c31280203.cfilter,tp,LOCATION_MZONE,0,1,nil)

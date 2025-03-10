@@ -26,7 +26,7 @@ function c31280210.initial_effect(c)
 end
 c31280210.SetCard_TnT_TLmeal=true 
 function c31280210.xtgfil(c) 
-	return c:IsFaceup() and (c:IsAttribute(ATTRIBUTE_LIGHT) or c:IsSetCard(0x3a21)) 
+	return c:IsFaceup() and (c:IsAttribute(ATTRIBUTE_LIGHT) or c:IsSetCard(0xca0)) 
 end 
 function c31280210.xxtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingTarget(c31280210.xtgfil,tp,LOCATION_MZONE,0,1,nil) and e:GetHandler():IsAbleToDeck() and Duel.IsPlayerCanDraw(tp) end 
@@ -46,7 +46,7 @@ function c31280210.xxop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.BreakEffect()
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
 		local sg=g:Select(tp,3,3,nil)
-		aux.PlaceCardsOnDeckBottom(tp,sg)	  
+		aux.PlaceCardsOnDeckBottom(tp,sg)	 
 	end 
 end 
 

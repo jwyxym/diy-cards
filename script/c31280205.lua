@@ -27,7 +27,7 @@ function c31280205.initial_effect(c)
 end
 c31280205.SetCard_TnT_Lwsteam=true 
 function c31280205.acfilter(c,tp)
-	return c:IsSetCard(0x3a22) and c:IsType(TYPE_SPELL) and c:IsType(TYPE_CONTINUOUS) and c:GetActivateEffect():IsActivatable(tp) and not Duel.IsExistingMatchingCard(Card.IsCode,tp,LOCATION_SZONE,0,1,nil,c:GetCode())
+	return c:IsSetCard(0xca1) and c:IsType(TYPE_SPELL) and c:IsType(TYPE_CONTINUOUS) and c:GetActivateEffect():IsActivatable(tp) and not Duel.IsExistingMatchingCard(Card.IsCode,tp,LOCATION_SZONE,0,1,nil,c:GetCode())
 end
 function c31280205.actg(e,tp,eg,ep,ev,re,r,rp,chk)  
 	if chk==0 then return Duel.IsExistingMatchingCard(c31280205.acfilter,tp,LOCATION_DECK,0,1,nil,tp) and Duel.GetLocationCount(tp,LOCATION_SZONE)>0 end 
@@ -50,7 +50,7 @@ function c31280205.acop(e,tp,eg,ep,ev,re,r,rp)
 	end 
 end
 function c31280205.tdfil(c) 
-	return c:IsFaceup() and c:IsAbleToDeck() and c:IsType(TYPE_SPELL) and c:IsType(TYPE_CONTINUOUS) and c:IsSetCard(0x3a22)  
+	return c:IsFaceup() and c:IsAbleToDeck() and c:IsType(TYPE_SPELL) and c:IsType(TYPE_CONTINUOUS) and c:IsSetCard(0xca1)  
 end 
 function c31280205.cltg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) and chkc:IsControlerCanBeChanged() end

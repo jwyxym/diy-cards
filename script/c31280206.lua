@@ -28,7 +28,7 @@ function c31280206.initial_effect(c)
 end
 c31280206.SetCard_TnT_Lwsteam=true 
 function c31280206.accon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(function(c) return c:IsSetCard(0x3a21) and c:IsFaceup() end,tp,LOCATION_MZONE,0,1,nil)
+	return Duel.IsExistingMatchingCard(function(c) return c:IsSetCard(0xca0) and c:IsFaceup() end,tp,LOCATION_MZONE,0,1,nil)
 end 
 function c31280206.actg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) end
@@ -44,7 +44,7 @@ function c31280206.acop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function c31280206.ackfil(c) 
-	return c:IsSetCard(0x3a22) and c:IsFaceup()  
+	return c:IsSetCard(0xca1) and c:IsFaceup()  
 end 
 function c31280206.eqcon(e,tp,eg,ep,ev,re,r,rp) 
 	return Duel.IsExistingMatchingCard(c31280206.ackfil,tp,LOCATION_SZONE,0,1,nil) and aux.exccon(e,tp,eg,ep,ev,re,r,rp) 

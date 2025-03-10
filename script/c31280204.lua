@@ -24,7 +24,7 @@ function c31280204.initial_effect(c)
 end
 c31280204.SetCard_TnT_Lwsteam=true 
 function c31280204.filter(c)
-	return c:IsSetCard(0x3a21) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
+	return c:IsSetCard(0xca0) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
 end
 function c31280204.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(c31280204.filter,tp,LOCATION_DECK,0,1,nil) end
@@ -42,7 +42,7 @@ function c31280204.setcon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(Card.IsControler,1,nil,1-tp)
 end
 function c31280204.tdfil(c) 
-	return c:IsAbleToDeck() and c:IsType(TYPE_MONSTER) and c:IsSetCard(0x3a21) and c:IsFaceup()
+	return c:IsAbleToDeck() and c:IsType(TYPE_MONSTER) and c:IsSetCard(0xca0) and c:IsFaceup()
 end 
 function c31280204.settg(e,tp,eg,ep,ev,re,r,rp,chk,chkc) 
 	if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_MZONE+LOCATION_GRAVE) and c31280204.tdfil(chkc) end 

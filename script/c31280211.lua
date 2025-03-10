@@ -26,7 +26,7 @@ function c31280211.initial_effect(c)
 end
 c31280211.SetCard_TnT_TLmeal=true 
 function c31280211.xtgfil(c) 
-	return c:IsFaceup() and (c:IsAttribute(ATTRIBUTE_DARK) or c:IsSetCard(0x3a21)) 
+	return c:IsFaceup() and (c:IsAttribute(ATTRIBUTE_DARK) or c:IsSetCard(0xca0)) 
 end 
 function c31280211.xxtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingTarget(c31280211.xtgfil,tp,LOCATION_MZONE,0,1,nil) and e:GetHandler():IsAbleToDeck() and Duel.IsPlayerCanDraw(tp) and Duel.GetLocationCount(tp,LOCATION_MZONE,PLAYER_NONE,0)>0 end 

@@ -16,7 +16,7 @@ function c31280201.initial_effect(c)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetTargetRange(LOCATION_ONFIELD,0)
 	e2:SetTarget(function(e,c) 
-	return c:IsType(TYPE_CONTINUOUS) and c:IsType(TYPE_SPELL) and c:IsSetCard(0x3a22) end)
+	return c:IsType(TYPE_CONTINUOUS) and c:IsType(TYPE_SPELL) and c:IsSetCard(0xca1) end)
 	e2:SetValue(aux.indoval)
 	c:RegisterEffect(e2)
 	--search
@@ -55,10 +55,10 @@ function c31280201.accon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(c31280201.dackfil,1,nil)
 end
 function c31280201.ackfil(c) 
-	return c:IsSetCard(0x3a22) and c:IsFaceup()  
+	return c:IsSetCard(0xca1) and c:IsFaceup()  
 end 
 function c31280201.acfilter(c,tp)
-	return c:IsSetCard(0x3a22) and c:IsType(TYPE_SPELL) and c:IsType(TYPE_CONTINUOUS) and c:GetActivateEffect():IsActivatable(tp) and not Duel.IsExistingMatchingCard(Card.IsCode,tp,LOCATION_SZONE,0,1,nil,c:GetCode())
+	return c:IsSetCard(0xca1) and c:IsType(TYPE_SPELL) and c:IsType(TYPE_CONTINUOUS) and c:GetActivateEffect():IsActivatable(tp) and not Duel.IsExistingMatchingCard(Card.IsCode,tp,LOCATION_SZONE,0,1,nil,c:GetCode())
 end
 function c31280201.actg(e,tp,eg,ep,ev,re,r,rp,chk) 
 	local b1=Duel.IsExistingMatchingCard(c31280201.acfilter,tp,LOCATION_DECK,0,1,nil,tp) and Duel.GetLocationCount(tp,LOCATION_SZONE)>0 

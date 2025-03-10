@@ -67,7 +67,7 @@ end
 --c31280202.SetCard_TnT_Lwsteam=true 
 function c31280202.checkop(e,tp,eg,ep,ev,re,r,rp) 
 	local rc=re:GetHandler() 
-	if rc:IsSetCard(0x3a22) and re:IsActiveType(TYPE_SPELL) and re:IsActiveType(TYPE_CONTINUOUS) and rp==tp then 
+	if rc:IsSetCard(0xca1) and re:IsActiveType(TYPE_SPELL) and re:IsActiveType(TYPE_CONTINUOUS) and rp==tp then 
 		Duel.RegisterFlagEffect(0,31280202,RESET_PHASE+PHASE_END,0,1) 
 	end 
 end
@@ -76,14 +76,14 @@ function c31280202.hspcon(e,c)
 	return Duel.GetFlagEffect(tp,31280202)~=0 and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 
 end
 function c31280202.spcon(e,tp,eg,ep,ev,re,r,rp)
-	return re:IsActiveType(TYPE_SPELL) and re:IsActiveType(TYPE_CONTINUOUS) and re:GetHandler():IsSetCard(0x3a22) and rp==tp 
+	return re:IsActiveType(TYPE_SPELL) and re:IsActiveType(TYPE_CONTINUOUS) and re:GetHandler():IsSetCard(0xca1) and rp==tp 
 end 
 function c31280202.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
 function c31280202.filter(c)
-	return not c:IsCode(31280202) and c:IsSetCard(0x3a21) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
+	return not c:IsCode(31280202) and c:IsSetCard(0xca0) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
 end
 function c31280202.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
@@ -98,7 +98,7 @@ function c31280202.spop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function c31280202.idckfil(c) 
-	return c:IsFaceup() and c:IsType(TYPE_CONTINUOUS) and c:IsType(TYPE_SPELL) and c:IsSetCard(0x3a22) 
+	return c:IsFaceup() and c:IsType(TYPE_CONTINUOUS) and c:IsType(TYPE_SPELL) and c:IsSetCard(0xca1) 
 end 
 function c31280202.idcon(e) 
 	local tp=e:GetHandlerPlayer()

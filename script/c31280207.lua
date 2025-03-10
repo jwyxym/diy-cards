@@ -33,7 +33,7 @@ function c31280207.initial_effect(c)
 end
 c31280207.SetCard_TnT_Lwsteam=true  
 function c31280207.mvfil(c)
-	return c:IsFaceup() and c:IsSetCard(0x3a21)
+	return c:IsFaceup() and c:IsSetCard(0xca0)
 end
 function c31280207.mvtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and chkc.SetCard_TnT_Lwsteam end
@@ -64,7 +64,7 @@ function c31280207.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SendtoGrave(e:GetHandler(),REASON_COST) 
 end 
 function c31280207.sfilter(c,e,tp)
-	return c:IsSetCard(0x3a21) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsSetCard(0xca0) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function c31280207.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0

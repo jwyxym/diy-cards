@@ -36,7 +36,7 @@ function c31280200.initial_effect(c)
 end
 --c31280200.SetCard_TnT_Lwsteam=true 
 function c31280200.cfilter(c)
-	return c:IsFaceup() and c:IsSetCard(0x3a21) 
+	return c:IsFaceup() and c:IsSetCard(0xca0) 
 end
 function c31280200.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsExistingMatchingCard(c31280200.cfilter,tp,LOCATION_MZONE,0,1,nil)
@@ -47,7 +47,7 @@ function c31280200.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
 function c31280200.thfil(c) 
-	return c:IsAbleToHand() and c:IsSetCard(0x3a21) and c:IsType(TYPE_SPELL+TYPE_TRAP)  
+	return c:IsAbleToHand() and c:IsSetCard(0xca0) and c:IsType(TYPE_SPELL+TYPE_TRAP)  
 end 
 function c31280200.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
@@ -71,7 +71,7 @@ function c31280200.spop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function c31280200.thcon(e,tp,eg,ep,ev,re,r,rp)
-	return re:GetHandler():IsSetCard(0x3a22) and re:IsActiveType(TYPE_SPELL) and re:IsActiveType(TYPE_CONTINUOUS) and e:GetHandler():IsAbleToHand()
+	return re:GetHandler():IsSetCard(0xca1) and re:IsActiveType(TYPE_SPELL) and re:IsActiveType(TYPE_CONTINUOUS) and e:GetHandler():IsAbleToHand()
 end 
 function c31280200.thop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

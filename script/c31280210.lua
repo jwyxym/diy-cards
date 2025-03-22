@@ -45,8 +45,8 @@ function c31280210.xxop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.ShuffleHand(tp)
 		Duel.BreakEffect()
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
-		local sg=g:Select(tp,3,3,nil)
-		aux.PlaceCardsOnDeckBottom(tp,sg)	 
+		local sg=g:Select(tp,x,x,nil)
+		aux.PlaceCardsOnDeckBottom(tp,sg)	
 	end 
 end 
 

@@ -1,6 +1,6 @@
 --炎之灾厄 阿尔比昂
 function c76200515.initial_effect(c)
-	aux.AddCodeList(c,76200515)
+	aux.AddCodeList(c,76200500)
 	--synchro summon
 	aux.AddSynchroMixProcedure(c,aux.Tuner(nil),aux.Tuner(nil),nil,aux.NonTuner(c76200515.sfilter),1,1)
 	c:EnableReviveLimit()

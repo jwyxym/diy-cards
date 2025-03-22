@@ -78,12 +78,12 @@ end
 function c31280202.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return re:IsActiveType(TYPE_SPELL) and re:IsActiveType(TYPE_CONTINUOUS) and re:GetHandler():IsSetCard(0xca1) and rp==tp 
 end 
+function c31280202.filter(c)
+	return not c:IsCode(31280202) and c:IsSetCard(0xca0) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
+end
 function c31280202.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
-end
-function c31280202.filter(c)
-	return not c:IsCode(31280202) and c:IsSetCard(0xca0) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
 end
 function c31280202.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
@@ -105,7 +105,7 @@ function c31280202.idcon(e)
 	return Duel.IsExistingMatchingCard(c31280202.idckfil,tp,LOCATION_SZONE,0,1,nil)
 end 
 function c31280202.thfilter(c)
-	return not c:IsCode(31280202) and c:IsSetCard(0x3a21) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
+	return not c:IsCode(31280202) and c:IsSetCard(0xca0) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
 end
 function c31280202.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(c31280202.thfilter,tp,LOCATION_DECK,0,1,nil) end

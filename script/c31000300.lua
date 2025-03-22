@@ -3,7 +3,7 @@ function c31000300.initial_effect(c)
 	c:EnableCounterPermit(0x312)
 	--fusion material
 	c:EnableReviveLimit()
-	aux.AddFusionProcMixRep(c,true,true,aux.FilterBoolFunction(Card.IsFusionAttribute,ATTRIBUTE_DARK),1,99,c31000300.mfilter1,c31000300.mfilter2)
+	aux.AddFusionProcMixRep(c,true,true,aux.FilterBoolFunction(Card.IsFusionAttribute,ATTRIBUTE_DARK),1,99,c31000300.mfilter1,c31000300.mfilter2,c31000300.mfilter3)
 	--counter
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_COUNTER)
@@ -46,7 +46,10 @@ function c31000300.mfilter1(c)
 	return c:IsFusionSetCard(0x312) and c:IsFusionType(TYPE_FUSION)
 end
 function c31000300.mfilter2(c)
-	return c:IsFusionType(TYPE_FUSION)
+	return c:IsFusionSetCard(0x312)
+end
+function c31000300.mfilter3(c)
+	return c:IsFusionSetCard(0x312) and c:IsFusionType(TYPE_FUSION)
 end
 function c31000300.valcheck(e,c)
 	local g=c:GetMaterial()

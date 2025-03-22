@@ -23,7 +23,6 @@ function c19000013.initial_effect(c)
 	e2:SetOperation(c19000013.spop)
 	c:RegisterEffect(e2)
 end
-c19000013.fusion_effect=true
 function c19000013.copyfilter(c)
 	return c:IsType(TYPE_FUSION) and not c:IsPublic()
 end

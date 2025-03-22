@@ -123,7 +123,7 @@ function this.eqop(e,tp,eg,ep,ev,re,r,rp)
 			st=st+(tc:GetType()&(TYPE_FUSION+TYPE_SYNCHRO+TYPE_XYZ+TYPE_PENDULUM))
 			if not Duel.Equip(tp,tc,c,true,true) then break end
 			local e1=Effect.CreateEffect(c)
-			e1:SetProperty(EFFECT_FLAG_COPY_INHERIT+EFFECT_FLAG_OWNER_RELATE)
+			e1:SetProperty(EFFECT_FLAG_OWNER_RELATE)
 			e1:SetType(EFFECT_TYPE_SINGLE)
 			e1:SetCode(EFFECT_EQUIP_LIMIT)
 			e1:SetReset(RESET_EVENT+RESETS_STANDARD)

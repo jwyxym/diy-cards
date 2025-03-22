@@ -23,7 +23,6 @@ function c19000011.initial_effect(c)
 	e2:SetOperation(c19000011.thop)
 	c:RegisterEffect(e2)
 end
-c19000011.fusion_effect=true
 function c19000011.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetActivityCount(tp,ACTIVITY_SUMMON)==0 and Duel.GetActivityCount(tp,ACTIVITY_SPSUMMON)==0 end
 	Duel.PayLPCost(tp,math.floor(Duel.GetLP(tp)*(2/3)))

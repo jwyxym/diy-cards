@@ -28,7 +28,7 @@ function s.initial_effect(c)
 	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e2:SetCountLimit(1,id+o)
 	e2:SetTarget(s.drtg2)
-	e2:SetOperation(s.dro2p)
+	e2:SetOperation(s.drop2)
 	c:RegisterEffect(e2)
 end
 function s.splimit(e,se,sp,st)

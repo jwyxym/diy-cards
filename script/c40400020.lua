@@ -62,33 +62,11 @@ function s.sumlimit(e,c,sump,sumtype,sumpos,targetp,se)
 	return e:GetLabelObject()~=se:GetHandler() and c:IsLocation(LOCATION_EXTRA)
 		and not c:IsSetCard(0x404)
 end
-function s.sfg(c,tp)
-	local xc=s.lv(c)
-	local res=true
-	if not Duel.GetFlagEffectLabel(tp,id) then
-		return true
-	end
-	for key,value in ipairs({Duel.GetFlagEffectLabel(tp,id)}) do
-		if res==true and xc==value then
-			res=false
-		end
-	end
-	return res
-end
 function s.cfilter(c,tp)
 	return c:IsFaceupEx() and c:IsLevelAbove(1) and c:IsType(TYPE_NORMAL)
 		and c:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED)
-		and s.sfg(c,tp)
+		and not c:IsHasEffect(id,tp)
 		and Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil,tp,c:GetLevel())
-end
-function s.lv(c)
-	local xc=0x1
-	local lv=c:GetLevel()
-	while lv>1 do
-		xc=xc*2
-		lv=lv-1
-	end
-	return xc
 end
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(s.cfilter,1,nil,tp)
@@ -111,7 +89,14 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
 	local g3=g2:Select(tp,1,1,nil)
 	local gc=g3:GetFirst()
-	Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1,s.lv(gc))
+	local e0=Effect.CreateEffect(e:GetHandler())
+	e0:SetType(EFFECT_TYPE_FIELD)
+	e0:SetCode(id)
+	e0:SetTargetRange(LOCATION_GRAVE+LOCATION_REMOVED,0)
+	e0:SetTarget(s.thlimit)
+	e0:SetLabel(gc:GetLevel())
+	e0:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e0,tp)
 	local lv=gc:GetLevel()
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 	local sg=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil,tp,lv)
@@ -119,6 +104,9 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	if tc then
 		Duel.SendtoHand(tc,nil,REASON_EFFECT)
 	end
+end
+function s.thlimit(e,c,tp,re)
+	return c:IsLevel(e:GetLabel())
 end
 function s.costfilter(c,tp)
 	return (c:IsControler(tp) or c:IsFaceup()) and c:IsType(TYPE_NORMAL)

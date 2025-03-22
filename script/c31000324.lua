@@ -117,6 +117,18 @@ function c31000324.activate(e,tp,eg,ep,ev,re,r,rp)
 		end
 		tc:CompleteProcedure()
 	end
+	if e:GetLabel()==100 then
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e1:SetCode(EFFECT_CANNOT_ACTIVATE)
+	e1:SetTargetRange(1,0)
+	e1:SetValue(c31000324.aclimit)
+	e1:SetReset(RESET_PHASE+PHASE_END,2)
+	Duel.RegisterEffect(e1,tp)
+end
+function c31000324.aclimit(e,re,tp)
+	return re:IsActiveType(TYPE_MONSTER) and re:GetHandler():IsAttribute(ATTRIBUTE_LIGHT)
 end
 function c31000324.cfilter(c)
 	return c:IsSetCard(0x312) and c:IsAbleToRemoveAsCost()

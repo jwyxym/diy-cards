@@ -43,6 +43,10 @@ function K3.IsPhase(phase)
         error("Unknown phase.")
     end
 end
+function K3.BreakEffect()
+    Duel.BreakEffect()
+    return true
+end
 function K3.SpellActivate(c)
     local e=Effect.CreateEffect(c)
     e:SetType(EFFECT_TYPE_ACTIVATE)

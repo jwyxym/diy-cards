@@ -56,7 +56,7 @@ function s.attval(e,c)
 	return att
 end
 function s.efilter(e,te)
-	return te:IsActiveType(TYPE_MONSTER) and te:GetHandler():GetAttribute()==e:GetHandler():GetAttribute() and te:GetOwnerPlayer()~=e:GetHandlerPlayer()
+	return te:IsActiveType(TYPE_MONSTER) and te:GetOwnerPlayer()~=e:GetHandlerPlayer()
 end
 function s.mfilter(c)
 	return bit.band(c:GetOriginalType(),TYPE_RITUAL+TYPE_FUSION+TYPE_SYNCHRO+TYPE_XYZ+TYPE_PENDULUM+TYPE_LINK)>0

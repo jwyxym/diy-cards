@@ -8,7 +8,7 @@ function c38010003.initial_effect(c)
 	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE)
 	e1:SetRange(LOCATION_HAND)
 	e1:SetCondition(cm.spcon)
-	e1:SetOperation(cm.spop)
+	e1:SetOperation(cm.spop1)
 	c:RegisterEffect(e1)
 	local e2=Effect.CreateEffect(c)
 	e2:SetCategory(CATEGORY_POSITION+CATEGORY_TOHAND+CATEGORY_SEARCH)
@@ -31,12 +31,12 @@ function c38010003.initial_effect(c)
 	c:RegisterEffect(e3)
 end
 function cm.cfilter(c)
-	return  c:IsFacedown() or not c:IsRace(RACE_AQUA) 
+	return  c:IsRace(RACE_AQUA) and c:IsFaceup()
 end
 function cm.spcon(e,c)
 	if c==nil then return true end  
 	local tp=c:GetControler()
-	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)>0 and not Duel.IsExistingMatchingCard(cm.cfilter,tp,LOCATION_MZONE,0,1,nil) 
+	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)>0 and Duel.IsExistingMatchingCard(cm.cfilter,tp,LOCATION_MZONE,0,1,nil) 
 end
 function cm.spop1(e,tp,eg,ep,ev,re,r,rp)
 local e1=Effect.CreateEffect(e:GetHandler())
@@ -56,11 +56,12 @@ function cm.filter3(c)
 	return  c:IsSetCard(0x610) and c:IsAbleToHand()
 end
 function cm.filter2(c)
-	return c:IsFaceup()  and c:IsCanTurnSet() and Duel.IsExistingMatchingCard(cm.filter3,tp,LOCATION_DECK,0,1,nil) 
+	return c:IsFaceup()  and c:IsCanTurnSet()
 end
 function cm.postg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_MZONE) and cm.filter2(chkc) and chkc:IsControler(tp) end
-	if chk==0 then return Duel.IsExistingTarget(cm.filter2,tp,LOCATION_MZONE,0,1,nil) end
+	if chk==0 then return Duel.IsExistingTarget(cm.filter2,tp,LOCATION_MZONE,0,1,nil) 
+	and Duel.IsExistingMatchingCard(cm.filter3,tp,LOCATION_DECK,0,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
 	local g=Duel.SelectTarget(tp,cm.filter2,tp,LOCATION_MZONE,0,1,1,nil)
 	Duel.SetOperationInfo(0,CATEGORY_POSITION,g,g:GetCount(),0,0)

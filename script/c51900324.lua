@@ -33,7 +33,7 @@ function s.filter2(c,e,tp)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local g=Duel.GetMatchingGroup(Card.IsType,tp,0,LOCATION_GRAVE+LOCATION_REMOVED,nil)
-	local tg=g:GetMaxGroup(Card.GetAttack):Filter(s.filter2,nil)
+	local tg=g:GetMaxGroup(Card.GetAttack):Filter(s.filter2,nil,e,tp)
 	local g2=Duel.GetMatchingGroup(Card.IsFaceup,tp,0,LOCATION_MZONE,nil)
 	local tg2=g2:GetMaxGroup(Card.GetAttack):Filter(Card.IsControlerCanBeChanged,nil)
 	local b1=Duel.IsPlayerCanDraw(tp,1) and Duel.IsExistingTarget(s.filter1,tp,LOCATION_GRAVE,0,3,nil)

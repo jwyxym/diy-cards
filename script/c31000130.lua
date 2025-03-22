@@ -5,7 +5,7 @@ function c31000130.initial_effect(c)
 	c:EnableReviveLimit()
 	--tohand
 	local e1=Effect.CreateEffect(c)
-	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH+CATEGORY_TOGRAVE)
+	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_MZONE)
 	e1:SetCountLimit(1,31000130)
@@ -63,25 +63,18 @@ function c31000130.cfilter(c,code)
 	return c:IsCode(code) and (c:IsFaceup() or not c:IsOnField())
 end
 function c31000130.thfilter(c,tp)
-	return c:IsSetCard(0x311) and (c:IsAbleToHand() or c:IsAbleToGrave())
-		and not Duel.IsExistingMatchingCard(c31000130.cfilter,tp,LOCATION_ONFIELD+LOCATION_GRAVE,0,1,nil,c:GetCode())
+	return c:IsSetCard(0x311) and c:IsAbleToHand() 
 end
 function c31000130.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c31000130.thfilter,tp,LOCATION_DECK,0,1,nil,tp) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
-	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_DECK)
+	if chk==0 then return Duel.IsExistingMatchingCard(c31000130.thfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
+	Duel.SetOperationInfo(0,CATEGORY_HANDES,nil,0,tp,1)
 end
 function c31000130.thop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=Duel.SelectMatchingCard(tp,c31000130.thfilter,tp,LOCATION_DECK,0,1,1,nil,tp)
-	if g:GetCount()>0 then
-		local tc=g:GetFirst()
-		if tc and tc:IsAbleToHand() and (not tc:IsAbleToGrave() or Duel.SelectOption(tp,1190,1191)==0) then
-			Duel.SendtoHand(tc,nil,REASON_EFFECT)
-			Duel.ConfirmCards(1-tp,tc)
-		else
-			Duel.SendtoGrave(tc,REASON_EFFECT)
-		end
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(c31000130.thfilter),tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
+	if g:GetCount()>0 and Duel.SendtoHand(g,nil,REASON_EFFECT)~=0 then
+		Duel.ConfirmCards(1-tp,g)
 	end
 	local e2=Effect.CreateEffect(e:GetHandler())
 	e2:SetType(EFFECT_TYPE_FIELD)

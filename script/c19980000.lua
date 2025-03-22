@@ -34,7 +34,6 @@ function c19980000.initial_effect(c)
 	e3:SetOperation(c19980000.spsop)
 	c:RegisterEffect(e3)
 end
-c19980000.fusion_effect=true
 function c19980000.val(e,c)
 	local tp=c:GetControler()
 	local v=Duel.GetLP(1-tp)-Duel.GetLP(tp)

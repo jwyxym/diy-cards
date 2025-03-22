@@ -41,6 +41,7 @@ function s.setfilter(c)
 	return c:IsSetCard(0x51a) and c:IsType(TYPE_TRAP) and c:IsSSetable()
 end
 function s.operation(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
 	if Duel.GetLocationCount(tp,LOCATION_SZONE)<=0 then return end
 	if not c:IsRelateToEffect(e) then return end
 	if Duel.MoveToField(c,tp,tp,LOCATION_SZONE,POS_FACEUP,true) then

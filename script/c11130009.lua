@@ -45,7 +45,7 @@ function this.tdfilter(c)
 	return c:IsFaceup() and c:IsSetCard(0xa63)
 end
 function this.tdtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	local ct=Duel.GetMatchingGroupCount(this.tdfilter,tp,LOCATION_ONFIELD+LOCATION_REMOVED,0,nil)
+	local ct=Duel.GetMatchingGroupCount(this.tdfilter,tp,LOCATION_ONFIELD,0,nil)
 	if chkc then return chkc:IsControler(1-tp) and chkc:IsOnField() and chkc:IsAbleToDeck() end
 	if chk==0 then return ct>0 and Duel.IsExistingTarget(Card.IsAbleToDeck,tp,0,LOCATION_ONFIELD,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)

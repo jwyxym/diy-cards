@@ -3,17 +3,16 @@ local s,id,o=GetID()
 function s.initial_effect(c)
 	aux.AddCodeList(c,31000201)
 	c:EnableReviveLimit()
-	local e1=aux.AddRitualProcGreater2(c,s.filter,LOCATION_HAND+LOCATION_GRAVE,nil,s.matfilter,true)
-	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetType(EFFECT_TYPE_IGNITION)
-	e1:SetRange(LOCATION_HAND)
-	e1:SetCountLimit(1,id)
-	e1:SetCondition(s.rscon1)
-	c:RegisterEffect(e1)
-	local e2=e1:Clone()
-	e2:SetType(EFFECT_TYPE_QUICK_O)
-	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_MAIN_END)
-	e2:SetCondition(s.rscon2)
+	--ritual summon
+	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,0))
+	e2:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
+	e2:SetType(EFFECT_TYPE_IGNITION)
+	e2:SetRange(LOCATION_HAND)
+	e2:SetCountLimit(1,id)
+	e2:SetCost(s.rscost)
+	e2:SetTarget(s.rstg)
+	e2:SetOperation(s.rsop)
 	c:RegisterEffect(e2)
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
@@ -27,20 +26,35 @@ function s.initial_effect(c)
 	e3:SetOperation(s.spop)
 	c:RegisterEffect(e3)
 end
-function s.filter(c,e,tp,chk)
-	return c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST) and c:IsAttribute(ATTRIBUTE_FIRE)
-end
-function s.matfilter(c,e,tp,chk)
-	return true
-end
 function s.cfilter(c)
-	return aux.IsCodeListed(c,31000201) or c:IsType(TYPE_RITUAL) and c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST)
+	return bit.band(c:GetType(),0x82)==0x82 and c:IsAbleToHand()
 end
-function s.rscon1(e,tp,eg,ep,ev,re,r,rp)
-	return not Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_MZONE,0,1,nil)
+function s.rscost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return not e:GetHandler():IsPublic() end
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(s.spelimit)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
 end
-function s.rscon2(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_MZONE,0,1,nil)
+function s.spelimit(e,c)
+	return c:IsLocation(LOCATION_EXTRA) and not (c:IsRace(RACE_BEAST) or c:IsRace(RACE_BEASTWARRIOR))
+end
+function s.rstg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_DECK,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
+end
+function s.rsop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_DECK,0,1,1,nil)
+	if g:GetCount()>0 then
+		Duel.SendtoHand(g,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,g)
+	end
 end
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_RITUAL)
@@ -66,14 +80,14 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 		and tc:IsLevelAbove(1)
 		and c:IsRelateToEffect(e) and c:IsAbleToHand()
 		and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
-		if Duel.SendtoHand(c,nil,REASON_EFFECT)~=0 and c:IsLocation(LOCATION_HAND) then
+		if c:IsLocation(LOCATION_MZONE) then
 			local e1=Effect.CreateEffect(c)
 			e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
 			e1:SetType(EFFECT_TYPE_SINGLE)
 			e1:SetCode(EFFECT_UPDATE_LEVEL)
 			e1:SetReset(RESET_EVENT+RESETS_STANDARD)
 			e1:SetValue(4)
-			tc:RegisterEffect(e1)
+			c:RegisterEffect(e1)
 		end
 	end
 end

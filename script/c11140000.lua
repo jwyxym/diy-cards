@@ -48,9 +48,9 @@ end
 
 -- 特殊召唤cost处理
 function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return Duel.GetMatchingGroupCount(Card.IsAttribute,tp,LOCATION_HAND+LOCATION_ONFIELD,0,e:GetHandler(),ATTRIBUTE_WATER)>=3 end
+    if chk==0 then return Duel.GetMatchingGroupCount(Card.IsAttribute,tp,LOCATION_HAND+LOCATION_MZONE,0,e:GetHandler(),ATTRIBUTE_WATER)>=3 end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-    local g=Duel.SelectMatchingCard(tp,Card.IsAttribute,tp,LOCATION_HAND+LOCATION_ONFIELD,0,3,3,e:GetHandler(),ATTRIBUTE_WATER)
+    local g=Duel.SelectMatchingCard(tp,Card.IsAttribute,tp,LOCATION_HAND+LOCATION_MZONE,0,3,3,e:GetHandler(),ATTRIBUTE_WATER)
     Duel.SendtoGrave(g,REASON_COST)
 end
 

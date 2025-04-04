@@ -22,7 +22,7 @@ function this.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 function this.filter1(c)
-	return bit.band(c:GetType(),TYPE_SPELL+TYPE_RITUAL)==TYPE_SPELL+TYPE_RITUAL and aux.IsCodeListed(c,31000201) and c:IsAbleToHand()
+	return c:IsType(TYPE_SPELL+TYPE_TRAP) and aux.IsCodeListed(c,31000201) and c:IsAbleToHand()
 end
 function this.filter2(c)
 	return c:IsType(TYPE_RITUAL) and c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST) and c:IsAbleToHand()

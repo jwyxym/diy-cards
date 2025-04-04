@@ -26,7 +26,7 @@ function c31000411.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 function c31000411.spfilter(c,e,tp)
-	return c:IsSetCard(0x313) and c:IsLevel(3) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return (c:IsSetCard(0x313) or c:IsType(TYPE_SYNCHRO) and c:IsAttribute(ATTRIBUTE_WIND+ATTRIBUTE_WATER)) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function c31000411.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0

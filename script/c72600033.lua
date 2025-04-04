@@ -26,7 +26,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 function s.cfilter(c)
-	return c:IsFaceup() and c:IsSetCard(0x726)
+	return c:IsFaceup() and c:IsSetCard(0x726) and c:IsType(TYPE_SYNCHRO+TYPE_XYZ)
 end
 function s.condition(e,tp,eg,ep,ev,re,r,rp)
 	return rp==1-tp and re:IsHasType(EFFECT_TYPE_ACTIVATE) and Duel.IsChainNegatable(ev)

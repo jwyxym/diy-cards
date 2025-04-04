@@ -31,7 +31,7 @@ function this.initial_effect(c)
 	local e3=Effect.CreateEffect(c)
 	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-	e3:SetCode(EVENT_DESTROYED)
+	e3:SetCode(EVENT_LEAVE_FIELD)
 	e3:SetCountLimit(1,id+1)
 	e3:SetProperty(EFFECT_FLAG_DELAY)
 	e3:SetCondition(this.spcon)
@@ -97,7 +97,9 @@ function this.spfilter(c,e,tp)
 	return aux.IsCodeListed(c,31000201) and c:IsType(TYPE_RITUAL) and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_RITUAL,tp,false,true)
 end
 function this.spcon(e,tp,eg,ep,ev,re,r,rp)
-	return rp==1-tp
+	local c=e:GetHandler()
+	return c:IsSummonType(SUMMON_TYPE_RITUAL) and c:IsPreviousLocation(LOCATION_MZONE)
+		and c:IsPreviousControler(tp) and c:GetReasonPlayer()==1-tp
 end
 function this.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(this.spfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,e:GetHandler(),e,tp) and Duel.GetMZoneCount(tp)>0 end

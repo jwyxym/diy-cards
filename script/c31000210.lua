@@ -49,7 +49,7 @@ function this.thop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function this.thfilter2(c)
-	return c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST) and c:IsType(TYPE_RITUAL) and c:IsAbleToHand()
+	return (c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST) and c:IsType(TYPE_RITUAL) or c:IsType(TYPE_MONSTER) and aux.IsCodeListed(c,31000201)) and c:IsAbleToHand()
 end
 function this.thtg2(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(this.thfilter2,tp,LOCATION_GRAVE,0,1,nil) end

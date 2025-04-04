@@ -5,7 +5,7 @@ function this.initial_effect(c)
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e1:SetType(EFFECT_TYPE_IGNITION)
-	e1:SetRange(LOCATION_HAND)
+	e1:SetRange(LOCATION_HAND+LOCATION_GRAVE)
 	e1:SetCountLimit(1,id)
 	e1:SetCost(this.spcost)
 	e1:SetTarget(this.sptg)
@@ -63,11 +63,11 @@ function this.splimit(e,c)
 	return c:IsLocation(LOCATION_EXTRA) and not c:IsRace(RACE_BEASTWARRIOR+RACE_BEAST)
 end
 function this.thfilter(c)
-	return (c:IsCode(31000201) or aux.IsCodeListed(c,31000201)) and c:IsAbleToHand()
+	return aux.IsCodeListed(c,31000201) and c:IsAbleToHand()
 end
 function this.con(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	return bit.band(r,REASON_RITUAL)~=0 and c:IsPreviousLocation(LOCATION_HAND+LOCATION_ONFIELD)
+	return bit.band(r,REASON_RITUAL)~=0 and c:IsPreviousLocation(LOCATION_HAND+LOCATION_ONFIELD+LOCATION_DECK)
 end
 function this.tg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(this.thfilter,tp,LOCATION_DECK,0,1,e:GetHandler()) end

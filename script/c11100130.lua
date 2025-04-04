@@ -4,6 +4,12 @@ function cm.initial_effect(c)
     c:EnableReviveLimit()
     --material
     aux.AddFusionProcFun2(c,cm.matfilter1,cm.matfilter2,true)
+    --fusion material
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_SINGLE)
+	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0:SetCode(EFFECT_SPSUMMON_CONDITION)
+	e0:SetValue(cm.val)
     local e1=Effect.CreateEffect(c)
     e1:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
     e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
@@ -28,6 +34,9 @@ end
 cm.toss_dice=true
 function cm.matfilter1(c)
     return c:IsSummonLocation(LOCATION_EXTRA) and c:IsLocation(LOCATION_MZONE)
+end
+function cm.val(e,se,sp,st)
+	return st==SUMMON_TYPE_SPECIAL+SUMMON_VALUE_MASK_CHANGE or se:GetHandler():IsCode(11100136)
 end
 function cm.matfilter2(c)
     return (c:IsSummonLocation(LOCATION_HAND) or c:IsSummonLocation(LOCATION_GRAVE)) and c:IsLocation(LOCATION_MZONE)

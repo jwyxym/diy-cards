@@ -1,7 +1,7 @@
 --清蓝之神官 法羽
 function c31000405.initial_effect(c)
 	--synchro summon
-	aux.AddSynchroProcedure(c,nil,aux.NonTuner(Card.IsRace,RACE_DRAGON+RACE_SEASERPENT+RACE_WINDBEAST),1)
+	aux.AddSynchroProcedure(c,c31000405.matfilter1,nil,nil,c31000405.matfilter2,1)
 	c:EnableReviveLimit()
 	--search
 	local e1=Effect.CreateEffect(c)
@@ -34,6 +34,12 @@ function c31000405.initial_effect(c)
 	e3:SetTarget(c31000405.eqtg)
 	e3:SetOperation(c31000405.eqop)
 	c:RegisterEffect(e3)
+end
+function c31000405.matfilter1(c,syncard)
+	return c:IsTuner(syncard) or c:IsSetCard(0x313)
+end
+function c31000405.matfilter2(c,syncard)
+	return c:IsNotTuner(syncard) and c:IsRace(RACE_DRAGON+RACE_SEASERPENT+RACE_WINDBEAST)
 end
 function c31000405.thcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_SYNCHRO)

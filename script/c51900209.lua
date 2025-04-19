@@ -27,7 +27,7 @@ function c51900209.ctfil(c,e,tp)
 end 
 function c51900209.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc) 
 	if chkc then return eg:IsContains(chkc) and c51900209.ctfil(chkc,e,tp) end
-	if chk==0 then return eg:Filter(c51900209.ctfil,nil,e,tp) end
+	if chk==0 then return eg:Filter(c51900209.ctfil,nil,e,tp):GetCount()>0 end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONTROL)
 	local tc=eg:Filter(c51900209.ctfil,nil,e,tp):Select(tp,1,1,nil):GetFirst() 
 	Duel.SetTargetCard(tc) 

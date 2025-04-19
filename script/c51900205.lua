@@ -6,7 +6,7 @@ function c51900205.initial_effect(c)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetCountLimit(1,51900205+EFFECT_COUNT_CODE_OATH)
-	e1:SetCondition(c51900205.condition)
+	e1:SetCost(c51900205.cost)
 	e1:SetTarget(c51900205.target)
 	e1:SetOperation(c51900205.activate)
 	c:RegisterEffect(e1)
@@ -29,8 +29,15 @@ function c51900205.checkop(e,tp,eg,ep,ev,re,r,rp)
 		tc=eg:GetNext()
 	end
 end
-function c51900205.condition(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetFlagEffect(tp,51900205)>=11 
+function c51900205.cost(e,tp,eg,ep,ev,re,r,rp,chk)  
+	local flag=Duel.GetFlagEffect(tp,51900205) 
+	local x=Duel.GetCounter(tp,LOCATION_ONFIELD,LOCATION_ONFIELD,0x1515)
+	if Duel.IsEnvironment(51900206) then flag=flag+x end 
+	if chk==0 then return flag>=11 end 
+	local ct=11-Duel.GetFlagEffect(tp,51900205)
+	if ct>0 then 
+		Duel.RemoveCounter(tp,LOCATION_ONFIELD,LOCATION_ONFIELD,0x1515,ct,REASON_COST)	
+	end 
 end
 function c51900205.filter(c,e,tp)
 	return c:IsCode(51900204) and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_RITUAL,tp,false,true)

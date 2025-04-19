@@ -96,6 +96,7 @@ function this.efop(e,tp,eg,ep,ev,re,r,rp)
     e1:SetProperty(EFFECT_FLAG_DELAY)
 	e1:SetTarget(this.sp2tg)
 	e1:SetOperation(this.sp2op)
+	e1:SetReset(RESET_EVENT+RESETS_STANDARD)
 	rc:RegisterEffect(e1,true)
 	if not rc:IsType(TYPE_EFFECT) then
 		local e2=Effect.CreateEffect(c)

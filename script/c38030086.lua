@@ -54,12 +54,15 @@ function c38030086.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_HAND)
 end
+function c38030086.fitnot(e,c)
+	return not c:IsSetCard(0x614,0x615)
+end
 function c38030086.spop(e,tp,eg,ep,ev,re,r,rp)
 	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetCode(EFFECT_CANNOT_ATTACK)
 	e1:SetTargetRange(LOCATION_MZONE,0)
-	e1:SetTarget(aux.NOT(Card.IsSetCard,0x614,0x615))
+	e1:SetTarget(c38030086.fitnot)
 	e1:SetReset(RESET_PHASE+PHASE_END)
 	Duel.RegisterEffect(e1,tp)
 	if Duel.GetMZoneCount(tp)<=0 then return end

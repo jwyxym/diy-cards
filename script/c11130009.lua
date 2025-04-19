@@ -14,7 +14,7 @@ function this.initial_effect(c)
 	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
 	e1:SetCode(EFFECT_SPSUMMON_CONDITION)
 	e1:SetValue(this.splimit)
-	--c:RegisterEffect(e1)
+	c:RegisterEffect(e1)
 	local e2=Effect.CreateEffect(c)
 	e2:SetCategory(CATEGORY_TODECK)
 	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
@@ -45,7 +45,7 @@ function this.tdfilter(c)
 	return c:IsFaceup() and c:IsSetCard(0xa63)
 end
 function this.tdtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	local ct=Duel.GetMatchingGroupCount(this.tdfilter,tp,LOCATION_ONFIELD,0,nil)
+	local ct=Duel.GetMatchingGroupCount(this.tdfilter,tp,LOCATION_ONFIELD+LOCATION_REMOVED,0,nil)
 	if chkc then return chkc:IsControler(1-tp) and chkc:IsOnField() and chkc:IsAbleToDeck() end
 	if chk==0 then return ct>0 and Duel.IsExistingTarget(Card.IsAbleToDeck,tp,0,LOCATION_ONFIELD,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)

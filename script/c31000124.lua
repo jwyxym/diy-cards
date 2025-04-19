@@ -82,6 +82,14 @@ function c31000124.eqop(e,tp,eg,ep,ev,re,r,rp)
 		e1:SetValue(c31000124.eqlimit)
 		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
 		ec:RegisterEffect(e1)
+		ec:RegisterEffect(e1)
+		--
+		local e2=Effect.CreateEffect(ec)
+		e2:SetType(EFFECT_TYPE_EQUIP)
+		e2:SetCode(EFFECT_UPDATE_ATTACK)
+		e2:SetValue(ec:GetAttack())
+		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
+		ec:RegisterEffect(e2,true)
 	end
 end
 function c31000124.eqlimit(e,c)

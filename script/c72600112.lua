@@ -108,6 +108,7 @@ function s.cxfilter(c)
 	return c:IsFaceup()
 end
 function s.disop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
 	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) 
 		and Duel.Destroy(eg,REASON_EFFECT)
 		and Duel.IsExistingMatchingCard(s.cxfilter,tp,LOCATION_MZONE,0,1,nil)

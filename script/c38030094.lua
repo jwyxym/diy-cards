@@ -68,7 +68,7 @@ function cm.filter1(c,e,tp,m,f,chkf,tc)
 	return res
 end
 function cm.filter2(c,e,tp,m,f,chkf,tc)
-	return c:IsType(TYPE_FUSION) and (not f or f(c))
+	return (c:IsRace(RACE_FAIRY) or c:IsRace(RACE_FIEND)) and c:IsType(TYPE_FUSION) and (not f or f(c))
 		and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_FUSION,tp,false,false) and c:CheckFusionMaterial(m,tc,chkf)
 end
 function cm.activate(e,tp,eg,ep,ev,re,r,rp)

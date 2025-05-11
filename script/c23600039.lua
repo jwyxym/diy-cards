@@ -94,6 +94,17 @@ function s.initial_effect(c)
 	end)
 	e9:SetValue(s.effectfilter)
 	c:RegisterEffect(e9)
+--召唤词
+local e11=Effect.CreateEffect(c)
+e11:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+e11:SetCode(EVENT_SPSUMMON_SUCCESS)
+e11:SetCountLimit(1,id+o)
+e11:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+e11:SetOperation(s.cop)
+c:RegisterEffect(e11)
+end
+function s.cop(e,tp,eg,ep,ev,re,r,rp)
+Debug.Message("上穷碧落下黄泉，两处茫茫皆不见。")
 end
 function s.mfilter(c,xyzc)
 	return c:IsXyzType(TYPE_XYZ) and c:IsRace(RACE_AQUA) and c:IsAttribute(ATTRIBUTE_WATER) and c:IsRank(4)

@@ -70,11 +70,14 @@ function c47700012.desop(e,tp,eg,ep,ev,re,r,rp)
 end
 function c47700012.valcheck(e,c)
 	local g=c:GetMaterial()
-	if g:IsExists(Card.IsType,1,nil,TYPE_XYZ) then
+	if g:IsExists(c47700012.filter,1,nil) then
 		e:GetLabelObject():SetLabel(1)
 	else
 		e:GetLabelObject():SetLabel(0)
 	end
+end
+function c47700012.filter(c)
+	return c:IsAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_XYZ)
 end
 function c47700012.xfilter(c)
 	return c:IsRace(RACE_DRAGON) and c:IsAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_XYZ)

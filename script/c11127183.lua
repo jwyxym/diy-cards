@@ -3,7 +3,6 @@ function c11127183.initial_effect(c)
 	--fusion material
 	c:EnableReviveLimit()
 	aux.AddFusionProcFunFunRep(c,function(c) return c:IsFusionType(TYPE_FUSION) and c:IsFusionSetCard(0xa62) end,aux.FilterBoolFunction(Card.IsRace,RACE_INSECT),1,1,true) 
-	aux.AddContactFusionProcedure(c,Card.IsAbleToRemoveAsCost,LOCATION_MZONE,0,Duel.Remove,POS_FACEUP,REASON_COST):SetValue(SUMMON_TYPE_FUSION)
 	--spsummon condition
 	local e1=Effect.CreateEffect(c)
 	e1:SetType(EFFECT_TYPE_SINGLE)
@@ -57,7 +56,7 @@ function c11127183.checkop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function c11127183.rthcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetFlagEffect(tp,11127183)>=3 
+	return Duel.GetFlagEffect(tp,11127183)>=5 
 end
 function c11127183.rthtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsAbleToHand,tp,0,LOCATION_ONFIELD,1,nil) end
@@ -77,8 +76,8 @@ function c11127183.ctfil(c)
 	return c:IsFaceup() and c:IsSetCard(0xa62) and c:IsType(TYPE_MONSTER) and c:IsAbleToRemoveAsCost() 
 end
 function c11127183.discost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c11127183.ctfil,tp,LOCATION_ONFIELD+LOCATION_GRAVE,0,1,nil) end
-	local g=Duel.SelectMatchingCard(tp,c11127183.ctfil,tp,LOCATION_ONFIELD+LOCATION_GRAVE,0,1,1,nil) 
+	if chk==0 then return Duel.IsExistingMatchingCard(c11127183.ctfil,tp,LOCATION_ONFIELD,0,1,nil) end
+	local g=Duel.SelectMatchingCard(tp,c11127183.ctfil,tp,LOCATION_ONFIELD,0,1,1,nil) 
 	Duel.Remove(g,POS_FACEUP,REASON_COST) 
 end
 function c11127183.distg(e,tp,eg,ep,ev,re,r,rp,chk)

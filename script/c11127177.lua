@@ -8,6 +8,7 @@ function c11127177.initial_effect(c)
 	e1:SetRange(LOCATION_MZONE) 
 	e1:SetCountLimit(1,11127177)
 	e1:SetCost(c11127177.thcost)
+	e1:SetCondition(c11127177.con)
 	e1:SetTarget(c11127177.thtg)
 	e1:SetOperation(c11127177.thop)
 	c:RegisterEffect(e1) 
@@ -20,6 +21,7 @@ function c11127177.initial_effect(c)
 	e2:SetRange(LOCATION_REMOVED)
 	e2:SetCountLimit(1,21127177)
 	e2:SetCondition(c11127177.spcon)
+	e2:SetCost(c11127177.spcost)
 	e2:SetTarget(c11127177.sptg)
 	e2:SetOperation(c11127177.spop)
 	c:RegisterEffect(e2)
@@ -30,7 +32,8 @@ end
 function c11127177.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(c11127177.ctfil,tp,LOCATION_ONFIELD+LOCATION_GRAVE,0,1,nil) end
 	local g=Duel.SelectMatchingCard(tp,c11127177.ctfil,tp,LOCATION_ONFIELD+LOCATION_GRAVE,0,1,1,nil) 
-	Duel.Remove(g,POS_FACEUP,REASON_COST) 
+	Duel.Remove(g,POS_FACEUP,REASON_COST)
+	Duel.RegisterFlagEffect(tp,11127177,RESET_PHASE+PHASE_END,0,1)
 end
 function c11127177.spfilter(c,e,tp)
 	return c:IsSetCard(0xa62) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
@@ -45,7 +48,6 @@ function c11127177.thop(e,tp,eg,ep,ev,re,r,rp)
 	if g:GetCount()>0 then
 		Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP) 
 	end 
-	Duel.RegisterFlagEffect(tp,11127177,RESET_PHASE+PHASE_END,0,1)
 end
 function c11127177.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetTurnPlayer()~=tp and (Duel.GetCurrentPhase()==PHASE_MAIN1 or Duel.GetCurrentPhase()==PHASE_MAIN2) and Duel.GetFlagEffect(tp,11127177)==0 
@@ -70,7 +72,12 @@ function c11127177.spop(e,tp,eg,ep,ev,re,r,rp)
 	e1:SetReset(RESET_PHASE+PHASE_END)
 	Duel.RegisterEffect(e1,tp)
 end
+function c11127177.con(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetFlagEffect(tp,11127177)==0 
+end
 
-
-
+function c11127177.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.RegisterFlagEffect(tp,11127177,RESET_PHASE+PHASE_END,0,1)
+end
 

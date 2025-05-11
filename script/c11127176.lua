@@ -7,6 +7,7 @@ function c11127176.initial_effect(c)
 	e1:SetCode(EVENT_FREE_CHAIN) 
 	e1:SetRange(LOCATION_MZONE) 
 	e1:SetCountLimit(1,11127176)
+	e1:SetCondition(c11127176.con)
 	e1:SetCost(c11127176.thcost)
 	e1:SetTarget(c11127176.thtg)
 	e1:SetOperation(c11127176.thop)
@@ -22,6 +23,7 @@ function c11127176.initial_effect(c)
 	e2:SetCondition(c11127176.spcon)
 	e2:SetTarget(c11127176.sptg)
 	e2:SetOperation(c11127176.spop)
+	e2:SetCost(c11127176.spcost)
 	c:RegisterEffect(e2)
 end
 function c11127176.ctfil(c) 
@@ -31,6 +33,7 @@ function c11127176.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(c11127176.ctfil,tp,LOCATION_ONFIELD+LOCATION_GRAVE,0,1,nil) end
 	local g=Duel.SelectMatchingCard(tp,c11127176.ctfil,tp,LOCATION_ONFIELD+LOCATION_GRAVE,0,1,1,nil) 
 	Duel.Remove(g,POS_FACEUP,REASON_COST) 
+	Duel.RegisterFlagEffect(tp,11127176,RESET_PHASE+PHASE_END,0,1)
 end
 function c11127176.thfilter(c)
 	return c:IsSetCard(0xa62) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand()
@@ -46,15 +49,21 @@ function c11127176.thop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.SendtoHand(g,nil,REASON_EFFECT)
 		Duel.ConfirmCards(1-tp,g)
 	end 
-	Duel.RegisterFlagEffect(tp,11127176,RESET_PHASE+PHASE_END,0,1)
 end
 function c11127176.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetTurnPlayer()~=tp and (Duel.GetCurrentPhase()==PHASE_MAIN1 or Duel.GetCurrentPhase()==PHASE_MAIN2) and Duel.GetFlagEffect(tp,11127176)==0 
+end
+function c11127176.con(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetFlagEffect(tp,11127176)==0 
 end
 function c11127176.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 		and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
+end
+function c11127176.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.RegisterFlagEffect(tp,11127176,RESET_PHASE+PHASE_END,0,1)
 end
 function c11127176.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

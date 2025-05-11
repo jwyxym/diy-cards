@@ -30,7 +30,7 @@ function s.initial_effect(c)
 	e4:SetCode(EFFECT_AVOID_BATTLE_DAMAGE)
 	e4:SetValue(1)
 	c:RegisterEffect(e4)
---召唤词
+	--召唤词
 	local e6=Effect.CreateEffect(c)
 	e6:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
 	e6:SetCode(EVENT_SPSUMMON_SUCCESS)

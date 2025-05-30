@@ -126,6 +126,7 @@ function c31000324.activate(e,tp,eg,ep,ev,re,r,rp)
 	e1:SetValue(c31000324.aclimit)
 	e1:SetReset(RESET_PHASE+PHASE_END,2)
 	Duel.RegisterEffect(e1,tp)
+	end
 end
 function c31000324.aclimit(e,re,tp)
 	return re:IsActiveType(TYPE_MONSTER) and re:GetHandler():IsAttribute(ATTRIBUTE_LIGHT)

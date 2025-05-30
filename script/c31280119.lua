@@ -116,13 +116,13 @@ function c31280119.cost1(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end
 end
 function c31280119.target1(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsAbleToHand() end
+	if chkc then return chkc:IsOnField() end
 	if chk==0 then
 		if e:GetLabel()==100 then
-			return Duel.IsExistingMatchingCard(c31280119.costfilter,tp,LOCATION_SZONE,0,1,nil) and Duel.IsExistingTarget(Card.IsAbleToHand,tp,0,LOCATION_MZONE,1,nil)
+			return Duel.IsExistingMatchingCard(c31280119.costfilter,tp,LOCATION_SZONE,0,1,nil) and Duel.IsExistingTarget(nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil)
 		else return false end
 	end
-	local rt=Duel.GetTargetCount(Card.IsAbleToHand,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
+	local rt=Duel.GetTargetCount(nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
 	local g=Duel.SelectMatchingCard(tp,c31280119.costfilter,tp,LOCATION_SZONE,0,1,rt,nil)
 	local cg=Duel.SendtoGrave(g,REASON_COST)
@@ -137,7 +137,7 @@ function c31280119.operation1(e,tp,eg,ep,ev,re,r,rp)
 	local tg=Duel.GetChainInfo(0,CHAININFO_TARGET_CARDS)
 	local rg=tg:Filter(c31280119.defilter,nil,e)
 	if #rg>0 then
-		Duel.Destroy(rg,nil,REASON_EFFECT)
+		Duel.Destroy(rg,REASON_EFFECT)
 	end
 end
 function c31280119.cfilter(c,tp)

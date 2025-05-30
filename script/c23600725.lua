@@ -17,14 +17,14 @@ function s.initial_effect(c)
 	e2:SetType(EFFECT_TYPE_IGNITION)
 	e2:SetCode(EVENT_FREE_CHAIN)
 	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e2:SetRange(LOCATION_HAND+LOCATION_MZONE)
+	e2:SetRange(LOCATION_GRAVE)
 	e2:SetCountLimit(1,id)
 	e2:SetTarget(s.mattg)
 	e2:SetOperation(s.matop)
 	c:RegisterEffect(e2)
 end
 function s.cfilter(c)
-	return c:IsRace(RACE_AQUA) and c:IsAbleToRemoveAsCost()
+	return c:IsAttribute(ATTRIBUTE_WATER) and c:IsAbleToRemoveAsCost()
 end
 function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_GRAVE,0,1,nil) end
@@ -51,7 +51,7 @@ function s.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 end
 function s.dcfilter(c)
-	return c:IsFaceup() and not c:IsRace(RACE_AQUA)
+	return c:IsFaceup() and not c:IsAttribute(ATTRIBUTE_WATER)
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	local tc=Duel.GetFirstTarget()

@@ -24,15 +24,6 @@ function c72600200.initial_effect(c)
 	e3:SetTarget(c72600200.sptg)
 	e3:SetOperation(c72600200.spop)
 	c:RegisterEffect(e3)
-	--atk 
-	local e4=Effect.CreateEffect(c) 
-	e4:SetType(EFFECT_TYPE_SINGLE) 
-	e4:SetCode(EFFECT_UPDATE_ATTACK) 
-	e4:SetRange(LOCATION_MZONE) 
-	e4:SetValue(function(e) 
-	local tp=e:GetHandlerPlayer() 
-	return Duel.GetMatchingGroupCount(function(c) return c:IsFaceup() and c:IsType(TYPE_TOKEN) end,tp,LOCATION_MZONE,0,nil)*200 end) 
-	c:RegisterEffect(e4) 
 end
 function c72600200.thfilter(c)
 	return aux.IsCodeListed(c,72600200) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand()
@@ -70,12 +61,3 @@ function c72600200.spop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.Destroy(tc,REASON_EFFECT)
 	end
 end
-
-
-
-
-
-
-
-
-

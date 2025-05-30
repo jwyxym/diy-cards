@@ -21,6 +21,7 @@ function this.initial_effect(c)
 	e2:SetCode(EVENT_FREE_CHAIN)
 	e2:SetCountLimit(1,id+1)
 	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e2:SetCondition(this.dcon)
 	e2:SetTarget(this.dtg)
 	e2:SetOperation(this.dop)
 	c:RegisterEffect(e2)
@@ -49,6 +50,12 @@ end
 function this.desop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetMatchingGroup(nil,tp,0,LOCATION_MZONE,nil)
 	Duel.Destroy(g,REASON_EFFECT)
+end
+function this.cfilter(c)
+	return c:IsFaceup() and c:IsCode(31000201)
+end
+function this.dcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.IsExistingMatchingCard(this.cfilter,tp,LOCATION_MZONE+LOCATION_GRAVE,0,1,nil)
 end
 function this.dfilter(c,e)
 	return c:GetAttack()<=e:GetHandler():GetAttack()

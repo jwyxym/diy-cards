@@ -27,7 +27,7 @@ function s.atkfilter(c)
 	return c:IsFaceup() and c:IsAttribute(ATTRIBUTE_WATER)
 end
 function s.atkval(e)
-	return Duel.GetMatchingGroupCount(Card.IsDefensePos,e:GetHandlerPlayer(),LOCATION_MZONE,0,nil)*300
+	return Duel.GetMatchingGroupCount(Card.IsAttribute,e:GetHandlerPlayer(),LOCATION_MZONE,0,nil,ATTRIBUTE_WATER)*300
 end
 function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,1,REASON_COST) end

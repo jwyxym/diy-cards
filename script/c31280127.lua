@@ -91,7 +91,7 @@ function c31280127.activate(e,tp,eg,ep,ev,re,r,rp)
 		tc:CompleteProcedure()
 		if tc:IsFaceup() and (tc:IsRace(RACE_MACHINE) and tc:GetOriginalRace()==RACE_ZOMBIE) then
 			Duel.BreakEffect()
-			local e1=Effect.CreateEffect(c)
+			local e1=Effect.CreateEffect(tc)
 			e1:SetType(EFFECT_TYPE_SINGLE)
 			e1:SetCode(EFFECT_IMMUNE_EFFECT)
 			e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
@@ -99,7 +99,7 @@ function c31280127.activate(e,tp,eg,ep,ev,re,r,rp)
 			e1:SetValue(c31280127.efilter)
             e1:SetReset(RESET_EVENT+RESETS_STANDARD)
 			tc:RegisterEffect(e1)
-            local e2=Effect.CreateEffect(c)
+            local e2=Effect.CreateEffect(tc)
 			e2:SetDescription(aux.Stringid(31280127,0))
 			e2:SetCategory(CATEGORY_TODECK)
 			e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_F)
@@ -111,6 +111,14 @@ function c31280127.activate(e,tp,eg,ep,ev,re,r,rp)
 			e2:SetOperation(c31280127.operation1)
             e2:SetReset(RESET_EVENT+RESETS_STANDARD)
 			tc:RegisterEffect(e2)
+            if not tc:IsType(TYPE_EFFECT) then
+				local e3=Effect.CreateEffect(c)
+				e3:SetType(EFFECT_TYPE_SINGLE)
+				e3:SetCode(EFFECT_ADD_TYPE)
+				e3:SetValue(TYPE_EFFECT)
+				e3:SetReset(RESET_EVENT+RESETS_STANDARD)
+				tc:RegisterEffect(e3,true)
+            end    
 		end
 	end
 	aux.FCheckAdditional=nil

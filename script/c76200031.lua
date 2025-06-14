@@ -51,9 +51,6 @@ function s.rvop(e,tp,eg,ep,ev,re,r,rp)
 	if op==1 then Duel.SendtoHand(tc,nil,REASON_EFFECT)
 	elseif op==2 then Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP) end
 end
-function s.cfilter(c,tc,tp)
-	return c:IsFaceup() and c:IsAbleToGraveAsCost() and Duel.GetMZoneCount(tp,Group.FromCards(c,tc))>0
-end
 function s.spstg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 		and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end

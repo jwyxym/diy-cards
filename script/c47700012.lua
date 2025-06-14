@@ -50,6 +50,7 @@ function c47700012.initial_effect(c)
 	c:RegisterEffect(e4)
 end
 function c47700012.descon(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_XYZ) and c:IsAttribute(ATTRIBUTE_DARK) and e:GetLabel()==1
 end
 function c47700012.desfilter(c)

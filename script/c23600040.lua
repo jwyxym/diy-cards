@@ -30,6 +30,9 @@ end
 function s.spfilter(c,e,tp)
 	return c:IsRace(RACE_AQUA) and c:IsAttribute(ATTRIBUTE_WATER) and c:IsLevel(4) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
+function s.scfilter(c,e,tp)
+	return c:IsAttribute(ATTRIBUTE_WATER) and c:IsType(TYPE_XYZ)
+end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 		and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_GRAVE,0,1,nil,e,tp) end

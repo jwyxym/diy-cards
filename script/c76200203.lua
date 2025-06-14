@@ -1,4 +1,4 @@
---提丰·欧赫迈罗斯
+--堤丰·厄斐墨洛斯
 local s,id,o=GetID()
 function s.initial_effect(c)
 	aux.AddCodeList(c,76200215)

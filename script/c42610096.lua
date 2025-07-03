@@ -32,7 +32,7 @@ function cm.initial_effect(c)
 end
 
 function cm.lfcheck(c)
-	return not c:IsType(TYPE_LINK) and c:IsLinkRace(RACE_SPELLCASTER)
+	return  c:IsLinkRace(RACE_SPELLCASTER)
 end
 
 function cm.regcon(e,tp,eg,ep,ev,re,r,rp)

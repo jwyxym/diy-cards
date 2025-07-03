@@ -17,7 +17,6 @@ function c31280147.initial_effect(c)
 	--发动无效  
     local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(31280147,1))
-	e2:SetCategory(CATEGORY_NEGATE)
 	e2:SetType(EFFECT_TYPE_QUICK_O)
 	e2:SetCode(EVENT_CHAINING)
 	e2:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL)
@@ -89,17 +88,22 @@ function c31280147.cost1(e,tp,eg,ep,ev,re,r,rp,chk)
 	local g=Duel.SelectMatchingCard(tp,c31280147.costfilter,tp,LOCATION_ONFIELD,0,1,1,nil)
     local gc=g:GetFirst()
 	Duel.SendtoGrave(gc,REASON_COST)
-    gc:CreateEffectRelation(e)
-	e:SetLabelObject(gc)
+    e:SetLabel(gc:GetOriginalCodeRule())
 end
 function c31280147.target1(e,tp,eg,ep,ev,re,r,rp,chk)
+	local code=e:GetLabel()
 	if chk==0 then return true end
 	Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
+    if code==31280148 then
+		e:SetCategory(CATEGORY_NEGATE+CATEGORY_DESTROY)
+	else
+		e:SetCategory(CATEGORY_NEGATE)
+	end
 end
 function c31280147.operation1(e,tp,eg,ep,ev,re,r,rp)
-	local gc=e:GetLabelObject()
-	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) and gc:IsRelateToEffect(e) 
-    	and gc:IsOriginalCodeRule(31280148) and Duel.SelectYesNo(tp,aux.Stringid(31280147,3)) then
+	local code=e:GetLabel()
+	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re)
+    	and code==31280148 and Duel.SelectYesNo(tp,aux.Stringid(31280147,3)) then
     	Duel.BreakEffect()
         Duel.Destroy(eg,REASON_EFFECT)
 	end        

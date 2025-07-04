@@ -1,5 +1,12 @@
+function string.endswith(str, suffix)
+    return str:sub(-#suffix) == suffix
+end
+
+getmetatable("").__index.endswith = string.endswith
+
 require = function (str)
-    dofile(str..".lua")
+    str = str:endswith(".lua") and str or str..".lua"
+    dofile(str)
 end
 dofile = function (str)
     local len = string.len(str)
@@ -8,10 +15,11 @@ dofile = function (str)
         local temp=""
         temp=string.sub(str,i,i)
         if temp=="/" then
-            result=result..".lua"
+            result=result:endswith(".lua") and result or result..".lua"
             Duel.LoadScript(result)
             return
         end
         result=temp..result
     end
 end
+

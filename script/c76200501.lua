@@ -50,7 +50,7 @@ function c76200501.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.RegisterEffect(e1,tp)
 end 
 function c76200501.stgfil(c,e,tp) 
-	return c:IsAbleToGraveAsCost() and c:IsType(TYPE_SYNCHRO) and c:IsRace(RACE_DRAGON) and Duel.IsExistingMatchingCard(c76200501.spfil,tp,LOCATION_DECK,0,1,nil,e,tp,c)
+	return c:IsAbleToGraveAsCost() and c:IsRace(RACE_DRAGON) and c:IsAttribute(ATTRIBUTE_LIGHT) and Duel.IsExistingMatchingCard(c76200501.spfil,tp,LOCATION_DECK,0,1,nil,e,tp,c)
 end 
 function c76200501.spfil(c,e,tp,sc) 
 	return c:GetLevel()+e:GetHandler():GetLevel()==sc:GetLevel() and c:IsCanBeSpecialSummoned(e,0,tp,false,false) and (c:IsCode(76200500) or aux.IsCodeListed(c,76200500))

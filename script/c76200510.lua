@@ -35,7 +35,7 @@ function c76200510.initial_effect(c)
 	c:RegisterEffect(e4)
 end
 function c76200510.tgfilter(c)
-	return c:IsType(TYPE_TUNER) and c:IsRace(RACE_DRAGON) and c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsLevel(1) and c:IsAbleToGrave()
+	return c:IsType(TYPE_TUNER) and c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsLevel(1) and c:IsAbleToGrave()
 end
 function c76200510.activate(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetMatchingGroup(c76200510.tgfilter,tp,LOCATION_DECK,0,nil)

@@ -123,7 +123,7 @@ function s.tdcfilter(c)
 	return c:IsFaceup() and c:IsType(TYPE_LINK) and c:IsSetCard(0xd85)
 end
 function s.tdcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetTurnPlayer()==tp and Duel.IsExistingMatchingCard()
+	return Duel.GetTurnPlayer()==tp and Duel.IsExistingMatchingCard(s.tdfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil)
 end
 function s.tdfilter(c)
 	return (c:IsAttribute(ATTRIBUTE_FIRE) or c:IsSetCard(0xd85)) and c:IsAbleToDeck()

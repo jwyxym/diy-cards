@@ -32,7 +32,9 @@ function s.initial_effect(c)
 	e2:SetOperation(s.lockop)
 	c:RegisterEffect(e2)
 end
-
+function s.matfilter(c)
+	return c:IsSetCard(0x3616) and c:IsFaceup()
+end
 -- 限定只能用「乱世网罗廻」特殊召唤
 function s.splimit(e,se,sp,st)
 	return se:GetHandler():IsCode(38040116)

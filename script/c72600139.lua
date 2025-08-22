@@ -62,7 +62,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e5)
 end
 function s.ffilter(c,fc,sub,mg,sg)
-	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and (not sg or not sg:IsExists(Card.IsRace,1,c,c:GetRace()))
+	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsType(TYPE_FUSION) and (not sg or not sg:IsExists(Card.IsRace,1,c,c:GetRace()))
 end
 function s.thfilter(c)
 	return c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsAbleToHand()

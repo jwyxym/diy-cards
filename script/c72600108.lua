@@ -24,7 +24,7 @@ function s.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	end
 end
 function s.chainlm(e,rp,tp)
-	return not e:GetHandler():IsType(TYPE_MONSTER)
+	return tp==ep
 end
 function s.desfilter(c,tp,seq)
 	local sseq=c:GetSequence()

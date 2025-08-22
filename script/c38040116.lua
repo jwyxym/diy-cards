@@ -39,7 +39,7 @@ end
 
 -- 连接3以下特召目标
 function s.spfilter(c,e,tp)
-	return c:IsLinkBelow(3) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) and c:IsSetCard(0x3616)
+	return c:IsLinkBelow(3) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) and c:IsSetCard(0x3616) and Duel.GetLocationCountFromEx(tp,tp,nil,c)>0
 end
 
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)

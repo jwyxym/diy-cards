@@ -5,7 +5,7 @@ function cm.initial_effect(c)
 	c:EnableReviveLimit()
 	aux.EnablePendulumAttribute(c,false) 
 	--synchro summon
-	aux.AddXyzProcedure(c,nil,10,2)
+	aux.AddXyzProcedure(c,aux.FilterBoolFunction(Card.IsAttribute,ATTRIBUTE_DARK),10,2)
 --------------"Pendulum EFFECT"----------------
 	--SpecialSummon
 	local e1=Effect.CreateEffect(c)

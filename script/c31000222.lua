@@ -4,7 +4,7 @@ function this.initial_effect(c)
 	aux.AddCodeList(c,31000201)
 	--negateeffect
 	local e1=Effect.CreateEffect(c)
-	e1:SetCategory(CATEGORY_NEGATE+CATEGORY_REMOVE)
+	e1:SetCategory(CATEGORY_NEGATE+CATEGORY_DESTROY)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_CHAINING)
 	e1:SetCountLimit(1,id)
@@ -23,9 +23,6 @@ function this.initial_effect(c)
 	e2:SetTarget(this.settg)
 	e2:SetOperation(this.setop)
 	c:RegisterEffect(e2)
-	local e3=e2:Clone()
-	e3:SetCondition(this.setcon2)
-	c:RegisterEffect(e3)
 end
 function this.cfilter(c)
 	return c:IsFaceup() and (c:IsCode(31000201) or aux.IsCodeListed(c,31000201) and c:IsType(TYPE_RITUAL))
@@ -36,7 +33,7 @@ function this.condition(e,tp,eg,ep,ev,re,r,rp)
 end
 function this.activate(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) then
-		Duel.Remove(eg,POS_FACEUP,REASON_EFFECT)
+		Duel.Destroy(eg,REASON_EFFECT)
 	end
 end
 function this.setfilter(c,tp)
@@ -51,11 +48,13 @@ function this.settg(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 function this.setop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) then Duel.SSet(tp,c) end
-end
-function this.setfilter2(c,tp)
-	return c:IsFaceup() and aux.IsCodeListed(c,31000201) and c:IsType(TYPE_LINK) and c:IsSummonType(SUMMON_TYPE_LINK) and c:IsControler(tp)
-end
-function this.setcon2(e,tp,eg,ep,ev,re,r,rp)
-	return eg:IsExists(this.setfilter2,1,nil,tp)
+	if c:IsRelateToEffect(e) and Duel.SSet(tp,c)~=0 then
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetCode(EFFECT_LEAVE_FIELD_REDIRECT)
+		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		e1:SetReset(RESET_EVENT+RESETS_REDIRECT)
+		e1:SetValue(LOCATION_REMOVED)
+		c:RegisterEffect(e1)
+	end
 end

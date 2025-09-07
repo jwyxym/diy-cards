@@ -45,7 +45,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e4)
 end
 function s.atkval(e,c)
-	return c:GetLinkedGroupCount()*200
+	return e:GetHandler():GetLinkedGroupCount()*200
 end
 function s.discon(e,tp,eg,ep,ev,re,r,rp)
 	return tp~=ep and Duel.GetCurrentChain()==0

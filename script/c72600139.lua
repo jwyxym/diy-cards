@@ -3,7 +3,7 @@ local s,id,o=GetID()
 function s.initial_effect(c)
 	--fusion material
 	c:EnableReviveLimit()
-	aux.AddFusionProcFunRep(c,s.ffilter,2,true)
+	aux.AddFusionProcFun2(c,aux.FilterBoolFunction(Card.IsFusionType,TYPE_FUSION),aux.FilterBoolFunction(Card.IsFusionAttribute,ATTRIBUTE_LIGHT),true)
 	--to hand
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
@@ -60,9 +60,6 @@ function s.initial_effect(c)
 	e5:SetCondition(s.mtcon)
 	e5:SetOperation(s.mtop)
 	c:RegisterEffect(e5)
-end
-function s.ffilter(c,fc,sub,mg,sg)
-	return c:IsFusionAttribute(ATTRIBUTE_LIGHT) and c:IsType(TYPE_FUSION) and (not sg or not sg:IsExists(Card.IsRace,1,c,c:GetRace()))
 end
 function s.thfilter(c)
 	return c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsAbleToHand()

@@ -15,11 +15,13 @@ function c10112039.initial_effect(c)
 	--disable
 	local e2=Effect.CreateEffect(c)
 	e2:SetCategory(CATEGORY_DISABLE)
-	e2:SetType(EFFECT_TYPE_IGNITION)
+	e2:SetType(EFFECT_TYPE_QUICK_O)
+	e2:SetCode(EVENT_FREE_CHAIN)
 	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
 	e2:SetCountLimit(1,10112039)
+	e2:SetCondition(c10112039.discon)
 	e2:SetTarget(c10112039.distg)
 	e2:SetOperation(c10112039.disop)
 	c:RegisterEffect(e2)
@@ -40,6 +42,9 @@ function c10112039.atkfilter(c)
 end
 function c10112039.atkval(e,c)
 	return Duel.GetMatchingGroupCount(c10112039.atkfilter,e:GetHandlerPlayer(),LOCATION_ONFIELD,0,nil)
+end
+function c10112039.spcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetCurrentPhase()==PHASE_MAIN1 or Duel.GetCurrentPhase()==PHASE_MAIN2
 end
 function c10112039.distg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsOnField() and aux.NegateAnyFilter(chkc) end

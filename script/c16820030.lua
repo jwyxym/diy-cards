@@ -47,7 +47,7 @@ function c16820030.ovop(e,tp,eg,ep,ev,re,r,rp)
 	local sg=Duel.SelectMatchingCard(tp,c16820030.ovfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
 	local tc=sg:GetFirst()
 	if tc then
-		local sg=tc:GetOverlayGroup()
+		local og=tc:GetOverlayGroup()
 		if og:GetCount()>0 then
 			Duel.SendtoGrave(og,REASON_RULE)
 		end

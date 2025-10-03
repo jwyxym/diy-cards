@@ -16,7 +16,7 @@ function s.initial_effect(c)
 	e1:SetOperation(s.rmop)
 	c:RegisterEffect(e1)
 	
-	-- 这张卡在墓地存在的场合，从自己墓地把1只「堕福」怪兽除外才能发动，这张卡加入手卡
+	-- 自己主要阶段有这张卡在墓地存在的场合，从自己墓地把1只「堕福」怪兽除外才能发动，这张卡加入手卡
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_TOHAND)
@@ -28,20 +28,20 @@ function s.initial_effect(c)
 	e2:SetOperation(s.thop)
 	c:RegisterEffect(e2)
 	
-	-- 这些效果发动的回合，自己不能把场上的怪兽的效果发动
+	-- 这些效果发动的回合，自己不能把特殊召唤的场上的怪兽的效果发动
 	Duel.AddCustomActivityCounter(id,ACTIVITY_CHAIN,s.chainfilter)
 end
 
--- 这些效果发动的回合，自己不能把场上的怪兽的效果发动
+-- 这些效果发动的回合，自己不能把特殊召唤的场上的怪兽的效果发动
 function s.chainfilter(re,tp,cid)
 	local rc=re:GetHandler()
 	local loc=Duel.GetChainInfo(cid,CHAININFO_TRIGGERING_LOCATION)
-	return not (re:IsActiveType(TYPE_MONSTER) and loc==LOCATION_MZONE)
+	return not (re:IsActiveType(TYPE_MONSTER) and loc==LOCATION_MZONE and rc:IsSummonType(SUMMON_TYPE_SPECIAL))
 end
 
 function s.aclimit(e,re,tp)
 	local rc=re:GetHandler()
-	return re:IsActiveType(TYPE_MONSTER) and rc:IsLocation(LOCATION_MZONE)
+	return re:IsActiveType(TYPE_MONSTER) and rc:IsSummonType(SUMMON_TYPE_SPECIAL) and rc:IsLocation(LOCATION_MZONE)
 end
 
 -- 把自己场上1个超量素材取除，以场上1张卡为对象才能发动，那张卡除外
@@ -73,7 +73,7 @@ function s.rmop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
--- 这张卡在墓地存在的场合，从自己墓地把1只「堕福」怪兽除外才能发动，这张卡加入手卡
+-- 自己主要阶段有这张卡在墓地存在的场合，从自己墓地把1只「堕福」怪兽除外才能发动，这张卡加入手卡
 function s.thfilter(c)
 	return c:IsSetCard(0x666c) and c:IsType(TYPE_MONSTER) and c:IsAbleToRemoveAsCost()
 end

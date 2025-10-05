@@ -11,6 +11,7 @@ function cm.initial_effect(c)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_MZONE)
 	e1:SetCountLimit(1,m+3)
+	e1:SetCost(cm.cost)
 	e1:SetTarget(cm.thtg)
 	e1:SetOperation(cm.thop)
 	c:RegisterEffect(e1)
@@ -32,6 +33,21 @@ end
 function cm.thfilter(c,tp)
 	return c:IsSetCard(0x720) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
 		and not Duel.IsExistingMatchingCard(Card.IsCode,tp,LOCATION_GRAVE,0,1,nil,c:GetCode())
+end
+function cm.cost(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return Duel.GetCustomActivityCount(m,tp,ACTIVITY_SPSUMMON)==0 end
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(cm.splimit)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+end
+function cm.splimit(e,c,sump,sumtype,sumpos,targetp,se)
+	return not (c:IsType(TYPE_SYNCHRO) and c:IsAttribute(ATTRIBUTE_WATER)) and c:IsLocation(LOCATION_EXTRA)
 end
 function cm.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(cm.thfilter,tp,LOCATION_DECK,0,1,nil,tp) end

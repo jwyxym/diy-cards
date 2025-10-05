@@ -7,6 +7,7 @@ function cm.initial_effect(c)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetCountLimit(1,m+18)
+	e1:SetCost(cm.cost)
 	e1:SetTarget(cm.target)
 	e1:SetOperation(cm.operation)
 	c:RegisterEffect(e1)
@@ -46,6 +47,21 @@ function cm.filter(c,e,tp)
 end
 function cm.filter1(c,e,tp,lv,code)
 	return c:IsSetCard(0x720) and c:IsAbleToRemove() and c:IsCanBeSpecialSummoned(e,0,tp,false,false) and c:IsLevel(lv) and not c:IsCode(code)
+end
+function cm.cost(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return Duel.GetCustomActivityCount(m,tp,ACTIVITY_SPSUMMON)==0 end
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(cm.splimit)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+end
+function cm.splimit(e,c,sump,sumtype,sumpos,targetp,se)
+	return not (c:IsType(TYPE_SYNCHRO) and c:IsAttribute(ATTRIBUTE_WATER)) and c:IsLocation(LOCATION_EXTRA)
 end
 function cm.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chk==0 then return Duel.IsExistingMatchingCard(cm.filter,tp,LOCATION_DECK,0,1,nil,e,tp) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 end

@@ -63,7 +63,7 @@ function cm.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.RegisterEffect(e1,tp)
 end
 function cm.splimit(e,c,sump,sumtype,sumpos,targetp,se)
-	return not c:IsType(TYPE_SYNCHRO) and c:IsLocation(LOCATION_EXTRA)
+	return not (c:IsType(TYPE_SYNCHRO) and c:IsAttribute(ATTRIBUTE_WATER)) and c:IsLocation(LOCATION_EXTRA)
 end
 function cm.tg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0

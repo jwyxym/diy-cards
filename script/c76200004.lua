@@ -1,6 +1,7 @@
 --雪魔境的冰匠
 local cm,m,o=GetID()
 function cm.initial_effect(c)
+	local e0=aux.AddThisCardInGraveAlreadyCheck(c)
 	--search
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
@@ -8,12 +9,14 @@ function cm.initial_effect(c)
 	e1:SetProperty(EFFECT_FLAG_DELAY)
 	e1:SetCode(EVENT_SUMMON_SUCCESS)
 	e1:SetCountLimit(1,m+2)
+	e1:SetCost(cm.cost)
 	e1:SetTarget(cm.tg)
 	e1:SetOperation(cm.op)
 	c:RegisterEffect(e1)
 	local e2=e1:Clone()
 	e2:SetCode(EVENT_SPSUMMON_SUCCESS)
 	c:RegisterEffect(e2)
+	Duel.AddCustomActivityCounter(m,ACTIVITY_SPSUMMON,cm.counterfilter)
 	--spsummon
 	local e3=Effect.CreateEffect(c)
 	e3:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DESTROY)
@@ -45,6 +48,9 @@ function cm.initial_effect(c)
 		Duel.RegisterEffect(ge1,0)
 	end
 end
+function cm.counterfilter(c)
+	return not c:IsSummonLocation(LOCATION_EXTRA) or (c:IsType(TYPE_SYNCHRO) and c:IsAttribute(ATTRIBUTE_WATER))
+end
 function cm.tfilter(c,sc,tp)
 	return c:IsFaceup() and Duel.GetMZoneCount(tp,c)>0
 		and c:IsAttribute(ATTRIBUTE_WATER)
@@ -68,6 +74,21 @@ function cm.spop(e,tp,eg,ep,ev,re,r,rp)
 end
 function cm.filter(c)
 	return c:IsSetCard(0x720) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand()
+end
+function cm.cost(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return Duel.GetCustomActivityCount(m,tp,ACTIVITY_SPSUMMON)==0 end
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(cm.splimit)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+end
+function cm.splimit(e,c,sump,sumtype,sumpos,targetp,se)
+	return not (c:IsType(TYPE_SYNCHRO) and c:IsAttribute(ATTRIBUTE_WATER)) and c:IsLocation(LOCATION_EXTRA)
 end
 function cm.tg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(cm.filter,tp,LOCATION_DECK,0,1,nil) end

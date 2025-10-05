@@ -43,7 +43,7 @@ end
 function c10112039.atkval(e,c)
 	return Duel.GetMatchingGroupCount(c10112039.atkfilter,e:GetHandlerPlayer(),LOCATION_ONFIELD,0,nil)
 end
-function c10112039.spcon(e,tp,eg,ep,ev,re,r,rp)
+function c10112039.discon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetCurrentPhase()==PHASE_MAIN1 or Duel.GetCurrentPhase()==PHASE_MAIN2
 end
 function c10112039.distg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)

@@ -3,7 +3,7 @@ local s,id,o=GetID()
 function s.initial_effect(c)
 	--xyz summon
 	c:EnableReviveLimit()
-	aux.AddXyzProcedure(c,nil,6,2,s.ovfilter,aux.Stringid(id,0))
+	aux.AddXyzProcedure(c,s.matfilter,6,2)
 	--overlay
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
@@ -35,7 +35,9 @@ function s.initial_effect(c)
 	e4:SetOperation(s.spsop)
 	c:RegisterEffect(e4)
 end
-
+function s.matfilter(c)
+	return c:IsRace(RACE_SPELLCASTER+RACE_ILLUSION)
+end
 function s.ovfilter(c)
 	return c:IsFaceup() and (c:IsCode(76200163) or (c:IsLevel(6) and c:IsRace(RACE_SPELLCASTER) and c:IsType(TYPE_FUSION)))
 end

@@ -92,7 +92,7 @@ function cm.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.RegisterEffect(e1,tp)
 end
 function cm.splimit(e,c,sump,sumtype,sumpos,targetp,se)
-	return not c:IsType(TYPE_SYNCHRO) and c:IsLocation(LOCATION_EXTRA)
+	return not (c:IsType(TYPE_SYNCHRO) and c:IsAttribute(ATTRIBUTE_WATER)) and c:IsLocation(LOCATION_EXTRA)
 end
 function cm.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():GetEquipTarget()

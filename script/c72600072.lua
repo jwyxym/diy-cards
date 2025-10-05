@@ -23,7 +23,7 @@ function s.initial_effect(c)
 	e2:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetCondition(s.indcon)
-	e2:SetValue(1)
+	e2:SetValue(aux.tgoval)
 	c:RegisterEffect(e2)
 	--special summon
 	local e3=Effect.CreateEffect(c)
@@ -47,6 +47,7 @@ function s.thdtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
 end
 function s.thdop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
 	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.thfilter),tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
 	if g:GetCount()>0 then
@@ -64,8 +65,20 @@ function s.thdop(e,tp,eg,ep,ev,re,r,rp)
 				Duel.BreakEffect()
 				Duel.Destroy(dg1,REASON_EFFECT)
 			end
+			local e1=Effect.CreateEffect(c)
+			e1:SetType(EFFECT_TYPE_FIELD)
+			e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+			e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+			e1:SetTargetRange(1,0)
+			e1:SetTarget(s.splimit1)
+			e1:SetReset(RESET_PHASE+PHASE_END)
+			Duel.RegisterEffect(e1,tp)
 		end
 	end
+end
+function s.splimit1(e,c)
+	return c:IsLocation(LOCATION_EXTRA) 
+		and not (c:IsType(TYPE_SYNCHRO) and c:IsRace(RACE_PLANT+RACE_WINDBEAST))
 end
 function s.indcon(e)
 	return e:GetHandler():GetSummonLocation()~=0 and not e:GetHandler():IsSummonLocation(LOCATION_EXTRA)

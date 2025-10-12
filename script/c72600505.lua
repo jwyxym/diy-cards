@@ -56,13 +56,17 @@ function s.attval(e,c)
 	return att
 end
 function s.efilter(e,te)
-    local tc=te:GetHandler()
-    if tc:IsControler(1-e:GetHandlerPlayer()) and tc:IsType(TYPE_MONSTER) then
-        local self_attr=e:GetHandler():GetAttribute()
-        local target_attr=tc:GetAttribute()
-        return (self_attr & target_attr)~=0
-    end
-    return false
+	if not te:IsActiveType(TYPE_MONSTER) or te:GetOwnerPlayer()==e:GetHandlerPlayer() then return false end
+	local tc=te:GetHandler()
+	local c=e:GetHandler()
+	if tc:IsRelateToEffect(te) and tc:IsControler(1-c:GetControler()) then
+		if tc:IsLocation(LOCATION_MZONE) and tc:IsFaceup() then
+			return tc:GetAttribute()==c:GetAttribute()
+		else
+			return tc:GetOriginalAttribute()==c:GetAttribute()
+		end
+		Debug.Message(tc,c)
+	end
 end
 function s.mfilter(c)
 	return bit.band(c:GetOriginalType(),TYPE_RITUAL+TYPE_FUSION+TYPE_SYNCHRO+TYPE_XYZ+TYPE_PENDULUM+TYPE_LINK)>0

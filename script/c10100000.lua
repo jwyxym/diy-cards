@@ -96,7 +96,7 @@ end
 function c10100000.atkval(e)
 	local tp=e:GetHandlerPlayer()
 	local g=Duel.GetMatchingGroup(c10100000.atkfilter,tp,LOCATION_MZONE,LOCATION_GRAVE,nil)
-	return g:GetSum(Card.GetLevel)*500
+	return g:GetSum(Card.GetLevel)*300
 end
 function c10100000.atklimit(e,c)
 	return c~=e:GetHandler()

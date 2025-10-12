@@ -11,7 +11,7 @@ function c31000121.initial_effect(c)
 	c:RegisterEffect(e1)
 	--return
 	local e2=Effect.CreateEffect(c)
-	e2:SetCategory(CATEGORY_TOGRAVE+CATEGORY_TODECK)
+	e2:SetCategory(CATEGORY_TODECK)
 	e2:SetType(EFFECT_TYPE_IGNITION)
 	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e2:SetRange(LOCATION_GRAVE)
@@ -90,25 +90,18 @@ function c31000121.damtg(e,c)
 	return c:IsType(TYPE_XYZ) and c:IsSetCard(0x311)
 end
 function c31000121.rtfilter(c)
-	return c:IsFaceup() and c:IsSetCard(0x311)
+	return c:IsFaceup() and (c:IsSetCard(0x311) or c:IsType(TYPE_XYZ)) and c:IsType(TYPE_MONSTER)
 end
 function c31000121.target2(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local c=e:GetHandler()
-	if chkc then return chkc:IsLocation(LOCATION_REMOVED) and c31000121.rtfilter(chkc) end
-	if chk==0 then return Duel.IsExistingTarget(c31000121.rtfilter,tp,LOCATION_REMOVED,0,1,c) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_OPERATECARD)
-	local g=Duel.SelectTarget(tp,c31000121.rtfilter,tp,LOCATION_REMOVED,0,1,3,c)
-	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,g,g:GetCount(),0,0)
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,g,g:GetCount(),0,0)
+	if chk==0 then return Duel.IsExistingMatchingCard(c31000121.rtfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,e:GetHandler()) end
+	Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,tp,LOCATION_GRAVE+LOCATION_REMOVED)
 end
 function c31000121.activate2(e,tp,eg,ep,ev,re,r,rp)
-	local tg=Duel.GetChainInfo(0,CHAININFO_TARGET_CARDS)
-	local sg=tg:Filter(Card.IsRelateToEffect,nil,e)
-	if sg:GetCount()>0 then
-		if not sg:Filter(Card.IsAbleToDeck,nil)==#sg or Duel.SelectYesNo(tp,aux.Stringid(31000121,4)) then
-			Duel.SendtoGrave(sg,REASON_EFFECT+REASON_RETURN)
-		else 
-			Duel.SendtoDeck(sg,nil,2,REASON_EFFECT)
-		end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(c31000121.rtfilter),tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,3,nil)
+	if g:GetCount()>0 then
+		Duel.HintSelection(g)
+		Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
 	end
 end

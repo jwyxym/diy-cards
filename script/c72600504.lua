@@ -13,12 +13,17 @@ function s.initial_effect(c)
 	e1:SetTarget(s.tktg)
 	e1:SetOperation(s.tkop)
 	c:RegisterEffect(e1)
-	--defense attack
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_SINGLE)
-	e2:SetCode(EFFECT_DEFENSE_ATTACK)
-	e2:SetValue(1)
+	local e2=e1:Clone()
+	e2:SetDescription(aux.Stringid(id,1))
+	e2:SetTarget(s.tktg2)
+	e2:SetOperation(s.tkop2)
 	c:RegisterEffect(e2)
+	--defense attack
+	local e6=Effect.CreateEffect(c)
+	e6:SetType(EFFECT_TYPE_SINGLE)
+	e6:SetCode(EFFECT_DEFENSE_ATTACK)
+	e6:SetValue(1)
+	c:RegisterEffect(e6)
 	--defense up
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
@@ -35,7 +40,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e4)
 	--to hand
 	local e5=Effect.CreateEffect(c)
-	e5:SetDescription(aux.Stringid(id,1))
+	e5:SetDescription(aux.Stringid(id,2))
 	e5:SetCategory(CATEGORY_TOHAND)
 	e5:SetType(EFFECT_TYPE_QUICK_O)
 	e5:SetCode(EVENT_FREE_CHAIN)
@@ -56,9 +61,30 @@ function s.tktg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_TOKEN,nil,1,0,0)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,0,0)
 end
+function s.tktg2(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.CheckRemoveOverlayCard(tp,1,1,1,REASON_EFFECT) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and Duel.IsPlayerCanSpecialSummonMonster(tp,72600500,0,TYPES_TOKEN_MONSTER,2000,2000,10,RACE_CYBERSE,ATTRIBUTE_EARTH) end
+	Duel.SetOperationInfo(0,CATEGORY_TOKEN,nil,1,0,0)
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,0,0)
+end
 function s.tkop(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
 	if Duel.DiscardHand(tp,nil,1,1,REASON_EFFECT+REASON_DISCARD)>0 and Duel.IsPlayerCanSpecialSummonMonster(tp,72600500,0,TYPES_TOKEN_MONSTER,2000,2000,10,RACE_CYBERSE,ATTRIBUTE_EARTH) then
+		local token=Duel.CreateToken(tp,72600500)
+		if Duel.SpecialSummonStep(token,0,tp,tp,false,false,POS_FACEUP) then
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_CANNOT_BE_LINK_MATERIAL)
+			e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+			e1:SetValue(1)
+			token:RegisterEffect(e1,true)
+		end
+		Duel.SpecialSummonComplete()
+	end
+end
+function s.tkop2(e,tp,eg,ep,ev,re,r,rp)
+	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+	if Duel.RemoveOverlayCard(tp,1,1,1,1,REASON_EFFECT)~=0 and Duel.IsPlayerCanSpecialSummonMonster(tp,72600500,0,TYPES_TOKEN_MONSTER,2000,2000,10,RACE_CYBERSE,ATTRIBUTE_EARTH) then
 		local token=Duel.CreateToken(tp,72600500)
 		if Duel.SpecialSummonStep(token,0,tp,tp,false,false,POS_FACEUP) then
 			local e1=Effect.CreateEffect(e:GetHandler())

@@ -53,7 +53,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e1,tp)
 end
 function s.splimit(e,c)
-	return not c:IsRace(RACE_FIEND) and c:IsAttribute(ATTRIBUTE_DARK)
+	return not (c:IsRace(RACE_FIEND) and c:IsAttribute(ATTRIBUTE_DARK)) and c:IsLocation(LOCATION_EXTRA)
 end
 function s.repfilter(c,tp)
 	return c:IsFaceup() and c:IsType(TYPE_FUSION) and c:IsRace(RACE_FIEND) and c:IsLocation(LOCATION_MZONE)

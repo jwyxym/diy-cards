@@ -46,7 +46,7 @@ function c16820025.ffilter(c,fc,sub,mg,sg)
 	return c:IsFusionSetCard(0xdf28) and (not sg or not sg:IsExists(Card.IsFusionCode,1,c,c:GetFusionCode()))
 end
 function c16820025.fusfilter(c)
-	return c:IsSetCard(0xdf28) and c:IsType(TYPE_MONSTER) and c:IsAbleToDeckAsCost()
+	return c:IsSetCard(0xdf28) and c:IsType(TYPE_MONSTER) and c:IsAbleToDeckOrExtraAsCost()
 end
 function c16820025.fselect(g)
 	return g:GetClassCount(Card.GetCode)==2 and g:IsExists(Card.IsLocation,1,nil,LOCATION_GRAVE) and g:IsExists(Card.IsLocation,1,nil,LOCATION_REMOVED)

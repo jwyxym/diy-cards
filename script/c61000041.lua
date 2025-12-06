@@ -43,7 +43,7 @@ function s.condition(e,tp,eg,ep,ev,re,r,rp)
 	return ph>=PHASE_BATTLE_START and ph<=PHASE_BATTLE
 end
 function s.thfilter(c)
-	return c:IsFaceupEx() and c:IsSetCard(0x97c0) and c:IsAbleToHand()
+	return not c:IsCode(id) and c:IsFaceupEx() and c:IsSetCard(0x97c0) and c:IsAbleToHand()
 end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_REMOVED,0,1,nil) end

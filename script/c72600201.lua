@@ -1,6 +1,6 @@
 --妖精骑士 崔斯坦
 function c72600201.initial_effect(c) 
-	aux.AddCodeList(c,72600201) 
+	aux.AddCodeList(c,72600200) 
 	--link summon
 	aux.AddLinkProcedure(c,nil,2,2,c72600201.lcheck)
 	c:EnableReviveLimit() 

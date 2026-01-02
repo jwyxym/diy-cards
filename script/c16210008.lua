@@ -2,7 +2,7 @@
 local s,id,o=GetID()
 function s.initial_effect(c)
 	--连接召唤
-	aux.AddLinkProcedure(c,nil,1,2,s.lcheck)
+	aux.AddLinkProcedure(c,nil,2,2,s.lcheck)
 	c:EnableReviveLimit()
 	--素材检测    
     local e0=Effect.CreateEffect(c)

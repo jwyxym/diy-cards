@@ -46,8 +46,12 @@ function s.actcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	local g=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_MZONE,0,1,1,nil,e,tp)
 	Duel.Release(g,REASON_COST)
 end
+function s.filter(c)
+	return c:IsFaceup() and c:IsRace(RACE_SPELLCASTER+RACE_PLANT+RACE_PYRO) and c:IsLinkAbove(3)
+end
 function s.discon(e,tp,eg,ep,ev,re,r,rp)
 	return ep==1-tp and re:IsActiveType(TYPE_MONSTER) and Duel.IsChainDisablable(ev)
+    	and Duel.IsExistingMatchingCard(s.filter,tp,LOCATION_MZONE,0,1,nil)
 end
 function s.distg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end

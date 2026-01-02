@@ -38,7 +38,6 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 		local g=Duel.SelectMatchingCard(tp,s.eqfilter,tp,LOCATION_DECK,0,1,1,nil,tc:GetOriginalAttribute(),tc:GetOriginalRace(),tp)
 		local sc=g:GetFirst()
 		if not sc then return end
-		local res=sc:IsLocation(LOCATION_DECK)
 		if not Duel.Equip(tp,sc,tc) then return end
 		--equip limit
 		local e1=Effect.CreateEffect(c)
@@ -49,22 +48,8 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 		e1:SetLabelObject(tc)
 		e1:SetValue(s.eqlimit)
 		sc:RegisterEffect(e1)
-		if res then
-			local e1=Effect.CreateEffect(e:GetHandler())
-			e1:SetType(EFFECT_TYPE_FIELD)
-			e1:SetCode(EFFECT_CANNOT_ACTIVATE)
-			e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-			e1:SetTargetRange(1,0)
-			e1:SetLabel(tc:GetCode())
-			e1:SetValue(s.aclimit)
-			e1:SetReset(RESET_PHASE+PHASE_END)
-			Duel.RegisterEffect(e1,tp)
-		end
 	end
 end
 function s.eqlimit(e,c)
 	return c==e:GetLabelObject()
-end
-function s.aclimit(e,re,tp)
-	return re:GetHandler():IsCode(e:GetLabel()) and re:IsActiveType(TYPE_MONSTER)
 end

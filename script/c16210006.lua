@@ -52,6 +52,7 @@ end
 function s.spfilter(c,e,tp,tc)
 	return c:IsRace(tc:GetRace()) and c:IsAttribute(tc:GetAttribute()) and not c:IsAttack(tc:GetAttack())
 		and not c:IsDefense(tc:GetDefense()) and not c:IsLevel(tc:GetLevel()) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+        and c:IsSetCard(0xfb19)
 end
 function s.sptg2(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and s.refilter(chkc,e,tp) end

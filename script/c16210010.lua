@@ -12,11 +12,11 @@ function s.initial_effect(c)
 	e0:SetCode(EFFECT_ADD_RACE)
 	e0:SetRange(LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED+LOCATION_EXTRA)
 	e0:SetValue(RACE_PLANT+RACE_PYRO)
-	c:RegisterEffect(e0)
+--c:RegisterEffect(e0)
 	--特殊召唤
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetCategory(CATEGORY_RECOVER+CATEGORY_SPECIAL_SUMMON)
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e1:SetType(EFFECT_TYPE_QUICK_O)
 	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetRange(LOCATION_MZONE)
@@ -82,29 +82,7 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 		if not tc then return end
         tc:SetMaterial(nil)
         if Duel.SpecialSummon(tc,SUMMON_TYPE_LINK,tp,tp,false,false,POS_FACEUP)~=0 then
-        	tc:CompleteProcedure()
-        	if Duel.IsExistingMatchingCard(aux.NegateAnyFilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) 
-           		and Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
-        		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DISABLE)
-				local eg=Duel.SelectMatchingCard(tp,aux.NegateEffectMonsterFilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
-				if eg:GetCount()>0 then
-					local cc=eg:GetFirst()
-					Duel.NegateRelatedChain(tc,RESET_TURN_SET)
-					local e1=Effect.CreateEffect(c)
-					e1:SetType(EFFECT_TYPE_SINGLE)
-					e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-					e1:SetCode(EFFECT_DISABLE)
-					e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-					cc:RegisterEffect(e1)
-					local e2=Effect.CreateEffect(c)
-					e2:SetType(EFFECT_TYPE_SINGLE)
-					e2:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-					e2:SetCode(EFFECT_DISABLE_EFFECT)
-					e2:SetValue(RESET_TURN_SET)
-					e2:SetReset(RESET_EVENT+RESETS_STANDARD)
-					cc:RegisterEffect(e2)
-				end                    
-			end                
+        	tc:CompleteProcedure()     
 		end            
 	end
 end

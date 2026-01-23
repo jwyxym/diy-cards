@@ -10,7 +10,7 @@ function c20010009.initial_effect(c)
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e1:SetCode(EFFECT_DESTROY_REPLACE)
 	e1:SetRange(LOCATION_FZONE)
-	e1:SetCountLimit(1)
+	e1:SetCountLimit(1,20010009+100)
 	e1:SetTarget(c20010009.reptg)
 	e1:SetValue(c20010009.repval)
 	c:RegisterEffect(e1)
@@ -25,26 +25,41 @@ function c20010009.initial_effect(c)
 	e2:SetCondition(c20010009.mtcon)
 	e2:SetOperation(c20010009.mtop)
 	c:RegisterEffect(e2)
-	--disable
+	--synchro
 	local e3=Effect.CreateEffect(c)
-	e3:SetType(EFFECT_TYPE_FIELD)
+	e3:SetDescription(aux.Stringid(20010009,2))
+	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e3:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e3:SetProperty(EFFECT_FLAG_DELAY)
 	e3:SetRange(LOCATION_FZONE)
-	e3:SetTargetRange(LOCATION_MZONE,0)
-	e3:SetTarget(c20010009.disable)
-	e3:SetCode(EFFECT_DISABLE)
+	e3:SetCountLimit(1,20010009)
+	e3:SetTarget(c20010009.syntg)
+	e3:SetOperation(c20010009.synop)
 	c:RegisterEffect(e3)
-	--inactivatable
+	--xyz summon
 	local e4=Effect.CreateEffect(c)
-	e4:SetType(EFFECT_TYPE_FIELD)
-	e4:SetCode(EFFECT_CANNOT_INACTIVATE)
+	e4:SetDescription(aux.Stringid(20010009,3))
+	e4:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e4:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e4:SetProperty(EFFECT_FLAG_DELAY)
 	e4:SetRange(LOCATION_FZONE)
-	e4:SetValue(c20010009.effectfilter)
+	e4:SetCountLimit(1,20010009)
+	e4:SetTarget(c20010009.xyztg)
+	e4:SetOperation(c20010009.xyzop)
 	c:RegisterEffect(e4)
+	--link
 	local e5=Effect.CreateEffect(c)
-	e5:SetType(EFFECT_TYPE_FIELD)
-	e5:SetCode(EFFECT_CANNOT_DISEFFECT)
+	e5:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e5:SetDescription(aux.Stringid(20010009,4))
+	e5:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e5:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e5:SetProperty(EFFECT_FLAG_DELAY)
 	e5:SetRange(LOCATION_FZONE)
-	e5:SetValue(c20010009.effectfilter)
+	e5:SetCountLimit(1,20010009)
+	e5:SetTarget(c20010009.lktg)
+	e5:SetOperation(c20010009.lkop)
 	c:RegisterEffect(e5)
 end
 function c20010009.repfilter(c,tp)
@@ -89,11 +104,57 @@ function c20010009.mtop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.Destroy(c,REASON_COST)
 	end
 end
-function c20010009.effectfilter(e,ct)
-	local p=e:GetHandler():GetControler()
-	local te,tp,loc=Duel.GetChainInfo(ct,CHAININFO_TRIGGERING_EFFECT,CHAININFO_TRIGGERING_PLAYER,CHAININFO_TRIGGERING_LOCATION)
-	return p==tp and te:GetHandler():IsSetCard(0xb33) and bit.band(loc,LOCATION_ONFIELD)~=0
+function c20010009.syntg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local g=Duel.GetSynchroMaterial(tp):Filter(Card.IsSetCard,nil,0xb33)
+	if chk==0 then return #g>0 and Duel.IsExistingMatchingCard(Card.IsSynchroSummonable,tp,LOCATION_EXTRA,0,1,nil,nil,g) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 end
-function c20010009.disable(e,c)
-	return (c:IsType(TYPE_EFFECT) or c:GetOriginalType()&TYPE_EFFECT~=0) and c:IsSetCard(0xb33)
+function c20010009.synop(e,tp,eg,ep,ev,re,r,rp)
+	local g=Duel.GetSynchroMaterial(tp):Filter(Card.IsSetCard,nil,0xb33)
+	if #g==0 then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local sc=Duel.SelectMatchingCard(tp,Card.IsSynchroSummonable,tp,LOCATION_EXTRA,0,1,1,nil,nil,g):GetFirst()
+	if sc then Duel.SynchroSummon(tp,sc,nil,g) end
+end
+function c20010009.mfilter(c)
+	return c:IsFaceup() and c:IsSetCard(0xb33) and not c:IsType(TYPE_TOKEN)
+end
+function c20010009.xyzfilter(c,mg)
+	return c:IsXyzSummonable(mg)
+end
+function c20010009.xyztg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then
+		local g=Duel.GetMatchingGroup(c20010009.mfilter,tp,LOCATION_MZONE,0,nil)
+		return Duel.IsExistingMatchingCard(c20010009.xyzfilter,tp,LOCATION_EXTRA,0,1,nil,g)
+	end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
+end
+function c20010009.xyzop(e,tp,eg,ep,ev,re,r,rp)
+	local g=Duel.GetMatchingGroup(c20010009.mfilter,tp,LOCATION_MZONE,0,nil)
+	local xyzg=Duel.GetMatchingGroup(c20010009.xyzfilter,tp,LOCATION_EXTRA,0,nil,g)
+	if xyzg:GetCount()>0 then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+		local xyz=xyzg:Select(tp,1,1,nil):GetFirst()
+		Duel.XyzSummon(tp,xyz,g,1,6)
+	end
+end
+function c20010009.matfilter(c)
+	return c:IsFaceup() and c:IsSetCard(0xb33)
+end
+function c20010009.lktg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then
+		local mg=Duel.GetMatchingGroup(c20010009.matfilter,tp,LOCATION_MZONE,0,nil)
+		return Duel.IsExistingMatchingCard(Card.IsLinkSummonable,tp,LOCATION_EXTRA,0,1,nil,mg)
+	end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
+end
+function c20010009.lkop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local mg=Duel.GetMatchingGroup(c20010009.matfilter,tp,LOCATION_MZONE,0,nil)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local tg=Duel.SelectMatchingCard(tp,Card.IsLinkSummonable,tp,LOCATION_EXTRA,0,1,1,nil,mg)
+	local tc=tg:GetFirst()
+	if tc then
+		Duel.LinkSummon(tp,tc,mg)
+	end
 end

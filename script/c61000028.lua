@@ -17,7 +17,7 @@ function s.initial_effect(c)
 	e2:SetType(EFFECT_TYPE_FIELD)
 	e2:SetRange(LOCATION_SZONE)
 	e2:SetCode(EFFECT_CANNOT_BE_SYNCHRO_MATERIAL)
-	e2:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+	e2:SetTargetRange(0,LOCATION_MZONE)
 	e2:SetTarget(s.eqfilter)
 	e2:SetCondition(s.actcon)
 	e2:SetValue(1)
@@ -96,7 +96,6 @@ function s.actcon(e)
 end
 function s.eqcfilter(c)
 	return bit.band(c:GetOriginalRace(),RACE_WINDBEAST)==RACE_WINDBEAST
-		and bit.band(c:GetOriginalType(),TYPE_FUSION)==TYPE_FUSION
 end
 function s.eqfilter(e,c)
 	return c:GetEquipGroup():IsExists(s.eqcfilter,1,nil)

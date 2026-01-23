@@ -42,9 +42,9 @@ function c19990049.initial_effect(c)
 	e3:SetType(EFFECT_TYPE_IGNITION)
 	e3:SetRange(LOCATION_PZONE)
 	e3:SetCountLimit(1,19990049)
-	e3:SetCost(c19990049.spcost)
-	e3:SetTarget(c19990049.sptg)
-	e3:SetOperation(c19990049.spop)
+	e3:SetCost(c19990049.spscost)
+	e3:SetTarget(c19990049.spstg)
+	e3:SetOperation(c19990049.spsop)
 	c:RegisterEffect(e3)
 	--material2
 	local e4=Effect.CreateEffect(c)
@@ -113,43 +113,22 @@ function c19990049.penop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.MoveToField(c,tp,tp,LOCATION_PZONE,POS_FACEUP,true)
 	end
 end
-function c19990049.cfilter(c)
-	return c:IsSetCard(0xb30) and c:IsAbleToRemoveAsCost()
+function c19990049.spsfilter(c,tp)
+	return c:IsSetCard(0xb29) and Duel.GetMZoneCount(tp,c)>0
 end
-function c19990049.mzfilter(c)
-	return c:IsLocation(LOCATION_MZONE) and c:GetSequence()<5
+function c19990049.spscost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.CheckReleaseGroupEx(tp,c19990049.spsfilter,4,REASON_COST,true,e,tp) end
+	local g=Duel.SelectReleaseGroupEx(tp,c19990049.spsfilter,4,4,REASON_COST,true,e,tp)
+	Duel.Release(g,REASON_COST)
 end
-function c19990049.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-	local rg=Duel.GetMatchingGroup(c19990049.cfilter,tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_GRAVE,0,c)
-	local ft=Duel.GetLocationCount(tp,LOCATION_MZONE)
-	local ct=-ft+1
-	if chk==0 then return ft>-4 and rg:GetCount()>1 and (ft>0 or rg:IsExists(c19990049.mzfilter,ct,nil)) end
-	local g=nil
-	if ft>0 then
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-		g=rg:Select(tp,4,4,nil)
-	elseif ft==0 then
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-		g=rg:FilterSelect(tp,c19990049.mzfilter,1,1,nil)
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-		local g2=rg:Select(tp,1,1,g:GetFirst())
-		g:Merge(g2)
-	else
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-		g=rg:FilterSelect(tp,c19990049.mzfilter,4,4,nil)
-	end
-	Duel.Remove(g,POS_FACEUP,REASON_COST)
-end
-function c19990049.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
+function c19990049.spstg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
-function c19990049.spop(e,tp,eg,ep,ev,re,r,rp)
+function c19990049.spsop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) then
-		Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
-	end
+	if not c:IsRelateToEffect(e) then return end
+	Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
 end
 function c19990049.cfilter1(c,tp)
 	return c:IsType(TYPE_MONSTER) and c:IsPreviousControler(tp) and c:IsSetCard(0xb29)

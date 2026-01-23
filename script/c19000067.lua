@@ -101,7 +101,7 @@ end
 function c19000067.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:IsCostChecked()
 		and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.IsExistingMatchingCard(c19000067.tgfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,nil)
-		and Duel.IsPlayerCanSpecialSummonMonster(tp,19000067,0,TYPES_EFFECT_TRAP_MONSTER,2000,2000,6,RACE_SEASERPENT,ATTRIBUTE_DARK) end
+		and Duel.IsPlayerCanSpecialSummonMonster(tp,19000067,0,TYPES_NORMAL_TRAP_MONSTER,0,0,4,RACE_ROCK,ATTRIBUTE_LIGHT) end
 	Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,1,tp,LOCATION_HAND+LOCATION_GRAVE)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
@@ -112,7 +112,7 @@ function c19000067.spop(e,tp,eg,ep,ev,re,r,rp)
 	if g:GetCount()>0 then
 		Duel.Remove(g,POS_FACEUP,REASON_EFFECT)
 	end
-	if not Duel.IsPlayerCanSpecialSummonMonster(tp,19000067,0,TYPES_EFFECT_TRAP_MONSTER,0,0,4,RACE_ROCK,ATTRIBUTE_LIGHT) then return end
+	if not Duel.IsPlayerCanSpecialSummonMonster(tp,19000067,0,TYPES_NORMAL_TRAP_MONSTER,0,0,4,RACE_ROCK,ATTRIBUTE_LIGHT) then return end
 	c:AddMonsterAttribute(TYPE_NORMAL+TYPE_SPELL+TYPE_TUNER)
 	Duel.SpecialSummon(c,SUMMON_VALUE_SELF,tp,tp,true,false,POS_FACEUP)
 end

@@ -105,14 +105,12 @@ function s.mfilter(c,e)
 	return c:IsCanOverlay() and not (e and c:IsImmuneToEffect(e)) and c:IsSetCard(0xacaa)
 end
 function s.efftg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-    local ct=e:GetLabel()
-	if chk==0 then return Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>0 and c:IsType(TYPE_XYZ) 
-    	and Duel.IsExistingMatchingCard(s.mtfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,c,e)
-        and Duel.GetFlagEffect(tp,ct)==0
-    end    
+	if chk==0 then return true end    
+    Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
 end
 function s.effop(e,tp,eg,ep,ev,re,r,rp)
+	local ct=e:GetLabel()
+    if Duel.GetFlagEffect(tp,ct)~=0 then return end
 	local c=e:GetHandler()
 	local g=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
 	if g:GetCount()<1 then return end
@@ -137,7 +135,7 @@ function s.effop(e,tp,eg,ep,ev,re,r,rp)
         end
     elseif g:GetClassCount(Card.GetCode)==g:GetCount() then
     	local sg=Duel.GetMatchingGroup(s.mfilter,tp,LOCATION_HAND,0,nil,e)
-    	if sg:GetCount()>0 and Duel.SelectYesNo(tp,aux.Stringid(id,7)) then
+    	if sg:GetCount()>0 and c:IsRelateToEffect(e) and Duel.SelectYesNo(tp,aux.Stringid(id,7)) then
         	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
             local g=Duel.SelectMatchingCard(tp,s.mfilter,tp,LOCATION_HAND,0,1,sg:GetCount(),nil,e)
 			if g:GetCount()>0 then
@@ -177,12 +175,14 @@ function s.effop(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.atkcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetTurnPlayer()==tp and Duel.GetMatchingGroupCount(Card.IsFaceup,tp,LOCATION_MZONE,0,nil)==1
+    	and Duel.GetMatchingGroupCount(s.atkfilter,tp,LOCATION_MZONE,0,nil,e)>0
 end 
 function s.atkfilter(c,e)
 	return c:IsFaceup() and not c:IsImmuneToEffect(e)
 end
 function s.atkop(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.GetMatchingGroupCount(Card.IsFaceup,tp,LOCATION_MZONE,0,nil)~=1 then return end
+    Duel.Hint(HINT_CARD,0,id)
 	local c=e:GetHandler()
 	local g=Duel.GetMatchingGroup(s.atkfilter,tp,LOCATION_MZONE,0,nil,e)
 	if g:GetCount()>0 then
@@ -198,21 +198,24 @@ function s.atkop(e,tp,eg,ep,ev,re,r,rp)
 	end        
 end        
 function s.dracon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetMatchingGroupCount(Card.IsFaceup,tp,LOCATION_MZONE,0,nil)==1
+	return Duel.GetMatchingGroupCount(Card.IsFaceup,tp,LOCATION_MZONE,0,nil)==1 and Duel.IsPlayerCanDraw(tp,1) 
 end
 function s.draop(e,tp,eg,ep,ev,re,r,rp)
     if Duel.GetMatchingGroupCount(Card.IsFaceup,tp,LOCATION_MZONE,0,nil)~=1 then return end
-	if Duel.Damage(1-tp,800,REASON_EFFECT)~=0 and Duel.IsPlayerCanDraw(tp,1) then
+    Duel.Hint(HINT_CARD,0,id)
+	if Duel.Damage(1-tp,800,REASON_EFFECT)~=0 then
 		Duel.Draw(tp,1,REASON_EFFECT)
 	end        
 end
 function s.descon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetTurnPlayer()==1-tp and Duel.GetMatchingGroupCount(Card.IsFaceup,tp,LOCATION_MZONE,0,nil)==1
+    	and Duel.GetMatchingGroupCount(aux.TRUE,tp,0,LOCATION_MZONE,nil)>0
 end
 function s.desop(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.GetMatchingGroupCount(Card.IsFaceup,tp,LOCATION_MZONE,0,nil)~=1 then return end
+    Duel.Hint(HINT_CARD,0,id)
 	local g=Duel.GetMatchingGroup(aux.TRUE,tp,0,LOCATION_MZONE,nil)
-	if #g>0 then
+	if g:GetCount()>0 then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
 		local dg=g:Select(tp,1,1,nil)
 		Duel.HintSelection(dg)
@@ -239,6 +242,7 @@ function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil) end
 	local ct=e:GetLabel()
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,ct,tp,LOCATION_DECK)
+    Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
 end
 function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetMatchingGroup(s.thfilter,tp,LOCATION_DECK,0,nil)
@@ -261,8 +265,7 @@ function s.spfilter(c,e,tp)
 		and Duel.GetLocationCountFromEx(tp,tp,nil,c)>0
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp)
-		and e:GetHandler():IsCanOverlay() end
+	if chk==0 then return true end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 	if e:GetHandler():IsLocation(LOCATION_GRAVE) then
     	Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,e:GetHandler(),1,0,0)

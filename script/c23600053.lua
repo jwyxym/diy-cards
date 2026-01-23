@@ -99,11 +99,11 @@ function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.Remove(g,POS_FACEUP,REASON_COST)
 	c:RemoveOverlayCard(tp,1,1,REASON_COST)
 end
-function s.thfilter(c)
+function s.ssfilter(c)
 	return c:IsFaceup() and c:IsSetCard(0xd86)
 end
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_ONFIELD,0,1,nil)
+	return Duel.IsExistingMatchingCard(s.ssfilter,tp,LOCATION_ONFIELD,0,1,nil)
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsAbleToHand() end

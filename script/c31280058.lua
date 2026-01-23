@@ -85,7 +85,7 @@ function s.ovtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
 	local b1=c:IsCanBeSpecialSummoned(e,0,tp,false,false) and Duel.GetLocationCountFromEx(tp,tp,nil,c)>0
 	local b2=c:IsCanOverlay() and Duel.IsExistingMatchingCard(s.ovfilter,tp,LOCATION_MZONE,0,1,nil,e)
-	if chk==0 then return (b1 or b2) end
+	if chk==0 then return true end
     Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)	
 end
 function s.ovop(e,tp,eg,ep,ev,re,r,rp)
@@ -103,11 +103,7 @@ function s.ovop(e,tp,eg,ep,ev,re,r,rp)
 		local sg=g:Select(tp,1,1,nil)
 		Duel.HintSelection(sg)
 		local tc=sg:GetFirst()
-		if tc and c:IsRelateToEffect(e) and not c:IsImmuneToEffect(e) and c:IsCanOverlay() then
-			local og=c:GetOverlayGroup()
-			if og:GetCount()>0 then
-				Duel.SendtoGrave(og,REASON_RULE)
-			end
+		if tc and c:IsRelateToEffect(e) and c:IsCanOverlay() then
 			Duel.Overlay(tc,Group.FromCards(c))
 		end            
 	end

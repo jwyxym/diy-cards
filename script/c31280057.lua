@@ -36,20 +36,20 @@ end
 function s.ovfilter(c)
 	return c:IsFaceup() and c:IsCode(31280237)
 end
-function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local ct=e:GetLabel()
+function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk)	
 	local h=Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)
-	if chk==0 then return h<6 and Duel.IsPlayerCanDraw(tp,6-h) 
-    	and Duel.GetFlagEffect(tp,ct)==0 end
+	if chk==0 then return true end
 	Duel.SetTargetPlayer(tp)
 	Duel.SetTargetParam(6-h)
 	Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,6-h)
 end
 function s.efop(e,tp,eg,ep,ev,re,r,rp)
+	local ct=e:GetLabel()
+	if Duel.GetFlagEffect(tp,ct)~=0 then return end
 	local c=e:GetHandler()
 	local p=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER)
 	local h=Duel.GetFieldGroupCount(p,LOCATION_HAND,0)
-	if h<6 then
+	if h<6 and Duel.IsPlayerCanDraw(tp,6-h) then
 		Duel.Draw(p,6-h,REASON_EFFECT)
     end
     local e1=Effect.CreateEffect(c)

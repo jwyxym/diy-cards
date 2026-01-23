@@ -1,6 +1,8 @@
 --伪升天仪式
 function c20200026.initial_effect(c)
-	aux.AddRitualProcGreaterCode(c,20200027)
+	aux.AddCodeList(c,20200027)
+	local e1=aux.AddRitualProcGreater2(c,c20200026.filter,LOCATION_HAND+LOCATION_GRAVE,nil,nil,true)
+	c:RegisterEffect(e1)
 	--To hand
 	local e0=Effect.CreateEffect(c)
 	e0:SetCategory(CATEGORY_TOHAND)
@@ -11,6 +13,9 @@ function c20200026.initial_effect(c)
 	e0:SetTarget(c20200026.thtg)
 	e0:SetOperation(c20200026.thop)
 	c:RegisterEffect(e0)
+end
+function c20200026.filter(c)
+	return c:IsCode(20200027)
 end
 function c20200026.thfilter(c)
 	return c:IsCode(20200003) and c:IsFaceup() and c:IsAbleToHand()

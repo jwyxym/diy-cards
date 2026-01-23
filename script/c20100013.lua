@@ -57,6 +57,6 @@ function c20100013.sumlimit(e,c,sump,sumtype,sumpos,targetp)
 	return not c:IsSetCard(0xb28)
 end
 function c20100013.aclimit(e,re,tp)
-    local rc=re:GetHandler()
-	return (re:GetActivateLocation()==LOCATION_GRAVE or re:GetActivateLocation()==LOCATION_REMOVED) and rc:IsSetCard(0xb28)
+	local rc=re:GetHandler()
+	return (re:GetActivateLocation()==LOCATION_GRAVE or re:GetActivateLocation()==LOCATION_REMOVED) and re:GetHandler():IsSetCard(0xb28)
 end

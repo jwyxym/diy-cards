@@ -1,11 +1,11 @@
 --清蓝之战龙 钴角
 function c31000401.initial_effect(c)
-	--cannot link material
+	--xyz limit
 	local e0=Effect.CreateEffect(c)
 	e0:SetType(EFFECT_TYPE_SINGLE)
 	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e0:SetCode(EFFECT_CANNOT_BE_LINK_MATERIAL)
-	e0:SetValue(1)
+	e0:SetCode(EFFECT_CANNOT_BE_XYZ_MATERIAL)
+	e0:SetValue(c31000401.xyzlimit)
 	c:RegisterEffect(e0)
 	--spsummon
 	local e1=Effect.CreateEffect(c)
@@ -34,6 +34,10 @@ function c31000401.initial_effect(c)
 	e23:SetCode(EVENT_TO_GRAVE)
 	e23:SetCondition(c31000401.tgcon)
 	c:RegisterEffect(e23)
+end
+function c31000401.xyzlimit(e,c)
+	if not c then return false end
+	return not c:IsSetCard(0x313)
 end
 function c31000401.cfilter(c)
 	return c:IsFaceup() and c:IsSetCard(0x313)

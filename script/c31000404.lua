@@ -1,5 +1,12 @@
 --清蓝之游龙 靛湖
 function c31000404.initial_effect(c)
+	--xyz limit
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_SINGLE)
+	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0:SetCode(EFFECT_CANNOT_BE_XYZ_MATERIAL)
+	e0:SetValue(c31000404.xyzlimit)
+	c:RegisterEffect(e0)
 	--
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -21,6 +28,10 @@ function c31000404.initial_effect(c)
 	e2:SetTarget(c31000404.sptg2)
 	e2:SetOperation(c31000404.spop2)
 	c:RegisterEffect(e2)
+end
+function c31000404.xyzlimit(e,c)
+	if not c then return false end
+	return not c:IsSetCard(0x313)
 end
 function c31000404.cfilter(c)
 	return c:IsSetCard(0x313) and c:IsFaceup()

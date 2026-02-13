@@ -19,7 +19,7 @@ function c20010027.initial_effect(c)
 	c:RegisterEffect(e2)
 	--act in hand
 	local e3=Effect.CreateEffect(c)
-	e3:SetDescription(aux.Stringid(id,0))
+	e3:SetDescription(aux.Stringid(20010027,2))
 	e3:SetType(EFFECT_TYPE_SINGLE)
 	e3:SetCode(EFFECT_QP_ACT_IN_NTPHAND)
 	e3:SetCondition(c20010027.handcon)
@@ -38,9 +38,9 @@ function c20010027.cost1(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.Remove(g,POS_FACEUP,REASON_COST)
 end
 function c20010027.cost2(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c20010027.ccfilter,tp,LOCATION_HAND,0,1,nil) end
+	if chk==0 then return Duel.IsExistingMatchingCard(c20010027.ccfilter,tp,LOCATION_HAND,0,1,e:GetHandler()) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
-	local g=Duel.SelectMatchingCard(tp,c20010027.ccfilter,tp,LOCATION_HAND,0,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,c20010027.ccfilter,tp,LOCATION_HAND,0,1,1,e:GetHandler())
 	Duel.ConfirmCards(1-tp,g)
 	Duel.ShuffleHand(tp)
 end

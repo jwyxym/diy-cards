@@ -29,7 +29,7 @@ function c20010025.initial_effect(c)
 	c:RegisterEffect(e1)
 end
 function c20010025.cfilter(c,tp)
-	return c:IsControler(tp) and c:IsLocation(LOCATION_ONFIELD) and c:IsFaceup()
+	return c:IsControler(tp) and c:IsLocation(LOCATION_ONFIELD) and c:IsSetCard(0xb33) and c:IsFaceup()
 end
 function c20010025.negcon(e,tp,eg,ep,ev,re,r,rp)
 	if not (rp==1-tp and re:IsHasProperty(EFFECT_FLAG_CARD_TARGET)) then return false end

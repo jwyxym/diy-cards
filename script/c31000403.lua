@@ -1,5 +1,12 @@
 --清蓝之贤羽 雀尾
 function c31000403.initial_effect(c)
+	--xyz limit
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_SINGLE)
+	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0:SetCode(EFFECT_CANNOT_BE_XYZ_MATERIAL)
+	e0:SetValue(c31000403.xyzlimit)
+	c:RegisterEffect(e0)
 	--search
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
@@ -24,6 +31,10 @@ function c31000403.initial_effect(c)
 	e2:SetTarget(c31000403.sptg)
 	e2:SetOperation(c31000403.spop)
 	c:RegisterEffect(e2)
+end
+function c31000403.xyzlimit(e,c)
+	if not c then return false end
+	return not c:IsSetCard(0x313)
 end
 function c31000403.thfilter(c)
 	return c:IsSetCard(0x313) and c:IsType(0x6) and c:IsAbleToHand()

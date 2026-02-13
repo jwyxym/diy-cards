@@ -1,11 +1,11 @@
 --清蓝之龙将 墨青
 function c31000402.initial_effect(c)
-	--cannot link material
+	--xyz limit
 	local e0=Effect.CreateEffect(c)
 	e0:SetType(EFFECT_TYPE_SINGLE)
 	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e0:SetCode(EFFECT_CANNOT_BE_LINK_MATERIAL)
-	e0:SetValue(1)
+	e0:SetCode(EFFECT_CANNOT_BE_XYZ_MATERIAL)
+	e0:SetValue(c31000402.xyzlimit)
 	c:RegisterEffect(e0)
 	--search
 	local e1=Effect.CreateEffect(c)
@@ -31,6 +31,10 @@ function c31000402.initial_effect(c)
 	e2:SetTarget(c31000402.sptg)
 	e2:SetOperation(c31000402.spop)
 	c:RegisterEffect(e2)
+end
+function c31000402.xyzlimit(e,c)
+	if not c then return false end
+	return not c:IsSetCard(0x313)
 end
 function c31000402.thfilter(c)
 	return c:IsSetCard(0x313) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()

@@ -110,7 +110,7 @@ function s.desfilter(c)
 	return c:IsSetCard(0x763) or c:IsRace(RACE_PLANT)
 end
 function s.spfilter(c,e,tp)
-	return c:IsFaceupEx() and c:IsSetCard(0x763) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsFaceup() and c:IsSetCard(0x763) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(e:GetLabel()) and chkc:IsControler(tp) and s.desfilter(chkc) end

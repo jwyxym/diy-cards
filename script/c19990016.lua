@@ -45,6 +45,9 @@ function c19990016.spsop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
 	end
 end
+function c19990016.filter(c,tp)
+	return c:IsFaceup()
+end
 function c19990016.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsOnField() and c19990016.filter(chkc) end
 	if chk==0 then return Duel.IsExistingTarget(c19990016.filter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) end

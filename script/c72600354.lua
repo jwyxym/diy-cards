@@ -38,7 +38,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 end
 function s.sfilter(c)
-	return c:IsFaceup() and not c:IsCode(72600351)
+	return c:IsFaceup() and c:IsCode(72600351)
 end
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)==0

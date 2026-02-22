@@ -7,7 +7,7 @@ function s.initial_effect(c)
 	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 	e1:SetType(EFFECT_TYPE_QUICK_O)
 	e1:SetCode(EVENT_FREE_CHAIN)
-	e1:SetRange(LOCATION_HAND)
+	e1:SetRange(LOCATION_HAND+LOCATION_MZONE)
 	e1:SetCountLimit(1,id)
 	e1:SetCost(s.drcost)
 	e1:SetTarget(s.drtg)
@@ -87,11 +87,11 @@ function s.drop(e,tp,eg,ep,ev,re,r,rp)
 	local p,d=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER,CHAININFO_TARGET_PARAM)
 	if Duel.Draw(p,d,REASON_EFFECT)==0 then return end
 	local ct=e:GetLabel()
-	if ct&1==1 and Duel.IsPlayerCanDraw(tp,1) and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
+	if (ct&1)==1 and Duel.IsPlayerCanDraw(tp,1) and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
 		Duel.BreakEffect()
 		Duel.Draw(tp,1,REASON_EFFECT)
 	end
-	if ct&2==2 and Duel.IsExistingMatchingCard(Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil)
+	if (ct&2)==2 and Duel.IsExistingMatchingCard(Card.IsAbleToRemove,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil)
 		and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
 		Duel.BreakEffect()
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
@@ -101,8 +101,8 @@ function s.drop(e,tp,eg,ep,ev,re,r,rp)
 			Duel.Remove(sg,POS_FACEUP,REASON_EFFECT)
 		end
 	end
-	if ct&4==4 and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(Card.IsAbleToRemove),tp,LOCATION_GRAVE,LOCATION_GRAVE,1,nil)
-		and Duel.SelectYesNo(tp,aux.Stringid(id,4)) then
+	if (ct&4)==4 and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(Card.IsAbleToRemove),tp,LOCATION_GRAVE,LOCATION_GRAVE,1,nil)
+		and Duel.SelectYesNo(tp,aux.Stringid(id,5)) then
 		Duel.BreakEffect()
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
 		local sg=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(Card.IsAbleToRemove),tp,LOCATION_GRAVE,LOCATION_GRAVE,1,1,nil)
@@ -126,13 +126,14 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	end
 end
 function s.rmfilter(c)
-	return c:IsSetCard(0x97c0) and c:IsAbleToRemove()
+	return c:IsSetCard(0x97c0) and c:IsAbleToHand()
 end
 function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)>0 then
 		local g=Duel.GetMatchingGroup(s.rmfilter,tp,LOCATION_DECK,0,nil)
 		if #g==0 then return end
+		local ph=Duel.GetCurrentPhase()
 		if not (ph>=PHASE_BATTLE_START and ph<=PHASE_BATTLE) then return end
 		if Duel.SelectYesNo(tp,aux.Stringid(id,4)) then
 			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)

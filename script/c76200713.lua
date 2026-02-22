@@ -42,7 +42,7 @@ function s.tgfilter2(c)
 	return c:IsType(TYPE_RITUAL) and c:IsType(TYPE_SPELL) and (c:IsAbleToGrave() or b and c:IsAbleToHand())
 end
 function s.ffilter(c)
-	return c:IsSetCard(0x763) and c:IsFaceup()
+	return c:IsSetCard(0x703) and c:IsFaceup()
 end
 function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local b=Duel.IsExistingMatchingCard(s.ffilter,tp,LOCATION_MZONE+LOCATION_GRAVE,LOCATION_MZONE+LOCATION_GRAVE,1,nil)

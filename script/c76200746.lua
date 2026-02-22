@@ -34,7 +34,7 @@ function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
 end
 function s.filter(c)
-	return c:IsFaceup() and c:IsSetCard(0x762) and c:IsType(TYPE_MONSTER)
+	return c:IsFaceup() and c:IsSetCard(0x702) and c:IsType(TYPE_MONSTER)
 end
 function s.operation(e,tp,eg,ep,ev,re,r,rp)
 	if not Duel.NegateActivation(ev) then return end

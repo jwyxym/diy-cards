@@ -44,6 +44,7 @@ function s.rmop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
 	if g:GetCount()<1 then return end
 	Duel.ConfirmCards(1-tp,g)
+    Duel.ShuffleDeck(tp)
 	if g:GetClassCount(Card.GetCode)==g:GetCount() then
     	local rg=Duel.GetMatchingGroup(Card.IsAbleToRemove,tp,0,LOCATION_MZONE,nil)
 		if rg:GetCount()>0 then

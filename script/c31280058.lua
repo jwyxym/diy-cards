@@ -67,6 +67,7 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
             end   
     	end
 	end
+    Duel.ShuffleDeck(tp)
 end
 function s.codecon(e)
 	return e:GetHandler():IsPreviousLocation(LOCATION_EXTRA)

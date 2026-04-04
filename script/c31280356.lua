@@ -99,7 +99,7 @@ function s.tspcon2(e,tp,eg,ep,ev,re,r,rp)
 	return c:IsReason(REASON_EFFECT) and c:IsPreviousLocation(LOCATION_PZONE)
 end
 function s.tspfilter(c,e,tp,check)
-	return c:IsSetCard(0x3ca1) and (c:IsAbleToHand() or check and c:IsCanBeSpecialSummoned(e,0,tp,false,false))
+	return c:IsSetCard(0x3ca1) and c:IsType(TYPE_MONSTER) and (c:IsAbleToHand() or check and c:IsCanBeSpecialSummoned(e,0,tp,false,false))
 end
 function s.tsptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local c=e:GetHandler()

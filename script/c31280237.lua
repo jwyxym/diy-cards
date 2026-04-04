@@ -144,6 +144,7 @@ function s.effop(e,tp,eg,ep,ev,re,r,rp)
             end   
         end  
  	end           	
+    Duel.ShuffleDeck(tp)
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,4))
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)

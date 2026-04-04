@@ -101,8 +101,8 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
 	if g:GetCount()<1 then return end
 	Duel.ConfirmCards(1-tp,g)
-	if g:GetClassCount(Card.GetCode)==g:GetCount() and c:IsRelateToEffect(e) 
-    	and Duel.GetFlagEffect(tp,id+o)==0 and Duel.SelectYesNo(tp,aux.Stringid(id,6)) then
+	if g:GetClassCount(Card.GetCode)==g:GetCount() and c:IsRelateToEffect(e) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+    	and aux.NecroValleyFilter()(c) and Duel.GetFlagEffect(tp,id+o)==0 and Duel.SelectYesNo(tp,aux.Stringid(id,6)) then
         Duel.RegisterFlagEffect(tp,id+o,RESET_PHASE+PHASE_END,0,1)
         if Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)~=0 then
         	local sg=Duel.GetMatchingGroup(aux.TRUE,tp,LOCATION_ONFIELD,0,c)
@@ -112,6 +112,7 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 			end                
         end
 	end
+    Duel.ShuffleDeck(tp)
 end
 function s.tgfilter(c)
 	return not c:IsSetCard(0xacaa) and c:IsDiscardable()
@@ -137,4 +138,5 @@ function s.drop(e,tp,eg,ep,ev,re,r,rp)
             end
         end    
 	end
+    Duel.ShuffleDeck(tp)
 end

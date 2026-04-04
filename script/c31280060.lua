@@ -51,10 +51,11 @@ function s.drop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
 	if g:GetCount()<1 then return end
 	Duel.ConfirmCards(1-tp,g)
+    Duel.ShuffleDeck(tp)
 	if g:GetClassCount(Card.GetCode)==g:GetCount() then
 		local p,d=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER,CHAININFO_TARGET_PARAM)
 		Duel.Draw(p,d,REASON_EFFECT)
-	end        
+	end            
 end        
 function s.atkcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetTurnPlayer()==1-tp

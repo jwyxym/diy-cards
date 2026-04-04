@@ -77,8 +77,9 @@ function s.disop(e,tp,eg,ep,ev,re,r,rp)
 				Duel.Remove(tc,POS_FACEUP,REASON_EFFECT)
         		Duel.Damage(1-tp,1200,REASON_EFFECT)   
 			end        
-		end		
-	end        
+            Duel.ShuffleDeck(tp)
+		end		        
+	end            
 end
 function s.xyzfilter(c)
 	return c:IsFaceup() and c:IsSetCard(0xacaa)
@@ -105,7 +106,7 @@ function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 		end
 	end
 	if chk==0 then return rg and rg:FilterCount(s.thfilter,nil,tp)>0 end
-	Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_OVERLAY)
 end
 function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

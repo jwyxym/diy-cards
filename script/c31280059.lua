@@ -52,46 +52,51 @@ end
 function s.tdop(e,tp,eg,ep,ev,re,r,rp)
 	local sg=Duel.GetTargetsRelateToChain()
 	if #sg==0 then return end
-	Duel.SendtoDeck(sg,nil,2,REASON_EFFECT)
+    Duel.DisableShuffleCheck()
+	Duel.SendtoDeck(sg,nil,2,REASON_EFFECT)    
 	local g=Duel.GetOperatedGroup()
 	local ct=g:FilterCount(Card.IsLocation,nil,LOCATION_DECK+LOCATION_EXTRA)
     local gt=Duel.GetCurrentChain()
+    if gt<2 then Duel.ShuffleDeck(tp) end
 	if ct>0 and gt>=2 then
 		local te,tep=Duel.GetChainInfo(gt-1,CHAININFO_TRIGGERING_EFFECT,CHAININFO_TRIGGERING_PLAYER)
-		if e:IsHasType(EFFECT_TYPE_ACTIVATE) and te:IsActiveType(TYPE_SPELL+TYPE_TRAP) and Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>0 
-        	and Duel.SelectYesNo(tp,aux.Stringid(id,1)) then 
-        	local fg=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
-			if fg:GetCount()<1 then return end
-        	Duel.BreakEffect()
-			Duel.ConfirmCards(1-tp,fg)
-        	if fg:GetClassCount(Card.GetCode)==fg:GetCount() then
-            	Duel.BreakEffect()				              	
-                local b1=Duel.IsPlayerCanDraw(tp,1)
-                local b2=Duel.IsChainDisablable(gt-1)
-               	local off=1
-				local ops={}
-				local opval={}
-                if b1 then
-					ops[off]=aux.Stringid(id,2)
-					opval[off-1]=1
-					off=off+1
-				end
-				if b2 then
-					ops[off]=aux.Stringid(id,3)
-					opval[off-1]=2
-					off=off+1
-				end
-                local op=Duel.SelectOption(tp,table.unpack(ops))
-				if opval[op]==1 then
-                    Duel.BreakEffect()
-					Duel.Draw(tp,1,REASON_EFFECT)
-				elseif opval[op]==2 then
-					Duel.BreakEffect()  
-                    Duel.NegateEffect(gt-1)              
+		if e:IsHasType(EFFECT_TYPE_ACTIVATE) and te:IsActiveType(TYPE_SPELL+TYPE_TRAP) and Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>0 then
+        	if not Duel.SelectYesNo(tp,aux.Stringid(id,1)) then Duel.ShuffleDeck(tp)
+            else
+        		local fg=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
+				if fg:GetCount()<1 then return end
+        		Duel.BreakEffect()
+				Duel.ConfirmCards(1-tp,fg)
+            	Duel.ShuffleDeck(tp)
+        		if fg:GetClassCount(Card.GetCode)==fg:GetCount() then
+            		Duel.BreakEffect()				              	
+                	local b1=Duel.IsPlayerCanDraw(tp,1)
+                	local b2=Duel.IsChainDisablable(gt-1)
+               		local off=1
+					local ops={}
+					local opval={}
+                	if b1 then
+						ops[off]=aux.Stringid(id,2)
+						opval[off-1]=1
+						off=off+1
+					end
+					if b2 then
+						ops[off]=aux.Stringid(id,3)
+						opval[off-1]=2
+						off=off+1
+					end
+                	local op=Duel.SelectOption(tp,table.unpack(ops))
+					if opval[op]==1 then
+                    	Duel.BreakEffect()
+						Duel.Draw(tp,1,REASON_EFFECT)
+					elseif opval[op]==2 then
+						Duel.BreakEffect()  
+                   	 	Duel.NegateEffect(gt-1)
+                    end                     
                 end
 			end            
 		end            
-	end
+	end    
 end
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

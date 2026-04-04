@@ -14,7 +14,7 @@ function c20100014.initial_effect(c)
 	e2:SetRange(LOCATION_FZONE)
 	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 	e2:SetTargetRange(0,1)
-	e2:SetValue(aux.TargetBoolFunction(c20100014.value))
+	e2:SetTarget(c20100014.tdlimit)
 	c:RegisterEffect(e2)
 	--disable to hand
 	local e3=Effect.CreateEffect(c)
@@ -23,7 +23,7 @@ function c20100014.initial_effect(c)
 	e3:SetRange(LOCATION_FZONE)
 	e3:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 	e3:SetTargetRange(0,1)
-	e3:SetValue(aux.TargetBoolFunction(c20100014.value))
+	e3:SetTarget(c20100014.tdlimit)
 	c:RegisterEffect(e3)
 end
 function c20100014.tffilter(c,tp)
@@ -38,6 +38,6 @@ function c20100014.activate(e,tp,eg,ep,ev,re,r,rp)
 		Duel.MoveToField(sg:GetFirst(),tp,tp,LOCATION_SZONE,POS_FACEUP,true)
 	end
 end
-function c20100014.value(e,c)
-	return c:IsSetCard(0xb28) and not c:IsLocation(LOCATION_DECK)
+function c20100014.tdlimit(e,c)
+	return c:IsSetCard(0xb37) and not c:IsLocation(LOCATION_DECK)
 end

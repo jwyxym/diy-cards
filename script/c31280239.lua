@@ -19,7 +19,7 @@ function s.initial_effect(c)
 	--加入手卡    
     local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
-    e2:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
+    e2:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH+CATEGORY_GRAVE_ACTION)
 	e2:SetType(EFFECT_TYPE_QUICK_O)
 	e2:SetCode(EVENT_FREE_CHAIN)
 	e2:SetRange(LOCATION_MZONE)
@@ -130,4 +130,5 @@ function s.damop(e,tp,eg,ep,ev,re,r,rp)
         local ct2=Duel.GetMatchingGroupCount(s.damfilter,tp,LOCATION_MZONE,0,nil)
         Duel.Damage(1-tp,ct2*1200,REASON_EFFECT)                
 	end
+    Duel.ShuffleDeck(tp)
 end

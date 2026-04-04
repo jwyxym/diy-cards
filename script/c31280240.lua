@@ -62,6 +62,7 @@ function s.desop(e,tp,eg,ep,ev,re,r,rp)
 			e1:SetReset(RESET_PHASE+PHASE_END)
 			Duel.RegisterEffect(e1,tp)
         end	
+        Duel.ShuffleDeck(tp)
 	end
 end
 function s.aclimit(e,re,tp)

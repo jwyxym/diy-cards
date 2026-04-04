@@ -73,7 +73,7 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
     local tc=Duel.GetFirstTarget()
 	if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)~=0
-    	and tc:IsFaceup() and tc:IsRelateToEffect(e) then
+    	and tc:IsFaceup() and tc:IsRelateToEffect(e) and not tc:IsImmuneToEffect(e) then
     	local sel=0
 		if tc:IsLevel(6) then
 			sel=Duel.SelectOption(tp,aux.Stringid(id,3))

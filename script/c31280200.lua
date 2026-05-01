@@ -1,133 +1,207 @@
---莱欧斯小队 玛露西尔
-function c31280200.initial_effect(c)
-	--special summon
-	local e1=Effect.CreateEffect(c) 
-	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TOKEN+CATEGORY_TOHAND+CATEGORY_SEARCH)
-	e1:SetType(EFFECT_TYPE_QUICK_O) 
-	e1:SetCode(EVENT_FREE_CHAIN) 
-	e1:SetHintTiming(0,TIMING_MAIN_END)
-	e1:SetRange(LOCATION_HAND)
-	e1:SetCountLimit(1,31280200)
-	e1:SetCondition(c31280200.spcon)
-	e1:SetTarget(c31280200.sptg)
-	e1:SetOperation(c31280200.spop)
+--破壞的继承者·阿克西娅
+local s,id,o=GetID()
+function s.initial_effect(c)
+	aux.EnablePendulumAttribute(c)
+	--p召限制    
+    local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_FIELD)
+	e0:SetRange(LOCATION_PZONE)
+	e0:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e0:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_CAN_FORBIDDEN)
+	e0:SetTargetRange(1,0)
+	e0:SetTarget(s.splimit)
+	c:RegisterEffect(e0)
+	--伤害    
+    local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_DESTROY+CATEGORY_DAMAGE)
+	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e1:SetRange(LOCATION_PZONE)
+	e1:SetProperty(EFFECT_FLAG_DELAY)
+	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e1:SetCountLimit(1,id)
+	e1:SetCondition(s.damcon)
+	e1:SetTarget(s.damtg)
+	e1:SetOperation(s.damop)
 	c:RegisterEffect(e1)
-	--to hand 
-	local e2=Effect.CreateEffect(c) 
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS) 
-	e2:SetCode(EVENT_CHAIN_SOLVING)  
-	e2:SetRange(LOCATION_MZONE) 
-	e2:SetCondition(c31280200.thcon) 
-	e2:SetOperation(c31280200.thop)
+	--特殊召唤    
+    local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,1))
+	e2:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TOGRAVE)
+	e2:SetType(EFFECT_TYPE_IGNITION)
+	e2:SetRange(LOCATION_HAND)
+	e2:SetCountLimit(1,id+o*10000)
+	e2:SetCost(s.spcost)
+	e2:SetTarget(s.sptg)
+	e2:SetOperation(s.spop)
 	c:RegisterEffect(e2)
-	--negate
-	local e3=Effect.CreateEffect(c) 
-	e3:SetCategory(CATEGORY_NEGATE+CATEGORY_DESTROY)
-	e3:SetType(EFFECT_TYPE_QUICK_O)
-	e3:SetCode(EVENT_CHAINING)
-	e3:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL)
-	e3:SetRange(LOCATION_MZONE)
-	e3:SetCountLimit(1,11280200)
-	e3:SetCondition(c31280200.discon) 
-	e3:SetCost(c31280200.discost)
-	e3:SetTarget(c31280200.distg)
-	e3:SetOperation(c31280200.disop)
-	c:RegisterEffect(e3)
+	--无效
+    local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,2))
+	e3:SetCategory(CATEGORY_DISABLE)
+	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e3:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e3:SetProperty(EFFECT_FLAG_DELAY)
+	e3:SetCountLimit(1,31280206)
+	e3:SetCondition(s.discon)
+	e3:SetTarget(s.distg)
+	e3:SetOperation(s.disop)
+	c:RegisterEffect(e3)    
+	--效破抗性
+    local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_FIELD)
+	e4:SetRange(LOCATION_MZONE)
+	e4:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+    e4:SetTargetRange(LOCATION_MZONE,0)
+    e4:SetTarget(s.indtg)
+	e4:SetValue(1)
+	c:RegisterEffect(e4)        
 end
---c31280200.SetCard_TnT_Lwsteam=true 
-function c31280200.cfilter(c)
-	return c:IsFaceup() and c:IsSetCard(0xca0) 
+function s.splimit(e,c,sump,sumtype,sumpos,targetp)
+	return not c:IsSetCard(0x3ca1) and bit.band(sumtype,SUMMON_TYPE_PENDULUM)==SUMMON_TYPE_PENDULUM
 end
-function c31280200.spcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(c31280200.cfilter,tp,LOCATION_MZONE,0,1,nil)
+function s.cfilter(c,tp)
+	return c:IsSummonPlayer(tp) and c:IsSummonType(SUMMON_TYPE_PENDULUM)
 end
-function c31280200.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
+function s.damcon(e,tp,eg,ep,ev,re,r,rp)
+	return eg:IsExists(s.cfilter,1,nil,tp)
+end
+function s.confilter(c)
+	return c:IsSetCard(0x3ca1) and c:IsType(TYPE_LINK) and c:IsFaceup()
+end
+function s.damtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local tg=eg:Filter(s.cfilter,nil,tp)
+	if chk==0 then return not Duel.IsPlayerAffectedByEffect(1-tp,EFFECT_NO_EFFECT_DAMAGE) 
+    	and tg:GetCount()>0 and Duel.IsExistingMatchingCard(s.confilter,tp,LOCATION_MZONE,0,1,nil) end	
+    tg:AddCard(e:GetHandler())
+    Duel.SetTargetCard(tg)
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,tg,tg:GetCount(),0,0)
+	Duel.SetOperationInfo(0,CATEGORY_DAMAGE,0,0,tp,tg:GetCount()*800)
+end
+function s.damop(e,tp,eg,ep,ev,re,r,rp)
+	local ct=eg:FilterCount(s.cfilter,nil,tp)
+    if ct<=0 then return end
+    if Duel.Damage(1-tp,ct*800,REASON_EFFECT)==0 then return end
+	local sg=Duel.GetChainInfo(0,CHAININFO_TARGET_CARDS):Filter(Card.IsRelateToEffect,nil,e)
+    if sg:GetCount()>0 then
+    	Duel.Destroy(sg,REASON_EFFECT)
+    end
+end
+function s.costfilter(c)
+	local b1=c:IsAbleToGrave()
+    local b2=c:IsType(TYPE_PENDULUM) and (Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1)) and not c:IsForbidden()
+	return c:IsSetCard(0x3ca1) and not c:IsCode(id) and not c:IsPublic() and (b1 or b2)
+end
+function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_HAND+LOCATION_DECK,0,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
+	local sc=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_HAND+LOCATION_DECK,0,1,1,nil):GetFirst()
+	Duel.ConfirmCards(1-tp,sc)
+    if sc:IsLocation(LOCATION_HAND) then
+		Duel.ShuffleHand(tp)
+    elseif sc:IsLocation(LOCATION_DECK) then
+    	Duel.ShuffleDeck(tp)
+    end
+	sc:CreateEffectRelation(e)
+	e:SetLabelObject(sc)
+end
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local sc=e:GetLabelObject()
+	if chk==0 then return e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false)
+		and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 end
+    local loc=0
+    if sc:IsLocation(LOCATION_HAND) then loc=LOCATION_HAND
+    elseif sc:IsLocation(LOCATION_DECK) then loc=LOCATION_DECK end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
+    Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,loc)    
 end
-function c31280200.thfil(c) 
-	return c:IsAbleToHand() and c:IsSetCard(0xca0) and c:IsType(TYPE_SPELL+TYPE_TRAP)  
-end 
-function c31280200.spop(e,tp,eg,ep,ev,re,r,rp)
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)~=0 then
-		Duel.BreakEffect() 
-		local b1=Duel.IsExistingMatchingCard(c31280200.thfil,tp,LOCATION_DECK,0,1,nil)
-		local b2=Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.IsPlayerCanSpecialSummonMonster(tp,31280199,nil,TYPES_TOKEN_MONSTER,0,0,4,RACE_ILLUSION,ATTRIBUTE_LIGHT) 
-		local xtable={aux.Stringid(31280200,3)} 
-		if b1 then table.insert(xtable,aux.Stringid(31280200,1)) end 
-		if b2 then table.insert(xtable,aux.Stringid(31280200,2)) end 
-		local op=Duel.SelectOption(tp,table.unpack(xtable))+1 
-		if xtable[op]==aux.Stringid(31280200,1) then 
-			local sg=Duel.SelectMatchingCard(tp,c31280200.thfil,tp,LOCATION_DECK,0,1,1,nil) 
-			Duel.SendtoHand(sg,tp,REASON_EFFECT) 
-			Duel.ConfirmCards(1-tp,sg) 
-		end 
-		if xtable[op]==aux.Stringid(31280200,2) then 
-			local token=Duel.CreateToken(tp,31280199) 
-			Duel.SpecialSummon(token,0,tp,tp,false,false,POS_FACEUP)  
-		end 
+    local sc=e:GetLabelObject()    
+    local res=0
+    if sc:IsRelateToEffect(e) then
+    	local b1=sc:IsAbleToGrave()
+        local b2=sc:IsType(TYPE_PENDULUM) and (Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1)) 
+        	and not sc:IsForbidden()
+    	if b1 and (not b2 or Duel.SelectOption(tp,1191,aux.Stringid(id,3))==0) then
+        	if Duel.SendtoGrave(sc,REASON_EFFECT)~=0 and sc:IsLocation(LOCATION_GRAVE) then
+            	res=1
+            end
+        else
+        	if Duel.MoveToField(sc,tp,tp,LOCATION_PZONE,POS_FACEUP,true) then
+            	res=1
+            end
+    	end
+        if c:IsRelateToEffect(e) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and res>0 then
+        	Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
+        end
+    end
+    local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_CHANGE_DAMAGE)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e1:SetTargetRange(0,1)
+	e1:SetValue(s.damval)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+	local e2=e1:Clone()
+	e2:SetCode(EFFECT_NO_EFFECT_DAMAGE)
+	e2:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e2,tp)
+end
+function s.damval(e,re,val,r,rp,rc)
+	if bit.band(r,REASON_EFFECT)~=0 then return 0
+	else return val end
+end
+function s.discon(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():IsSummonType(SUMMON_TYPE_PENDULUM)
+end
+function s.disfilter(c)
+	return c:IsFaceup() and c:IsType(TYPE_LINK) and c:IsSetCard(0x3ca1)
+end    
+function s.distg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	local g=Duel.GetMatchingGroup(s.disfilter,tp,LOCATION_MZONE,LOCATION_MZONE,nil)
+	local ct=g:GetSum(Card.GetLink)
+	if chk==0 then return Duel.IsExistingMatchingCard(aux.NegateAnyFilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) and ct>0 end
+	local tg=Duel.GetFieldGroup(tp,LOCATION_ONFIELD,LOCATION_ONFIELD)
+	Duel.SetOperationInfo(0,CATEGORY_DISABLE,tg,1,0,0)
+end
+function s.disop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local g=Duel.GetMatchingGroup(s.disfilter,tp,LOCATION_MZONE,LOCATION_MZONE,nil)
+	local ct=g:GetSum(Card.GetLink)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DISABLE)
+	local tg=Duel.SelectMatchingCard(tp,aux.NegateAnyFilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,ct,nil)
+	if tg:GetCount()<1 then return end
+    Duel.HintSelection(tg)
+	for tc in aux.Next(tg) do
+		if tc:IsCanBeDisabledByEffect(e,false) then
+			Duel.NegateRelatedChain(tc,RESET_TURN_SET)
+			local e1=Effect.CreateEffect(c)
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+			e1:SetCode(EFFECT_DISABLE)
+			e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+			tc:RegisterEffect(e1)
+			local e2=Effect.CreateEffect(c)
+			e2:SetType(EFFECT_TYPE_SINGLE)
+			e2:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+			e2:SetCode(EFFECT_DISABLE_EFFECT)
+			e2:SetValue(RESET_TURN_SET)
+			e2:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+			tc:RegisterEffect(e2)
+			if tc:IsType(TYPE_TRAPMONSTER) then
+				local e3=Effect.CreateEffect(c)
+				e3:SetType(EFFECT_TYPE_SINGLE)
+				e3:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+				e3:SetCode(EFFECT_DISABLE_TRAPMONSTER)
+				e3:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+				tc:RegisterEffect(e3)
+			end
+		end
 	end
 end
-function c31280200.thcon(e,tp,eg,ep,ev,re,r,rp)
-	return re:GetHandler():IsSetCard(0xca1) and re:IsActiveType(TYPE_SPELL) and re:IsActiveType(TYPE_CONTINUOUS) and e:GetHandler():IsAbleToHand()
-end 
-function c31280200.thop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsAbleToHand() and Duel.SelectEffectYesNo(tp,c,aux.Stringid(31280200,4)) then 
-		Duel.Hint(HINT_CARD,0,31280200)  
-		Duel.SendtoHand(c,nil,REASON_EFFECT) 
-	end 
-end 
-function c31280200.discon(e,tp,eg,ep,ev,re,r,rp)
-	return not e:GetHandler():IsStatus(STATUS_BATTLE_DESTROYED) and Duel.IsChainNegatable(ev) and (re:IsActiveType(TYPE_MONSTER) or re:IsHasType(EFFECT_TYPE_ACTIVATE))
-end
-function c31280200.xctfil(c) 
-	if c:IsLocation(LOCATION_HAND) then 
-		return c:IsDiscardable() 
-	else  
-		return c:IsHasEffect(31280208)
-	end 
-end 
-function c31280200.xctgck(g) 
-	if g:IsExists(Card.IsLocation,1,nil,LOCATION_SZONE) then 
-		return g:GetCount()==1 
-	else 
-		return g:GetCount()==2
-	end  
-end 
-function c31280200.discost(e,tp,eg,ep,ev,re,r,rp,chk) 
-	local g=Duel.GetMatchingGroup(c31280200.xctfil,tp,LOCATION_HAND+LOCATION_SZONE,0,nil)
-	if chk==0 then return g:CheckSubGroup(c31280200.xctgck,1,2) end 
-	local sg=g:SelectSubGroup(tp,c31280200.xctgck,false,1,2) 
-	if sg:GetCount()~=2 then 
-		local tc=sg:GetFirst() 
-		local te=tc:IsHasEffect(31280208) 
-		if te then te:UseCountLimit(tp) end 
-		Duel.SendtoDeck(tc,nil,2,REASON_COST)
-	else 
-		Duel.SendtoGrave(sg,REASON_COST+REASON_DISCARD)
-	end 
-end
-function c31280200.distg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return true end  
-	Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
-	if re:GetHandler():IsDestructable() and re:GetHandler():IsRelateToEffect(re) then
-		Duel.SetOperationInfo(0,CATEGORY_DESTROY,eg,1,0,0)
-	end
-end
-function c31280200.desfil(c,tp) 
-	return Duel.IsExistingMatchingCard(nil,tp,LOCATION_MZONE,LOCATION_MZONE,1,c) 
-end 
-function c31280200.disop(e,tp,eg,ep,ev,re,r,rp) 
-	local c=e:GetHandler()
-	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) and Duel.Destroy(eg,REASON_EFFECT)~=0 and Duel.IsExistingMatchingCard(c31280200.desfil,tp,LOCATION_MZONE,0,1,nil,tp) and Duel.SelectYesNo(tp,aux.Stringid(31280200,0)) then 
-		Duel.BreakEffect()
-		local dg=Duel.SelectMatchingCard(tp,c31280200.desfil,tp,LOCATION_MZONE,0,1,1,nil,tp) 
-		if Duel.Destroy(dg,REASON_EFFECT)~=0 then 
-			local xdg=Duel.SelectMatchingCard(tp,nil,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,dg) 
-			Duel.Destroy(xdg,REASON_EFFECT)
-		end 
-	end
+function s.indtg(e,c)
+	return c:IsLinkState() and c:IsSetCard(0x3ca1)
 end

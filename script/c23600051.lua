@@ -21,20 +21,19 @@ function s.initial_effect(c)
 	e2:SetOperation(s.thop)
 	c:RegisterEffect(e2)
 	--equip
+	 --material
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,2))
-	e3:SetCategory(CATEGORY_EQUIP)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e3:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e3:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
+	e3:SetProperty(EFFECT_FLAG_CARD_TARGET+EFFECT_FLAG_DELAY)
 	e3:SetRange(LOCATION_GRAVE+LOCATION_REMOVED)
-	e3:SetCountLimit(1,id+o*100)
-	e3:SetCost(s.cost)
-	e3:SetCondition(s.eqcon)
-	e3:SetTarget(s.eqtg)
-	e3:SetOperation(s.eqop)
+	e3:SetCountLimit(1,id+o)
+	e3:SetLabelObject(e0)
+	e3:SetCondition(s.matcon)
+	e3:SetTarget(s.mattg)
+	e3:SetOperation(s.matop)
 	c:RegisterEffect(e3)
-	Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,s.counterfilter)
 end
 function s.counterfilter(c)
 	return not c:IsSummonLocation(LOCATION_EXTRA) or (c:IsType(TYPE_XYZ) and c:IsAttribute(ATTRIBUTE_DARK))
@@ -90,67 +89,32 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.ConfirmCards(1-tp,g)
 	end
 end
-function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0 end
-	local e1=Effect.CreateEffect(e:GetHandler())
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
-	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetTargetRange(1,0)
-	e1:SetTarget(s.splimit1)
-	e1:SetReset(RESET_PHASE+PHASE_END)
-	Duel.RegisterEffect(e1,tp)
-	local e2=e1:Clone()
-	e2:SetCode(EFFECT_CANNOT_SUMMON)
-	Duel.RegisterEffect(e2,tp)
+function s.cfilter1(c,e,tp,se)
+	return c:IsFaceup() and c:IsType(TYPE_XYZ) and c:IsRank(5) and c:IsControler(tp) and c:IsCanBeEffectTarget(e)
+			and (se==nil or c:GetReasonEffect()~=se)
 end
-function s.splimit1(e,c)
-	return not c:IsAttribute(ATTRIBUTE_DARK)
+function s.matcon(e,tp,eg,ep,ev,re,r,rp)
+	return eg:IsExists(s.cfilter1,1,nil,e,tp)
 end
-function s.confilter(c)
-	return c:IsFaceup() and c:IsType(TYPE_XYZ) and c:IsRank(5)
+function s.tgfilter(c,tp,eg)
+	return eg:IsContains(c) and c:IsFaceup() and c:IsType(TYPE_XYZ) and c:IsControler(tp)
 end
-function s.eqcon(e,tp,eg,ep,ev,re,r,rp)
-	return eg:IsExists(s.confilter,1,nil) and not eg:IsContains(e:GetHandler())
-end
-function s.eqfilter(c,g)
-	return g:IsContains(c)
-end
-function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	local g=eg:Filter(s.confilter,nil)
-	if chkc then return chkc:IsLocation(LOCATION_MZONE) and s.eqfilter(chkc,g) end
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0
-		and Duel.IsExistingTarget(s.eqfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil,g) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
-	Duel.SelectTarget(tp,s.eqfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil,g)
-	Duel.SetOperationInfo(0,CATEGORY_EQUIP,e:GetHandler(),1,0,0)
-end
-function s.eqop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if not c:IsRelateToEffect(e) or c:IsFacedown() or not c:IsControler(tp) then return end
-	local tc=Duel.GetFirstTarget()
-	if Duel.GetLocationCount(tp,LOCATION_SZONE)<=0 or tc:IsFacedown() or not tc:IsRelateToEffect(e) then
-		Duel.SendtoGrave(c,REASON_EFFECT)
-		return
+function s.mattg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and s.tgfilter(chkc,tp,eg) end
+	if chk==0 then return Duel.IsExistingTarget(s.tgfilter,tp,LOCATION_MZONE,0,1,nil,tp,eg)
+		and e:GetHandler():IsCanOverlay() end
+	if eg:GetCount()==1 then
+		Duel.SetTargetCard(eg)
+	else
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
+		Duel.SelectTarget(tp,s.tgfilter,tp,LOCATION_MZONE,0,1,1,nil,tp,eg)
 	end
-	if not Duel.Equip(tp,c,tc) then return end
-	--equip limit
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_SINGLE)
-	e1:SetCode(EFFECT_EQUIP_LIMIT)
-	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-	e1:SetLabelObject(tc)
-	e1:SetValue(s.eqlimit)
-	e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-	c:RegisterEffect(e1)
-	--atkup
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_EQUIP)
-	e2:SetCode(EFFECT_UPDATE_ATTACK)
-	e2:SetValue(1000)
-	e2:SetReset(RESET_EVENT+RESETS_STANDARD)
-	c:RegisterEffect(e2)
+	Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,e:GetHandler(),1,0,0)
 end
-function s.eqlimit(e,c)
-	return c==e:GetLabelObject()
+function s.matop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tc=Duel.GetFirstTarget()
+	if c:IsRelateToEffect(e) and tc:IsRelateToEffect(e) and not tc:IsImmuneToEffect(e) then
+		Duel.Overlay(tc,Group.FromCards(c))
+	end
 end

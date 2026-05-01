@@ -15,7 +15,7 @@ function s.initial_effect(c)
 	e3:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
 	e3:SetRange(LOCATION_FZONE)
 	e3:SetTargetRange(LOCATION_MZONE,0)
-	e3:SetTarget(aux.TargetBoolFunction(Card.IsSetCard,0xfd3))
+	e3:SetTarget(s.target)
 	c:RegisterEffect(e3)
 	local e4=e3:Clone()
 	e4:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
@@ -47,6 +47,9 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 			Duel.Remove(tc,POS_FACEUP,REASON_EFFECT)
 		end
 	end
+end
+function s.target(e,c)
+	return c:IsType(TYPE_MONSTER) and c:IsSetCard(0xfd3)
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsAbleToHand() end

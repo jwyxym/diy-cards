@@ -1,94 +1,108 @@
---莱欧斯小队-生鲜捕获
-function c31280206.initial_effect(c)
-	--Activate 
-	local e1=Effect.CreateEffect(c) 
-	e1:SetCategory(CATEGORY_DESTROY)
-	e1:SetType(EFFECT_TYPE_ACTIVATE) 
-	e1:SetCode(EVENT_FREE_CHAIN)
+--歼灭的歌声
+local s,id,o=GetID()
+function s.initial_effect(c)
+	--发动
+	local e1=Effect.CreateEffect(c)
+    e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_DISABLE+CATEGORY_SPECIAL_SUMMON+CATEGORY_DESTROY)
+	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e1:SetCountLimit(1,31280206) 
-	e1:SetCondition(c31280206.accon)
-	e1:SetTarget(c31280206.actg)
-	e1:SetOperation(c31280206.acop)
+	e1:SetCode(EVENT_FREE_CHAIN)
+    e1:SetCountLimit(1,id+EFFECT_COUNT_CODE_OATH)
+	e1:SetHintTiming(0,TIMINGS_CHECK_MONSTER)
+	e1:SetTarget(s.eftg)
+	e1:SetOperation(s.efop)
 	c:RegisterEffect(e1)
-	--equip
-	local e2=Effect.CreateEffect(c) 
-	e2:SetCategory(CATEGORY_EQUIP)
-	e2:SetType(EFFECT_TYPE_QUICK_O)
-	e2:SetCode(EVENT_FREE_CHAIN)
-	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER)
-	e2:SetProperty(EFFECT_FLAG_CARD_TARGET) 
-	e2:SetRange(LOCATION_GRAVE)
-	e2:SetCountLimit(1,11280206) 
-	e2:SetCondition(c31280206.eqcon)
-	e2:SetCost(aux.bfgcost)
-	e2:SetTarget(c31280206.eqtg)
-	e2:SetOperation(c31280206.eqop)
-	c:RegisterEffect(e2)
+	--手卡发动
+    local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,1))
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetCode(EFFECT_TRAP_ACT_IN_HAND)
+	e2:SetCondition(s.handcon)
+	c:RegisterEffect(e2)    
+    if not s.global_check then
+		s.global_check=true
+		local ge1=Effect.CreateEffect(c)
+		ge1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		ge1:SetCode(EVENT_CHAINING)
+		ge1:SetOperation(s.checkop)
+		Duel.RegisterEffect(ge1,0)
+    end    
 end
-c31280206.SetCard_TnT_Lwsteam=true 
-function c31280206.accon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(function(c) return c:IsSetCard(0xca0) and c:IsFaceup() end,tp,LOCATION_MZONE,0,1,nil)
-end 
-function c31280206.actg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) end
-	if chk==0 then return Duel.IsExistingTarget(aux.TRUE,tp,0,LOCATION_MZONE,1,nil) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-	local g=Duel.SelectTarget(tp,aux.TRUE,tp,0,LOCATION_MZONE,1,1,nil)
-	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
-end
-function c31280206.acop(e,tp,eg,ep,ev,re,r,rp)
-	local tc=Duel.GetFirstTarget()
-	if tc:IsRelateToEffect(e) then
-		Duel.Destroy(tc,REASON_EFFECT)
+function s.checkop(e,tp,eg,ep,ev,re,r,rp)
+	if re and re:GetHandlerPlayer() and re:GetActivateLocation()==LOCATION_MZONE then
+		Duel.RegisterFlagEffect(re:GetHandlerPlayer(),id,RESET_CHAIN,0,1)
 	end
 end
-function c31280206.ackfil(c) 
-	return c:IsSetCard(0xca1) and c:IsFaceup()  
-end 
-function c31280206.eqcon(e,tp,eg,ep,ev,re,r,rp) 
-	return Duel.IsExistingMatchingCard(c31280206.ackfil,tp,LOCATION_SZONE,0,1,nil) and aux.exccon(e,tp,eg,ep,ev,re,r,rp) 
-end 
-function c31280206.eqfilter(c)
-	return c:IsType(TYPE_MONSTER) and not c:IsForbidden()
+function s.tgfilter(c,e,tp)
+	local b1=Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp) 
+    local b2=Auxiliary.NegateAnyFilter(c)
+	return c:IsFaceup() and Duel.IsExistingMatchingCard(s.desfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,e:GetHandler(),c:GetType()&0x7) 
+    	and (b1 or b2)
 end
-function c31280206.tgfilter(c)
-	return c:IsFaceup()
+function s.spfilter(c,e,tp)
+	return c:IsSetCard(0x3ca1) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_DEFENSE) 
+    	and Duel.GetLocationCountFromEx(tp,tp,nil,c)>0
+end    
+function s.desfilter(c,type)
+	return c:IsSetCard(0x3ca1) and c:IsType(type)
 end
-function c31280206.eqtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return false end
-	if chk==0 then return Duel.IsExistingTarget(c31280206.eqfilter,tp,0,LOCATION_GRAVE,1,nil)
-		and Duel.IsExistingTarget(c31280206.tgfilter,tp,LOCATION_MZONE,0,1,nil) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
-	local g2=Duel.SelectTarget(tp,c31280206.tgfilter,tp,LOCATION_MZONE,0,1,1,nil)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
-	local g1=Duel.SelectTarget(tp,c31280206.eqfilter,tp,0,LOCATION_GRAVE,1,1,nil)
-	Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,g1,1,0,0)
-	Duel.SetOperationInfo(0,CATEGORY_EQUIP,g1,1,0,0)
+function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) and s.tgfilter(chkc,e,tp) end
+	if chk==0 then return Duel.IsExistingTarget(s.tgfilter,tp,0,LOCATION_ONFIELD,1,nil,e,tp) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
+	local g=Duel.SelectTarget(tp,s.tgfilter,tp,0,LOCATION_ONFIELD,1,1,nil,e,tp)
+    Duel.SetOperationInfo(0,CATEGORY_DESTROY,nil,1,tp,LOCATION_HAND+LOCATION_ONFIELD)
+    Duel.SetOperationInfo(0,CATEGORY_DISABLE,g,1,0,0)
+    Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 end
-function c31280206.eqop(e,tp,eg,ep,ev,re,r,rp)
+function s.efop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	local g=Duel.GetChainInfo(0,CHAININFO_TARGET_CARDS):Filter(Card.IsRelateToEffect,nil,e)
-	local tc1=g:Filter(Card.IsControler,nil,1-tp):GetFirst()
-	local tc2=g:Filter(Card.IsControler,nil,tp):GetFirst()
-	if tc1 and tc2 and tc2:IsFaceup() then
-		local atk=tc1:GetAttack()
-		if not Duel.Equip(tp,tc1,tc2,false) then return end
-		local e1=Effect.CreateEffect(c)
-		e1:SetType(EFFECT_TYPE_SINGLE)
-		e1:SetCode(EFFECT_EQUIP_LIMIT)
-		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-		e1:SetLabelObject(tc2)
-		e1:SetValue(function (e,c)
-		return c==e:GetLabelObject() end)
-		tc1:RegisterEffect(e1) 
-		local e2=Effect.CreateEffect(c)
-		e2:SetType(EFFECT_TYPE_EQUIP)
-		e2:SetProperty(EFFECT_FLAG_OWNER_RELATE+EFFECT_FLAG_IGNORE_IMMUNE)
-		e2:SetCode(EFFECT_UPDATE_ATTACK)
-		e2:SetValue(1000)
-		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
-		tc1:RegisterEffect(e2)
-	end
-end 
-
+	local tc=Duel.GetFirstTarget() 
+    if not tc:IsRelateToEffect(e) or tc:IsFacedown() then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+	local g=Duel.SelectMatchingCard(tp,s.desfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,c,tc:GetType()&0x7)
+    if g:GetCount()>0 then
+    	Duel.HintSelection(g)
+        if g:GetFirst():IsFacedown() then Duel.ConfirmCards(1-tp,g:GetFirst()) end
+        Duel.Destroy(g,REASON_EFFECT)
+    end
+    local b1=Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp) 
+    local b2=Auxiliary.NegateAnyFilter(tc) 
+    if not b1 and not b2 then return end
+    local op=aux.SelectFromOptions(tp,
+		{b1,aux.Stringid(id,2),1},
+		{b2,aux.Stringid(id,3),2})
+    if op==1 then
+    	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+		local sg=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_EXTRA,0,1,1,nil,e,tp)
+		if sg:GetCount()>0 then 
+        	Duel.SpecialSummon(sg,0,tp,tp,false,false,POS_FACEUP_DEFENSE)
+        end    
+    elseif op==2 then
+    	if tc:IsCanBeDisabledByEffect(e) then
+        	Duel.NegateRelatedChain(tc,RESET_TURN_SET)
+        	local e1=Effect.CreateEffect(c)
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_DISABLE)
+			e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+			tc:RegisterEffect(e1)
+			local e2=Effect.CreateEffect(c)
+			e2:SetType(EFFECT_TYPE_SINGLE)
+			e2:SetCode(EFFECT_DISABLE_EFFECT)
+			e2:SetValue(RESET_TURN_SET)
+			e2:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+			tc:RegisterEffect(e2)
+			if tc:IsType(TYPE_TRAPMONSTER) then
+				local e3=Effect.CreateEffect(c)
+				e3:SetType(EFFECT_TYPE_SINGLE)
+				e3:SetCode(EFFECT_DISABLE_TRAPMONSTER)
+				e3:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+				tc:RegisterEffect(e3)
+			end        
+        end
+    end    
+end
+function s.handcon(e)
+	return Duel.GetFlagEffect(1-e:GetHandlerPlayer(),id)>0
+end

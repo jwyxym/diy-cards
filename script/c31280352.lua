@@ -58,7 +58,7 @@ function s.pthcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_LINK)
 end
 function s.pthfilter(c)
-	return (c:IsFaceup() or c:IsLocation(LOCATION_DECK)) and c:IsSetCard(0x3ca1)
+	return (c:IsFaceup() or c:IsLocation(LOCATION_DECK)) and c:IsSetCard(0x3ca1) and c:IsType(TYPE_PENDULUM)
 		and (((Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1)) and not c:IsForbidden()) or c:IsAbleToHand())
 end
 function s.pthtg(e,tp,eg,ep,ev,re,r,rp,chk)

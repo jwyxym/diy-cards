@@ -16,7 +16,7 @@ function s.initial_effect(c)
 	--todeck
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,0))
-	e2:SetCategory(CATEGORY_TODECK)
+	e2:SetCategory(CATEGORY_TODECK+CATEGORY_SSET)
 	e2:SetType(EFFECT_TYPE_IGNITION)
 	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e2:SetRange(LOCATION_MZONE)
@@ -43,7 +43,7 @@ function s.splimit(e,c)
 	return c:GetAttribute()~=ATTRIBUTE_WATER
 end
 function s.tdfilter(c)
-	return c:IsFaceup() and c:IsAttribute(ATTRIBUTE_WATER) and c:IsAbleToDeck()
+	return c:IsFaceup() and c:IsRace(RACE_SEASERPENT) and c:IsAbleToDeck()
 end
 function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and chkc:IsControler(tp) and s.tdfilter(chkc) end

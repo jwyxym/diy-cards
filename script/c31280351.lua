@@ -79,6 +79,28 @@ end
 function s.ntrfilter(c)
 	return c:IsControlerCanBeChanged()
 end
+function s.PConditionFilter(c,e,tp,lscale,rscale,eset)
+	local lv=0
+	if c.pendulum_level then
+		lv=c.pendulum_level
+	else
+		lv=c:GetLevel()
+	end
+	local bool=aux.PendulumSummonableBool(c)
+	return (c:IsLocation(LOCATION_HAND+LOCATION_GRAVE) or (c:IsFaceup() and c:IsType(TYPE_PENDULUM)))
+		and lv>lscale and lv<rscale and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_PENDULUM,tp,bool,bool) and not c:IsForbidden()
+		and (aux.PendulumChecklist&(0x1<<tp)==0 or aux.PConditionExtraFilter(c,e,tp,lscale,rscale,eset))
+end
+function s.PConditionExtraFilter(c,e,tp,lscale,rscale,eset)
+	local lv=0
+	if c.pendulum_level then
+		lv=c.pendulum_level
+	else
+		lv=c:GetLevel()
+	end
+	local bool=aux.PendulumSummonableBool(c)
+	return lv>lscale and lv<rscale and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_PENDULUM,tp,bool,bool) and not c:IsForbidden()
+end
 function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
     local res=nil
@@ -86,7 +108,7 @@ function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local rpz=Duel.GetFieldCard(tp,LOCATION_PZONE,1)
     if lpz~=nil and rpz~=nil then
     	local loc=0
-		if Duel.GetLocationCount(tp,LOCATION_MZONE)>0 then loc=loc+LOCATION_HAND+LOCATION_GRAVE end
+		if Duel.GetLocationCount(tp,LOCATION_MZONE)>0 then loc=loc+LOCATION_HAND end
 		if Duel.GetLocationCountFromEx(tp,tp,nil,TYPE_PENDULUM)>0 then loc=loc+LOCATION_EXTRA end
 		if loc~=0 then
 			local e1=Effect.CreateEffect(c)
@@ -102,7 +124,11 @@ function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk)
 			local rscale=rpz:GetRightScale()
 			if lscale>rscale then lscale,rscale=rscale,lscale end
 			local g=Duel.GetFieldGroup(tp,loc,0)
-			res=g:IsExists(aux.PConditionFilter,1,nil,e,tp,lscale,rscale,eset)
+            if Duel.IsPlayerAffectedByEffect(tp,31280415) then
+            	local pg=Duel.GetMatchingGroup(Card.IsType,tp,LOCATION_GRAVE,0,nil,TYPE_MONSTER)
+				g:Merge(pg)
+            end    
+			res=g:IsExists(s.PConditionFilter,1,nil,e,tp,lscale,rscale,eset)
 			e1:Reset()
         end 
     end      
@@ -162,8 +188,12 @@ function s.efop(e,tp,eg,ep,ev,re,r,rp)
 		end
 		if ft1>0 then loc=loc|LOCATION_HAND end
 		if ft2>0 then loc=loc|LOCATION_EXTRA end
-		local tg=Duel.GetMatchingGroup(aux.PConditionFilter,tp,loc,0,nil,e,tp,lscale,rscale,eset)
+		local tg=Duel.GetMatchingGroup(s.PConditionFilter,tp,loc,0,nil,e,tp,lscale,rscale,eset)
 		tg=tg:Filter(aux.PConditionExtraFilterSpecific,nil,e,tp,lscale,rscale,e1)
+        if Duel.IsPlayerAffectedByEffect(tp,31280415) then
+        	local pg=Duel.GetMatchingGroup(s.PConditionExtraFilter,tp,LOCATION_GRAVE,0,nil,e,tp,lscale,rscale,eset)
+			tg:Merge(pg)
+        end    
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 		aux.GCheckAdditional=aux.PendOperationCheck(ft1,ft2,ft)
 		local g=tg:SelectSubGroup(tp,aux.TRUE,false,1,math.min(#tg,ft))
@@ -189,12 +219,12 @@ function s.efop(e,tp,eg,ep,ev,re,r,rp)
             	local e1=Effect.CreateEffect(c)
 				e1:SetType(EFFECT_TYPE_SINGLE)
 				e1:SetCode(EFFECT_DISABLE)
-				e1:SetReset(RESET_EVENT+RESETS_STANDARD-RESET_TURN_SET)
+				e1:SetReset(RESET_EVENT+RESETS_STANDARD)
 				tc:RegisterEffect(e1)
 				local e2=Effect.CreateEffect(c)
 				e2:SetType(EFFECT_TYPE_SINGLE)
 				e2:SetCode(EFFECT_DISABLE_EFFECT)
-				e2:SetReset(RESET_EVENT+RESETS_STANDARD-RESET_TURN_SET)
+				e2:SetReset(RESET_EVENT+RESETS_STANDARD)
 				tc:RegisterEffect(e2)
                 if Duel.IsExistingMatchingCard(s.dfilter,tp,LOCATION_PZONE,0,1,nil,RACE_FAIRY)
 					and Duel.IsExistingMatchingCard(s.dfilter,tp,LOCATION_PZONE,0,1,nil,RACE_FIEND) then
@@ -203,7 +233,7 @@ function s.efop(e,tp,eg,ep,ev,re,r,rp)
 					e3:SetType(EFFECT_TYPE_SINGLE)
 					e3:SetCode(EFFECT_ADD_SETCODE)
 					e3:SetValue(0x3ca1)
-					e3:SetReset(RESET_EVENT+RESETS_STANDARD-RESET_TURN_SET)
+					e3:SetReset(RESET_EVENT+RESETS_STANDARD)
 					tc:RegisterEffect(e3)
                 end    
             end

@@ -1,60 +1,110 @@
---莱欧斯小队-奇遇！？
-function c31280204.initial_effect(c)
-	--Activate
-	local e1=Effect.CreateEffect(c)
-	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
-	e1:SetType(EFFECT_TYPE_ACTIVATE)
-	e1:SetCode(EVENT_FREE_CHAIN)
-	e1:SetCountLimit(1,31280204)
-	e1:SetTarget(c31280204.target)
-	e1:SetOperation(c31280204.activate)
+--奏绝的显现·里榭娜
+local s,id,o=GetID()
+function s.initial_effect(c)
+	aux.AddCodeList(c,31280415)
+	--连接召唤
+	aux.AddLinkProcedure(c,s.matfilter,1,1)
+	c:EnableReviveLimit()
+	--卡组检索
+    local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
+	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e1:SetProperty(EFFECT_FLAG_DELAY)
+	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e1:SetCountLimit(1,id)
+	e1:SetCondition(s.thcon)
+	e1:SetCost(s.thcost)
+	e1:SetTarget(s.thtg)
+	e1:SetOperation(s.thop)
 	c:RegisterEffect(e1)
-	--set
-	local e2=Effect.CreateEffect(c) 
-	e2:SetCategory(CATEGORY_TODECK)
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e2:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e2:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
-	e2:SetRange(LOCATION_GRAVE)
-	e2:SetCountLimit(1,31280204)
-	e2:SetCondition(c31280204.setcon)
-	e2:SetTarget(c31280204.settg)
-	e2:SetOperation(c31280204.setop)
+	--效破抗性    
+    local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetCondition(s.indcon)
+	e2:SetValue(1)
 	c:RegisterEffect(e2)
+	--放置
+   	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,1))
+	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e3:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DELAY)
+	e3:SetRange(LOCATION_GRAVE)
+	e3:SetCode(EVENT_DESTROYED)
+    e3:SetCountLimit(1,id+o*10000)
+	e3:SetCondition(s.pencon)
+    e3:SetCost(aux.bfgcost)
+	e3:SetTarget(s.pentg)
+	e3:SetOperation(s.penop)
+	c:RegisterEffect(e3)         
 end
-c31280204.SetCard_TnT_Lwsteam=true 
-function c31280204.filter(c)
-	return c:IsSetCard(0xca0) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
+function s.matfilter(c)
+	return c:IsLinkSetCard(0x3ca1) and c:IsLinkAbove(2)
 end
-function c31280204.target(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c31280204.filter,tp,LOCATION_DECK,0,1,nil) end
+function s.thcon(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():IsSummonType(SUMMON_TYPE_LINK)
+end
+function s.costfilter(c)
+	return c:IsFaceup() and c:IsSetCard(0x3ca1) and c:IsType(TYPE_PENDULUM) and c:IsAbleToGraveAsCost()
+end    
+function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_EXTRA,0,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local g=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_EXTRA,0,1,1,nil)
+	Duel.SendtoGrave(g,REASON_COST)
+end
+function s.thfilter(c)
+	return c:IsAbleToHand() and c:IsCode(31280415)
+end
+function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil) end
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
 end
-function c31280204.activate(e,tp,eg,ep,ev,re,r,rp)
+function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=Duel.SelectMatchingCard(tp,c31280204.filter,tp,LOCATION_DECK,0,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
 	if g:GetCount()>0 then
 		Duel.SendtoHand(g,nil,REASON_EFFECT)
 		Duel.ConfirmCards(1-tp,g)
 	end
 end
-function c31280204.setcon(e,tp,eg,ep,ev,re,r,rp)
-	return eg:IsExists(Card.IsControler,1,nil,1-tp)
+function s.indcon(e)
+	return e:GetHandler():GetSequence()>4
 end
-function c31280204.tdfil(c) 
-	return c:IsAbleToDeck() and c:IsType(TYPE_MONSTER) and c:IsSetCard(0xca0) and c:IsFaceup()
-end 
-function c31280204.settg(e,tp,eg,ep,ev,re,r,rp,chk,chkc) 
-	if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_MZONE+LOCATION_GRAVE) and c31280204.tdfil(chkc) end 
-	if chk==0 then return e:GetHandler():IsSSetable() and Duel.IsExistingTarget(c31280204.tdfil,tp,LOCATION_MZONE+LOCATION_GRAVE,0,1,nil) end
-	local g=Duel.SelectTarget(tp,c31280204.tdfil,tp,LOCATION_MZONE+LOCATION_GRAVE,0,1,1,nil) 
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,g,g:GetCount(),0,0)
-	Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,e:GetHandler(),1,0,0)
+function s.cfilter(c,tp)
+	return c:IsReason(REASON_BATTLE+REASON_EFFECT) and c:IsSetCard(0x3ca1) and c:IsPreviousControler(tp)
+    	and (c:IsPreviousPosition(POS_FACEUP) or not c:IsPreviousLocation(LOCATION_ONFIELD))
 end
-function c31280204.setop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler() 
-	local tc=Duel.GetFirstTarget()
-	if tc:IsRelateToEffect(e) and Duel.SendtoDeck(tc,nil,SEQ_DECKBOTTOM,REASON_EFFECT)~=0 and c:IsRelateToEffect(e) then
-		Duel.SSet(tp,c) 
+function s.pencon(e,tp,eg,ep,ev,re,r,rp)
+	return eg:IsExists(s.cfilter,1,nil,tp) and aux.exccon(e)
+end
+function s.penfilter(c)
+	return c:IsSetCard(0x3ca1) and c:IsType(TYPE_PENDULUM) and not c:IsForbidden() and c:IsFaceup()
+end
+function s.pentg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local g=Duel.GetMatchingGroup(s.penfilter,tp,LOCATION_EXTRA,0,nil)
+	if chk==0 then return Duel.CheckLocation(tp,LOCATION_PZONE,0) and Duel.CheckLocation(tp,LOCATION_PZONE,1)
+		and g:GetClassCount(Card.GetAttribute)>=2 end
+end
+function s.fselect(g)
+	return g:GetClassCount(Card.GetAttribute)==g:GetCount()
+end
+function s.penop(e,tp,eg,ep,ev,re,r,rp)
+	if not Duel.CheckLocation(tp,LOCATION_PZONE,0) or not Duel.CheckLocation(tp,LOCATION_PZONE,1) then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOFIELD)
+	local g=Duel.GetMatchingGroup(s.penfilter,tp,LOCATION_EXTRA,0,nil)
+	if g:GetClassCount(Card.GetAttribute)<2 then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOFIELD)
+	local g1=g:SelectSubGroup(tp,s.fselect,false,2,2)
+	local tc1=g1:GetFirst()
+	local tc2=g1:GetNext()
+	if Duel.MoveToField(tc1,tp,tp,LOCATION_PZONE,POS_FACEUP,false) then
+		if Duel.MoveToField(tc2,tp,tp,LOCATION_PZONE,POS_FACEUP,false) then
+			tc2:SetStatus(STATUS_EFFECT_ENABLED,true)
+		end
+		tc1:SetStatus(STATUS_EFFECT_ENABLED,true)
 	end
 end

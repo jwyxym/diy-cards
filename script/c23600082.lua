@@ -28,7 +28,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 end
 function s.rmfilter(c)
-	return c:IsSetCard(0xd80) and c:IsAbleToGrave()
+	return c:IsSetCard(0xd80) and c:IsAbleToRemove()
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.rmfilter),tp,LOCATION_DECK+LOCATION_HAND+LOCATION_GRAVE,0,nil)

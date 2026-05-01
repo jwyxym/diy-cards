@@ -25,6 +25,7 @@ function s.initial_effect(c)
 	--set
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e3:SetCategory(CATEGORY_SSET)
 	e3:SetCode(EVENT_REMOVE)
 	e3:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_ACTIVATE_CONDITION)
 	e3:SetCountLimit(1,id+o*200)

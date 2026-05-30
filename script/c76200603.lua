@@ -113,7 +113,7 @@ function s.aclimit(e,re,tp)
 end
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	return c:IsReason(REASON_EFFECT) and c:IsPreviousLocation(LOCATION_MZONE) and c:IsSummonType(SUMMON_TYPE_LINK)
+	return c:IsReason(REASON_EFFECT) and c:IsPreviousLocation(LOCATION_MZONE)
 end
 function s.spfilter(c,e,tp)
 	return c:IsSetCard(0x760) and c:IsAttackBelow(600) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)

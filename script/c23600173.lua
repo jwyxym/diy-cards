@@ -1,0 +1,122 @@
+--{渊宇~江吟}
+local s,id,o=GetID()
+function s.initial_effect(c)
+	local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
+	e1:SetType(EFFECT_TYPE_IGNITION)
+	e1:SetRange(LOCATION_HAND+LOCATION_MZONE)
+	e1:SetCountLimit(1,id)
+	e1:SetCost(s.spcost)
+	e1:SetTarget(s.sptg)
+	e1:SetOperation(s.spop)
+	c:RegisterEffect(e1)
+	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,1))
+	e2:SetCategory(CATEGORY_TOHAND)
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e2:SetCode(EVENT_RELEASE)
+	e2:SetRange(LOCATION_GRAVE+LOCATION_REMOVED)
+	e2:SetProperty(EFFECT_FLAG_DELAY)
+	e2:SetCountLimit(1,id+o*10000)
+	e2:SetCondition(s.thcon)
+	e2:SetCost(s.cost)
+	e2:SetTarget(s.thtg)
+	e2:SetOperation(s.thop)
+	c:RegisterEffect(e2)
+	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,2))
+	e3:SetType(EFFECT_TYPE_XMATERIAL)
+	e3:SetCode(EFFECT_UPDATE_ATTACK)
+	e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetValue(500)
+	e3:SetCondition(s.gfcon)
+	c:RegisterEffect(e3)
+	local e4=e3:Clone()
+	e4:SetCode(EFFECT_UPDATE_DEFENSE)
+	c:RegisterEffect(e4)
+	local e5=Effect.CreateEffect(c)
+	e5:SetType(EFFECT_TYPE_XMATERIAL)
+	e5:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e5:SetRange(LOCATION_MZONE)
+	e5:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e5:SetCondition(s.gfcon)
+	e5:SetValue(1)
+	c:RegisterEffect(e5)
+	local e6=e5:Clone()
+	e6:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
+	c:RegisterEffect(e6)
+	Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,s.counterfilter)
+end
+function s.counterfilter(c)
+	return (not c:IsSummonLocation(LOCATION_EXTRA) or c:IsType(TYPE_XYZ))
+		and c:IsAttribute(ATTRIBUTE_WATER)
+end
+function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0 end
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(s.splimit)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+end
+function s.splimit(e,c,sump,sumtype,sumpos,targetp)
+	return c:IsLocation(LOCATION_EXTRA) and not c:IsType(TYPE_XYZ)
+		or not c:IsAttribute(ATTRIBUTE_WATER)
+end
+function s.cfilter(c,e,tp)
+	return c:IsAttribute(ATTRIBUTE_WATER)
+end
+function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if e:GetHandler():IsLocation(LOCATION_ONFIELD) then
+		e:SetLabel(1)
+	else
+		e:SetLabel(0)
+	end
+	if chk==0 then return Duel.CheckReleaseGroupEx(tp,s.cfilter,1,REASON_COST,true,e:GetHandler()) and s.cost(e,tp,eg,ep,ev,re,r,rp,chk) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
+	local g=Duel.SelectReleaseGroupEx(tp,s.cfilter,1,1,REASON_COST,true,e:GetHandler())
+	Duel.Release(g,REASON_COST)
+	s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
+end
+function s.thfilter(c,el)
+	return c:IsFaceupEx() and (c:IsSetCard(0xd90,0xd91)
+		or el==1 and c:IsAttackAbove(2000) and c:IsAttribute(ATTRIBUTE_WATER) and c:IsLevel(5)) and c:IsAbleToHand()
+end
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,e:GetLabel()) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED)
+end
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.thfilter),tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,e:GetLabel())
+	if g:GetCount()>0 then
+		Duel.SendtoHand(g,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,g)
+	end
+end
+function s.cfilter2(c,tp)
+	return c:IsPreviousControler(tp)
+end
+function s.thcon(e,tp,eg,ep,ev,re,r,rp)
+	return eg:IsExists(s.cfilter2,1,nil,tp)
+end
+function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return e:GetHandler():IsAbleToHand() end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,e:GetHandler(),1,0,0)
+end
+function s.thop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsRelateToEffect(e) then
+		Duel.SendtoHand(c,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,c)
+	end
+end
+function s.gfcon(e)
+	local c=e:GetHandler()
+	return c:IsAttribute(ATTRIBUTE_WATER) and c:IsType(TYPE_XYZ)
+end

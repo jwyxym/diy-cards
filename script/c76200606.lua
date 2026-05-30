@@ -29,7 +29,7 @@ function s.imcon(e)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_LINK)
 end
 function s.efilter(e,te)
-	return te:IsActiveType(TYPE_TRAP) and te:IsActiveType(TYPE_SPELL+TYPE_QUICKPLAY)
+	return te:IsActiveType(TYPE_TRAP) and te:IsActiveType(TYPE_QUICKPLAY)
 end
 function s.pfilter(c,tp)
 	return c:GetType()==TYPE_SPELL+TYPE_CONTINUOUS and c:IsSetCard(0x760)

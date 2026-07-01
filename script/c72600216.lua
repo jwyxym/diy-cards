@@ -40,7 +40,19 @@ function c72600216.initial_effect(c)
 end  
 function c72600216.tkcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_SYNCHRO) and e:GetHandler():GetMaterial():IsExists(Card.IsType,1,nil,TYPE_TOKEN)  
-end 
+end
+function c72600216.tkcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.GetCustomActivityCount(72600216,tp,ACTIVITY_SPSUMMON)==0 end
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(function(e,c) 
+	return not c:IsAttribute(ATTRIBUTE_DARK) end)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+end
 function c72600216.tktg(e,tp,eg,ep,ev,re,r,rp,chk) 
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>=2 and not Duel.IsPlayerAffectedByEffect(tp,59822133)
 			and Duel.IsPlayerCanSpecialSummonMonster(tp,72600209,0,TYPES_TOKEN_MONSTER,0,0,4,RACE_ZOMBIE,ATTRIBUTE_DARK)

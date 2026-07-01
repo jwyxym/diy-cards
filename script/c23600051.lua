@@ -74,6 +74,12 @@ end
 function s.splimit(e,c,sump,sumtype,sumpos,targetp)
 	return c:IsLocation(LOCATION_EXTRA) and not (c:IsType(TYPE_XYZ) and c:IsAttribute(ATTRIBUTE_DARK))
 end
+function s.splimit1(e,c)
+	return not c:IsAttribute(ATTRIBUTE_DARK)
+end
+function s.confilter(c)
+	return c:IsFaceup() and c:IsType(TYPE_XYZ) and c:IsRank(5)
+end
 function s.thfilter(c)
 	return c:IsAttribute(ATTRIBUTE_DARK) and c:IsLevel(5) and (c:IsAttack(0) or c:IsDefense(0)) and c:IsAbleToHand()
 end

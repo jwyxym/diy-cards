@@ -43,7 +43,7 @@ function s.initial_effect(c)
 end
 --①效果
 function s.costfilter(c)
-	return c:IsSetCard(0xfd45) and c:IsAbleToGrave() and c:IsFaceupEx()
+	return c:IsSetCard(0xfd45) and c:IsType(TYPE_MONSTER) and c:IsAbleToGrave() and c:IsFaceupEx()
 end
 function s.drcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,nil) end

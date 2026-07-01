@@ -38,18 +38,6 @@ function s.initial_effect(c)
 	e2:SetTarget(s.rstg)
 	e2:SetOperation(s.rsop)
 	c:RegisterEffect(e2)
-	--召唤词
-	local e6=Effect.CreateEffect(c)
-	e6:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-	e6:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e6:SetCountLimit(1,id+10000)
-	e6:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e6:SetOperation(s.cop)
-	c:RegisterEffect(e6)
-end
-function s.cop(e,tp,eg,ep,ev,re,r,rp)
-	Debug.Message("潜伏于深渊之间，预言寒灾的游龙啊，就此现身吧！")
-	Debug.Message("仪式召唤，等级6！冻结渊龙 寒灾预言者！")
 end
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_RITUAL)
@@ -100,35 +88,51 @@ function s.cfilter(c)
 	return c:GetType()==TYPE_SPELL+TYPE_RITUAL and c:IsAbleToGraveAsCost() and c:CheckActivateEffect(true,true,false)~=nil
 end
 function s.rscost(e,tp,eg,ep,ev,re,r,rp,chk)
-	e:SetLabel(1)
-	return true
+	if chk==0 then return true end
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(s.splimit)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
 end
-
+function s.splimit(e,c)
+	return not c:IsAttribute(ATTRIBUTE_WATER)
+end
 function s.rstg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then
 		local te=e:GetLabelObject()
-		local tg=te:GetTarget()
-		return tg(e,tp,eg,ep,ev,re,r,rp,0,chkc)
+		if te then
+			local tg=te:GetTarget()
+			if tg then
+				return tg(e,tp,eg,ep,ev,re,r,rp,0,chkc)
+			end
+		end
+		return false
 	end
 	if chk==0 then
-		if e:GetLabel()==0 then return false end
-		e:SetLabel(0)
 		return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_DECK,0,1,nil)
 	end
-	e:SetLabel(0)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
 	local g=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_DECK,0,1,1,nil)
-	local te=g:GetFirst():CheckActivateEffect(true,true,false)
+	local tc=g:GetFirst()
+	local te=tc:CheckActivateEffect(true,true,false)
 	e:SetLabelObject(te)
-	Duel.SendtoGrave(g,REASON_COST)
+	Duel.SendtoGrave(tc,REASON_COST)
 	e:SetProperty(te:GetProperty())
 	local tg=te:GetTarget()
-	if tg then tg(e,tp,eg,ep,ev,re,r,rp,1) end
+	if tg then
+		tg(e,tp,eg,ep,ev,re,r,rp,1)
+	end
 	Duel.ClearOperationInfo(0)
 end
 function s.rsop(e,tp,eg,ep,ev,re,r,rp)
 	local te=e:GetLabelObject()
 	if not te then return end
 	local op=te:GetOperation()
-	if op then op(e,tp,eg,ep,ev,re,r,rp) end
+	if op then
+		op(e,tp,eg,ep,ev,re,r,rp)
+	end
 end

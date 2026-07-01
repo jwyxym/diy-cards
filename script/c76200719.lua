@@ -23,7 +23,7 @@ function s.initial_effect(c)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e3:SetProperty(EFFECT_FLAG_DELAY)
 	e3:SetCode(EVENT_SUMMON_SUCCESS)
-	e3:SetRange(LOCATION_PZONE)
+	e3:SetRange(LOCATION_SZONE)
 	e3:SetCountLimit(1,id+o*1000)
 	e3:SetCondition(s.ricon)
 	e3:SetTarget(s.ritg)
@@ -115,7 +115,7 @@ function s.sumcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return not e:GetHandler():IsPublic() end
 end
 function s.sumfilter(c)
-	return c:IsAttribute(ATTRIBUTE_WATER) and c:IsSummonable(true,nil)
+	return c:IsSetCard(0x761) and c:IsSummonable(true,nil)
 end
 function s.sumtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.sumfilter,tp,LOCATION_HAND,0,1,nil) end

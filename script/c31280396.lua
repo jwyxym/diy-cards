@@ -116,15 +116,19 @@ end
 function s.atkop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	local g=Duel.GetMatchingGroup(s.atkfilter,tp,LOCATION_MZONE,LOCATION_MZONE,nil)
-	if not (g:GetCount()>0 and Duel.GetLP(tp)>=400 and Duel.GetLP(1-tp)>=400) then return end
-	Duel.Hint(HINT_CARD,0,id)
-    if not (Duel.PayLPCost(tp,400)~=0 and Duel.PayLPCost(1-tp,400)~=0) then return end
+	if g:GetCount()==0 then return end
+    if not (Duel.GetLP(tp)>=400 and Duel.GetLP(1-tp)>=400) then return end
+	Duel.Hint(HINT_CARD,0,id)    
     local dg=Group.CreateGroup()
 	for i=1,3 do
     	if i>1 then
 			Duel.BreakEffect()
 		end
-        for tc in aux.Next(g) do
+        if not (Duel.GetLP(tp)>=400 and Duel.GetLP(1-tp)>=400) then return end
+        if not (Duel.PayLPCost(tp,400)~=0 and Duel.PayLPCost(1-tp,400)~=0) then return end
+        local sg=Duel.GetMatchingGroup(s.atkfilter,tp,LOCATION_MZONE,LOCATION_MZONE,nil)
+		if sg:GetCount()==0 then return end
+        for tc in aux.Next(sg) do
 			local patk=tc:GetAttack()
             local pdef=tc:GetDefense()
 			local e1=Effect.CreateEffect(c)

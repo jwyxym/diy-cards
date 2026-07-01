@@ -42,18 +42,6 @@ function s.initial_effect(c)
 	e2:SetTarget(s.sptg)
 	e2:SetOperation(s.spop)
 	c:RegisterEffect(e2)
-	--召唤词
-	local e6=Effect.CreateEffect(c)
-	e6:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-	e6:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e6:SetCountLimit(1,id+10000)
-	e6:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e6:SetOperation(s.cop)
-	c:RegisterEffect(e6)
-	end
-function s.cop(e,tp,eg,ep,ev,re,r,rp)
-	Debug.Message("由那冰晶反射出的煌之光啊，穿越夹缝的黑暗，降临于吾身边吧！")
-	Debug.Message("仪式召唤！等级10！耀煌甲仪式龙！")
 end
 function s.mat_filter(c)
 	return c:IsAttribute(ATTRIBUTE_WATER)

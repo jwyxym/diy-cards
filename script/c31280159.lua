@@ -90,17 +90,17 @@ function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	e:SetLabel(op)
     if op==1 then
     	if e:IsCostChecked() then
+        	e:SetCategory(CATEGORY_SPECIAL_SUMMON)
 			Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
-		end
-    	e:SetCategory(CATEGORY_SPECIAL_SUMMON)
+		end    	
     	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 		local sg=Duel.SelectTarget(tp,s.spfilter,tp,LOCATION_SZONE,0,1,1,nil,e,tp)
 		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,sg,1,0,0)
     elseif op==2 then
     	if e:IsCostChecked() then
+        	e:SetCategory(CATEGORY_EQUIP)
 			Duel.RegisterFlagEffect(tp,id+o*10000,RESET_PHASE+PHASE_END,0,1)
-		end
-    	e:SetCategory(CATEGORY_EQUIP)
+		end    	
     	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
 		Duel.SelectTarget(tp,s.tgfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil,tp)
         Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,nil,1,tp,0)

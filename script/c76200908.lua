@@ -83,10 +83,10 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 		if tc:IsRelateToEffect(e) then
 			Duel.Destroy(tc,REASON_EFFECT)
 		end
-	end
-	if Duel.IsExistingMatchingCard(s.cfilter4,tp,LOCATION_MZONE,0,1,nil) then
-		Duel.Damage(1-tp,1200,REASON_EFFECT)
-		Duel.BreakEffect()
+		if Duel.IsExistingMatchingCard(s.cfilter4,tp,LOCATION_MZONE,0,1,nil) then
+			Duel.Damage(1-tp,1200,REASON_EFFECT)
+			Duel.BreakEffect()
+		end
 	end
 	local e1=Effect.CreateEffect(c)
 	e1:SetType(EFFECT_TYPE_FIELD)

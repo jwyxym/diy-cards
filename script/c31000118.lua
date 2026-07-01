@@ -29,7 +29,7 @@ function c31000118.filter1(c,e,tp)
 		and aux.MustMaterialCheck(c,tp,EFFECT_MUST_BE_XMATERIAL)
 end
 function c31000118.filter2(c,e,tp,mc,rk)
-	return c:IsRank(rk) and c:IsAttribute(ATTRIBUTE_WIND) and mc:IsCanBeXyzMaterial(c)
+	return c:IsRank(rk) and c:IsSetCard(0x311) and mc:IsCanBeXyzMaterial(c)
 		and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_XYZ,tp,false,false) and Duel.GetLocationCountFromEx(tp,tp,mc,c)>0
 end
 function c31000118.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)

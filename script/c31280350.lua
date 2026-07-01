@@ -49,7 +49,7 @@ function s.thfilter(c,check)
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
-	local check=c:IsSummonLocation(LOCATION_EXTRA)
+	local check=c:GetPreviousLocation()==LOCATION_EXTRA
 	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil,check) end
     if check then
     	e:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH+CATEGORY_GRAVE_ACTION)
@@ -62,7 +62,7 @@ function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	local check=c:IsSummonLocation(LOCATION_EXTRA)
+	local check=c:GetPreviousLocation()==LOCATION_EXTRA
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
 	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.thfilter),tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil,check)
 	if g:GetCount()>0 then

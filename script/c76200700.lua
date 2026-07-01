@@ -30,18 +30,6 @@ function s.initial_effect(c)
 	e4:SetCode(EFFECT_AVOID_BATTLE_DAMAGE)
 	e4:SetValue(1)
 	c:RegisterEffect(e4)
-	--召唤词
-	local e6=Effect.CreateEffect(c)
-	e6:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-	e6:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e6:SetCountLimit(1,id+10000)
-	e6:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e6:SetOperation(s.cop)
-	c:RegisterEffect(e6)
-	end
-function s.cop(e,tp,eg,ep,ev,re,r,rp)
-	Debug.Message("苏醒于次元夹缝间的极寒啊，凝结成坚韧的冰甲，于此降临吧！")
-	Debug.Message("仪式召唤！等级8！冰晶甲仪式龙！")
 end
 function s.poscon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetAttacker():IsControler(1-tp)

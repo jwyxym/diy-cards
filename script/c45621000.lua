@@ -63,7 +63,7 @@ function s.spcon(e,c)
 	return res
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
-	local g=Duel.GetMatchingGroup(c45148985.sprfilter,tp,LOCATION_ONFIELD+LOCATION_GRAVE,0,nil)
+	local g=Duel.GetMatchingGroup(s.sprfilter,tp,LOCATION_ONFIELD+LOCATION_GRAVE,0,nil)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
 	aux.GCheckAdditional=aux.dncheck
 	local sg=g:SelectSubGroup(tp,aux.mzctcheck,true,3,3,tp)

@@ -106,8 +106,11 @@ function s.spfilter(c,e,tp)
 	return c:IsCanBeSpecialSummoned(e,0,tp,false,false) and c:IsLocation(LOCATION_GRAVE)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local sg=e:GetLabelObject():Filter(s.spfilter,nil,e,tp)
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and sg:GetCount()>0 end
+	local g=e:GetLabelObject()
+    local sg=Group.CreateGroup()
+    if g then sg=g:Filter(s.spfilter,nil,e,tp) end   
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and e:GetLabel()==1 
+    	and sg:GetCount()>0 end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_GRAVE)
 end
 function s.spop(e,tp,eg,ep,ev,re,r,rp)

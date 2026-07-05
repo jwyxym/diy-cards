@@ -101,7 +101,7 @@ function s.retg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,e:GetHandler(),1,0,0)
 end
 function s.thfilter2(c,tp)
-	return (c:IsCode(24094653) or c:IsCode(95286165) or (Duel.GetDecktopGroup(tp,1):GetFirst()==c) or (c:IsSetCard(0x57b) and c:IsType(TYPE_SPELL+TYPE_TRAP)))
+	return (c:IsCode(24094653) or c:IsCode(95286165) or (Duel.GetDecktopGroup(tp,1):GetFirst()==c) or (c:IsSetCard(0x57b) and c:IsType(TYPE_SPELL)))
 		and c:IsAbleToHand()
 end
 

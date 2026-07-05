@@ -20,13 +20,35 @@ function s.initial_effect(c)
 	e2:SetProperty(EFFECT_FLAG_DELAY)
 	e2:SetRange(LOCATION_GRAVE)
 	e2:SetCountLimit(1,id+10000)
-	e2:SetCondition(s.con2)
+	e2:SetCondition(s.con1)
 	e2:SetCost(s.cost2)
 	e2:SetTarget(s.tg2)
 	e2:SetOperation(s.op2)
 	c:RegisterEffect(e2)
+	local e2a=Effect.CreateEffect(c)
+	e2a:SetDescription(aux.Stringid(id,1))
+	e2a:SetCategory(CATEGORY_TODECK+CATEGORY_DRAW+CATEGORY_TOHAND)
+	e2a:SetType(EFFECT_TYPE_QUICK_O)
+	e2a:SetCode(EVENT_FREE_CHAIN)
+	e2a:SetRange(LOCATION_GRAVE)
+	e2a:SetCountLimit(1,id+10000)
+	e2a:SetCondition(s.con2)
+	e2a:SetCost(s.cost2)
+	e2a:SetTarget(s.tg2)
+	e2a:SetOperation(s.op2)
+	c:RegisterEffect(e2a)
 	Duel.AddCustomActivityCounter(id,ACTIVITY_CHAIN,s.chainfilter)
-	
+	if not s.global_check then
+		s.global_check=true
+		local ge1=Effect.CreateEffect(c)
+		ge1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		ge1:SetCode(EVENT_DESTROYED)
+		ge1:SetLabel(id)
+		ge1:SetCondition(s.con3)
+		ge1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		ge1:SetOperation(aux.sumreg)
+		Duel.RegisterEffect(ge1,0)
+	end
 end
 function s.chainfilter(re,tp,cid)
 	return not re:GetHandler():IsLocation(LOCATION_HAND)
@@ -34,9 +56,17 @@ end
 function s.filter3(c,hc,tp)
 	return c~=hc and c:IsPreviousControler(tp) and c:IsType(TYPE_MONSTER) and c:IsPreviousLocation(LOCATION_MZONE)
 end
-function s.con2(e,tp,eg,ep,ev,re,r,rp)
+function s.con3(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()  
 	return eg:IsExists(s.filter3,1,nil,c,tp)
+end
+function s.con1(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()  
+	return eg:IsExists(s.filter3,1,nil,c,tp) and not c:IsHasEffect(61100551)
+end
+function s.con2(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()  
+	return c:GetFlagEffect(id)~=0 and c:IsHasEffect(61100551)
 end
 function s.cost2(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.CheckLPCost(tp,800) end

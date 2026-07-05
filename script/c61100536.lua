@@ -51,8 +51,30 @@ function s.initial_effect(c)
 	e3:SetTarget(s.target)
 	e3:SetOperation(s.activate)
 	c:RegisterEffect(e3)
+	local e3a=Effect.CreateEffect(c)
+	e3a:SetDescription(aux.Stringid(id,2))
+	e3a:SetCategory(CATEGORY_TOEXTRA+CATEGORY_TODECK+CATEGORY_SPECIAL_SUMMON+CATEGORY_FUSION_SUMMON)
+	e3a:SetType(EFFECT_TYPE_QUICK_O)
+	e3a:SetCode(EVENT_FREE_CHAIN)
+	e3a:SetRange(LOCATION_GRAVE)
+	e3a:SetCountLimit(1,id+10000)
+	e3a:SetCondition(s.tdcon2)
+	e3a:SetCost(s.tdcost)
+	e3a:SetTarget(s.target)
+	e3a:SetOperation(s.activate)
+	c:RegisterEffect(e3a)
 	s.shanyings_effect=e1
 	s.shanyingd_effect=e3
+	if not s.global_check then
+		s.global_check=true
+		local ge1=Effect.CreateEffect(c)
+		ge1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		ge1:SetCode(EVENT_DESTROYED)
+		ge1:SetLabel(id)
+		ge1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		ge1:SetOperation(aux.sumreg)
+		Duel.RegisterEffect(ge1,0)
+	end
 end
 function s.filter15(c)
 	return c:IsType(TYPE_FUSION) and c:IsSetCard(0x57b)
@@ -94,7 +116,7 @@ end
 
 function s.op(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DISABLE)
-	local g1=Duel.SelectMatchingCard(tp,nil,tp,0,LOCATION_ONFIELD,1,1,nil)
+	local g1=Duel.SelectMatchingCard(tp,aux.NegateAnyFilter,tp,0,LOCATION_ONFIELD,1,1,nil)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
 	local g2=Duel.SelectMatchingCard(tp,s.filter10,tp,0,LOCATION_GRAVE,1,1,nil)
 	local tc1=g1:GetFirst()
@@ -154,7 +176,11 @@ function s.op2(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.tdcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	return c:IsPreviousControler(tp) and c:IsReason(REASON_EFFECT+REASON_BATTLE) and c:IsLocation(LOCATION_GRAVE)
+	return c:IsPreviousControler(tp) and c:IsReason(REASON_EFFECT+REASON_BATTLE) and c:IsLocation(LOCATION_GRAVE) and not c:IsHasEffect(61100551)
+end
+function s.tdcon2(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	return c:IsPreviousControler(tp) and c:IsReason(REASON_EFFECT+REASON_BATTLE) and c:IsLocation(LOCATION_GRAVE) and c:GetFlagEffect(id)~=0 and c:IsHasEffect(61100551)
 end
 
 function s.tdcost(e,tp,eg,ep,ev,re,r,rp,chk)

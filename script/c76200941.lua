@@ -30,21 +30,17 @@ function s.condition(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsChainNegatable(ev) and Duel.IsExistingMatchingCard(s.exfilter,tp,LOCATION_MZONE,0,1,nil) and (re:IsActiveType(TYPE_MONSTER) or re:IsHasType(EFFECT_TYPE_ACTIVATE))
 end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
-	local rc=re:GetHandler()
-	if chk==0 then return (not rc:IsRelateToEffect(re) or rc:IsAbleToDeck()) end
+	if chk==0 then return true end
 	Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
-	if rc:IsRelateToEffect(re) then
+	if re:GetHandler():IsRelateToEffect(re) then
 		Duel.SetOperationInfo(0,CATEGORY_TODECK,eg,1,0,0)
-	end
-	if re:GetActivateLocation()==LOCATION_GRAVE then
-		e:SetCategory(e:GetCategory()|CATEGORY_GRAVE_ACTION)
-	else
-		e:SetCategory(e:GetCategory()&~CATEGORY_GRAVE_ACTION)
 	end
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
+	local ec=re:GetHandler()
 	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) then
-		Duel.SendtoDeck(eg,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+		ec:CancelToGrave()
+		Duel.SendtoDeck(ec,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
 	end
 end
 function s.thfilter(c)

@@ -4,7 +4,7 @@ function s.initial_effect(c)
 	--activate
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DISABLE+CATEGORY_GRAVE_ACTION+CATEGORY_TOHAND)
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DISABLE)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
@@ -52,7 +52,7 @@ function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	elseif op==2 then
 		if e:IsCostChecked() then
 			e:SetProperty(EFFECT_FLAG_CARD_TARGET)
-			e:SetCategory(CATEGORY_DISABLE+CATEGORY_GRAVE_ACTION+CATEGORY_TOHAND)
+			e:SetCategory(CATEGORY_DISABLE)
 		end
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DISABLE)
 		local g=Duel.SelectTarget(tp,aux.NegateAnyFilter,tp,0,LOCATION_ONFIELD,1,1,nil)
@@ -61,9 +61,6 @@ function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 function s.cfilter4(c)
 	return c:GetSequence()<5
-end
-function s.thfilter(c)
-	return c:IsSetCard(0x762) and c:IsAbleToHand()
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
@@ -99,17 +96,6 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 				e3:SetCode(EFFECT_DISABLE_TRAPMONSTER)
 				e3:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
 				tc:RegisterEffect(e3)
-			end
-			if Duel.IsExistingMatchingCard(s.cfilter4,tp,LOCATION_MZONE,0,1,nil)
-				and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(s.thfilter),tp,LOCATION_GRAVE,0,1,nil)
-				and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
-				Duel.BreakEffect()
-				Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-				local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.thfilter),tp,LOCATION_GRAVE,0,1,1,nil)
-				if g:GetCount()>0 then
-					Duel.SendtoHand(g,nil,REASON_EFFECT)
-					Duel.ConfirmCards(1-tp,g)
-				end
 			end
 		end
 	end

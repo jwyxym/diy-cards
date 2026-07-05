@@ -58,9 +58,30 @@ function s.initial_effect(c)
 	e3:SetTarget(s.tdtg)
 	e3:SetOperation(s.tdop)
 	c:RegisterEffect(e3)
+	local e3a=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,2))
+	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e3a:SetType(EFFECT_TYPE_QUICK_O)
+	e3a:SetCode(EVENT_FREE_CHAIN)
+	e3a:SetRange(LOCATION_GRAVE)
+	e3a:SetCountLimit(1,id+10000)
+	e3a:SetCondition(s.tdcon1)
+	e3a:SetCost(s.tdcost)
+	e3a:SetTarget(s.tdtg)
+	e3a:SetOperation(s.tdop)
+	c:RegisterEffect(e3a)
 	s.shanyings_effect=e1
 	s.shanyingd_effect=e3
-	
+	if not s.global_check then
+		s.global_check=true
+		local ge1=Effect.CreateEffect(c)
+		ge1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		ge1:SetCode(EVENT_DESTROYED)
+		ge1:SetLabel(id)
+		ge1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		ge1:SetOperation(aux.sumreg)
+		Duel.RegisterEffect(ge1,0)
+	end
 end
 function s.descon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_FUSION)
@@ -147,7 +168,11 @@ function s.op2(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.tdcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	return c:IsPreviousControler(tp) and c:IsReason(REASON_EFFECT+REASON_BATTLE) and c:IsLocation(LOCATION_GRAVE)
+	return c:IsPreviousControler(tp) and c:IsReason(REASON_EFFECT+REASON_BATTLE) and c:IsLocation(LOCATION_GRAVE) and not c:IsHasEffect(61100551)
+end
+function s.tdcon1(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	return c:IsPreviousControler(tp) and c:IsReason(REASON_EFFECT+REASON_BATTLE) and c:IsLocation(LOCATION_GRAVE) and c:GetFlagEffect(id)~=0 and c:IsHasEffect(61100551)
 end
 function s.spfilter(c,e,tp,hc)
 	return c:IsSetCard(0x57b) and c~=hc and c:IsCanBeSpecialSummoned(e,0,tp,false,false)

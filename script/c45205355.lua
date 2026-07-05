@@ -1,4 +1,7 @@
 --大侦探-福尔摩斯 (45205324)
+--卡密ID: 45205324
+--字段代码: 0x1D5C
+
 local s,id=GetID()
 
 function s.initial_effect(c)
@@ -21,6 +24,8 @@ function s.initial_effect(c)
     e1:SetCode(EFFECT_SPSUMMON_PROC)
     e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
     e1:SetRange(LOCATION_EXTRA)
+    -- ★★★ 加1回合1次限制 ★★★
+    e1:SetCountLimit(1,id+300)
     e1:SetCondition(s.spcon)
     e1:SetTarget(s.sptg)
     e1:SetOperation(s.spop)
@@ -38,17 +43,15 @@ function s.initial_effect(c)
     e2:SetOperation(s.thop)
     c:RegisterEffect(e2)
     
-    --②效果：无效并除外
+    --②效果：无效并除外（直接抄「最佳的侦探组合」）
     local e3=Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id,1))
     e3:SetCategory(CATEGORY_DISABLE+CATEGORY_REMOVE)
-    e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_QUICK_O)
+    e3:SetType(EFFECT_TYPE_QUICK_O)
     e3:SetCode(EVENT_CHAINING)
     e3:SetRange(LOCATION_MZONE)
-    e3:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DELAY)
-    e3:SetCountLimit(1,id+100)
+    e3:SetCountLimit(1,id+200)
     e3:SetCondition(s.negcon)
-    e3:SetCost(s.negcost)
     e3:SetTarget(s.negtg)
     e3:SetOperation(s.negop)
     c:RegisterEffect(e3)
@@ -59,12 +62,10 @@ function s.splimit(e,se,sp,st)
         or (se and se:GetHandler():IsSetCard(0x1D5C))
 end
 
--- ★★★ 素材过滤：只检查字段+类型 ★★★
 function s.matfilter(c)
     return c:IsSetCard(0x1D5C) and c:IsType(TYPE_MONSTER)
 end
 
--- ★★★ 检查选中的2只是否分别来自场上和墓地 ★★★
 function s.fselect(g,tp,sc)
     if g:GetCount()~=2 then return false end
     local ct1=0
@@ -91,7 +92,6 @@ function s.magic_activated(tp)
     return false
 end
 
--- ★★★ 接触融合条件 ★★★
 function s.spcon(e,c)
     if c==nil then return true end
     local tp=c:GetControler()
@@ -100,7 +100,6 @@ function s.spcon(e,c)
     return g:CheckSubGroup(s.fselect,2,2,tp,c)
 end
 
--- ★★★ 用 SelectSubGroup 一次性选2只 ★★★
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
     local g=Duel.GetMatchingGroup(s.matfilter,tp,LOCATION_MZONE+LOCATION_GRAVE,0,nil)
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
@@ -113,7 +112,6 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
     return false
 end
 
--- ★★★ 素材返回：场上→卡组，墓地→卡组/额外 ★★★
 function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
     local sg=e:GetLabelObject()
     if not sg then return end
@@ -129,7 +127,6 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
     e:SetLabelObject(nil)
 end
 
---①检索
 function s.thfilter(c)
     return (c:IsSetCard(0x1D5C) and c:IsType(TYPE_SPELL+TYPE_TRAP)) or c:IsCode(77027445)
 end
@@ -148,24 +145,10 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
     end
 end
 
---②效果
+--②效果：无效并除外
 function s.negcon(e,tp,eg,ep,ev,re,r,rp)
-    return ep~=tp and Duel.IsChainDisablable(ev)
-        and re:IsActiveType(TYPE_MONSTER+TYPE_SPELL+TYPE_TRAP)
-end
-
-function s.negcost(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return true end
-    local types={}
-    local texts={}
-    types[#types+1]=0
-    texts[#texts+1]=aux.Stringid(id,2)
-    types[#types+1]=1
-    texts[#texts+1]=aux.Stringid(id,3)
-    types[#types+1]=2
-    texts[#texts+1]=aux.Stringid(id,4)
-    local choice=Duel.SelectOption(tp,table.unpack(texts))
-    e:SetLabel(types[choice+1])
+    local c=e:GetHandler()
+    return ep~=tp and c:IsFaceup() and re:IsActiveType(TYPE_MONSTER+TYPE_SPELL+TYPE_TRAP)
 end
 
 function s.negtg(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -174,47 +157,38 @@ function s.negtg(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 
 function s.negop(e,tp,eg,ep,ev,re,r,rp)
-    local typ=e:GetLabel()
-    local p=1-tp
+    local c=e:GetHandler()
+    if not c:IsRelateToEffect(e) or not c:IsFaceup() then return end
     
-    if Duel.GetFieldGroupCount(p,LOCATION_DECK,0)<3 then return end
+    local opt=Duel.AnnounceType(tp)
     
-    local g=Duel.GetDecktopGroup(p,3)
-    if #g<3 then return end
+    if Duel.GetFieldGroupCount(1-tp,LOCATION_DECK,0)<3 then return end
+    Duel.ConfirmDecktop(1-tp,3)
+    local g=Duel.GetDecktopGroup(1-tp,3)
+    local has=false
     
-    Duel.ConfirmCards(tp,g)
-    Duel.ConfirmCards(p,g)
-    
-    local has_type=false
     local tc=g:GetFirst()
     while tc do
-        if (typ==0 and tc:IsType(TYPE_MONSTER)) or (typ==1 and tc:IsType(TYPE_SPELL)) or (typ==2 and tc:IsType(TYPE_TRAP)) then
-            has_type=true
+        if (opt==0 and tc:IsType(TYPE_MONSTER)) or (opt==1 and tc:IsType(TYPE_SPELL)) or (opt==2 and tc:IsType(TYPE_TRAP)) then
+            has=true
             break
         end
         tc=g:GetNext()
     end
     
-    if has_type then
-        if Duel.NegateEffect(ev) then
-            local filter=aux.TRUE
-            if typ==0 then
-                filter=function(c) return c:IsType(TYPE_MONSTER) end
-            elseif typ==1 then
-                filter=function(c) return c:IsType(TYPE_SPELL) end
-            elseif typ==2 then
-                filter=function(c) return c:IsType(TYPE_TRAP) end
-            end
-            if Duel.IsExistingMatchingCard(filter,tp,0,LOCATION_ONFIELD,1,nil)
-                and Duel.SelectYesNo(tp,aux.Stringid(id,5)) then
-                Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-                local sg=Duel.SelectMatchingCard(tp,filter,tp,0,LOCATION_ONFIELD,1,1,nil)
-                if #sg>0 then
-                    Duel.Remove(sg,POS_FACEUP,REASON_EFFECT)
-                end
+    if has then
+        Duel.NegateEffect(ev)
+        
+        local sg=Duel.GetMatchingGroup(Card.IsFaceup,1-tp,LOCATION_ONFIELD,0,nil)
+        local tg=sg:Filter(Card.IsType,nil,opt==0 and TYPE_MONSTER or (opt==1 and TYPE_SPELL) or (opt==2 and TYPE_TRAP))
+        if #tg>0 and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
+            Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+            local rg=tg:Select(tp,1,1,nil)
+            if #rg>0 then
+                Duel.Remove(rg:GetFirst(),POS_FACEUP,REASON_EFFECT)
             end
         end
     end
     
-    Duel.ShuffleDeck(p)
+    Duel.ShuffleDeck(1-tp)
 end

@@ -2,7 +2,7 @@
 local this,id,ofs=GetID()
 function this.initial_effect(c)
 	c:EnableReviveLimit()
-	aux.AddFusionProcFun2(c,aux.FilterBoolFunction(Card.IsFusionSetCard,0x516),aux.FilterBoolFunction(Card.IsFusionAttribute,ATTRIBUTE_WATER+ATTRIBUTE_WIND),true)
+	aux.AddFusionProcFun2(c,aux.FilterBoolFunction(Card.IsFusionSetCard,0x516),this.mfilter,true)
 	c:SetUniqueOnField(1,0,id)
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_FIELD)
@@ -53,6 +53,9 @@ function this.initial_effect(c)
 	e2:SetTarget(this.sptg)
 	e2:SetOperation(this.spop)
 	c:RegisterEffect(e2)
+end
+function this.mfilter(c)
+	return c:IsFusionAttribute(ATTRIBUTE_WATER+ATTRIBUTE_WIND) and c:IsRace(RACE_SPELLCASTER)
 end
 function this.filter(c,att)
 	return c:IsAttribute(att) and c:IsFaceupEx() and c:IsAbleToHand()

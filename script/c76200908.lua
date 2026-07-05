@@ -4,7 +4,7 @@ function s.initial_effect(c)
 	--activate
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DESTROY+CATEGORY_DAMAGE)
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DESTROY)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
@@ -58,7 +58,7 @@ function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	elseif op==2 then
 		if e:IsCostChecked() then
 			e:SetProperty(EFFECT_FLAG_CARD_TARGET)
-			e:SetCategory(CATEGORY_DESTROY+CATEGORY_DAMAGE)
+			e:SetCategory(CATEGORY_DESTROY)
 		end
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
 		local g=Duel.SelectTarget(tp,nil,tp,0,LOCATION_ONFIELD,1,1,nil)
@@ -82,10 +82,6 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 		local tc=Duel.GetFirstTarget()
 		if tc:IsRelateToEffect(e) then
 			Duel.Destroy(tc,REASON_EFFECT)
-		end
-		if Duel.IsExistingMatchingCard(s.cfilter4,tp,LOCATION_MZONE,0,1,nil) then
-			Duel.Damage(1-tp,1200,REASON_EFFECT)
-			Duel.BreakEffect()
 		end
 	end
 	local e1=Effect.CreateEffect(c)

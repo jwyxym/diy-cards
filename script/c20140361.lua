@@ -92,13 +92,10 @@ function s.op1(e,tp,eg,ep,ev,re,r,rp)
         local g=Duel.SelectMatchingCard(tp,s.filter1,tp,LOCATION_DECK,0,1,1,nil)
         if #g>0 then Duel.SendtoHand(g,nil,REASON_EFFECT) Duel.ConfirmCards(1-tp,g) end
     elseif b2 then
-        local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,LOCATION_SZONE,LOCATION_SZONE,nil)
-        local g2=Duel.GetMatchingGroup(Card.IsFacedown,tp,LOCATION_SZONE,LOCATION_SZONE,nil)
-        g:Merge(g2)
-        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-        Duel.HintSelection(g)
-        local sg=g:Select(tp,1,1,nil)
-        Duel.Destroy(sg,REASON_EFFECT)
+        local g=Duel.SelectMatchingCard(tp,s.dfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
+        if #g>0 then Duel.HintSelection(g) 
+        Duel.Destroy(g,REASON_EFFECT)
+        end
     end
 end
 function s.sslimit(e,c,sump,sumtype,sumpos,targetp,se)

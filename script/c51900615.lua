@@ -3,7 +3,7 @@ local this,id,ofs=GetID()
 function this.initial_effect(c)
 	c:SetUniqueOnField(1,0,id)
 	c:EnableReviveLimit()
-	aux.AddFusionProcFun2(c,aux.FilterBoolFunction(Card.IsFusionSetCard,0x516),aux.FilterBoolFunction(Card.IsFusionAttribute,ATTRIBUTE_FIRE+ATTRIBUTE_EARTH),true)
+	aux.AddFusionProcFun2(c,aux.FilterBoolFunction(Card.IsFusionSetCard,0x516),this.mfilter,true)
 	--
 	local e4=Effect.CreateEffect(c)
 	e4:SetCategory(CATEGORY_REMOVE+CATEGORY_HANDES)
@@ -38,6 +38,9 @@ function this.initial_effect(c)
 	e2:SetTarget(this.sptg)
 	e2:SetOperation(this.spop)
 	c:RegisterEffect(e2)
+end
+function this.mfilter(c)
+	return c:IsFusionAttribute(ATTRIBUTE_FIRE+ATTRIBUTE_EARTH) and c:IsRace(RACE_SPELLCASTER)
 end
 function this.rmcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():GetFlagEffectLabel(id+1) and e:GetHandler():GetFlagEffectLabel(id+1)>0 and ep==1-tp

@@ -87,7 +87,7 @@ function s.op1(e,tp,eg,ep,ev,re,r,rp)
         or Duel.IsExistingMatchingCard(s.filter1b,tp,LOCATION_DECK,0,1,nil)
     local b2=e:GetLabel()==1 and Duel.IsExistingMatchingCard(Card.IsAbleToDeck,tp,LOCATION_GRAVE+LOCATION_REMOVED,LOCATION_GRAVE+LOCATION_REMOVED,1,nil)
     if b1 and (not b2 or not Duel.SelectYesNo(tp,aux.Stringid(id,6))) then
-        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_OPERATECARD)
         local g=Duel.SelectMatchingCard(tp,s.filter1a,tp,LOCATION_DECK,0,1,1,nil)
         if #g>0 then
             local tc=g:GetFirst()

@@ -75,7 +75,8 @@ end
 function s.do_lv1(e,tp,g)
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
     local sg=g:Select(tp,1,1,nil)
-    Duel.SendtoHand(sg,nil,REASON_EFFECT)
+    if Duel.SendtoHand(sg,nil,REASON_EFFECT) then
+    Duel.ConfirmCards(1-tp,sg) end
 end
 function s.do_fus(e,tp,g,eg,ep,ev,re,r,rp)
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
@@ -90,6 +91,7 @@ function s.do_fus(e,tp,g,eg,ep,ev,re,r,rp)
     local fc=e:GetLabelObject()
 	if fc and fc:IsRelateToChain() and Duel.SendtoDeck(tc,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)>0
 		and fc:IsLocation(LOCATION_DECK) then
+		Duel.ConfirmCards(1-tp,fc)
 		local fe=fc:CheckActivateEffect(true,true,true)
 		if fe then
 			local op=fe:GetOperation()

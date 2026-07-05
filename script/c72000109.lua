@@ -31,7 +31,6 @@ function s.initial_effect(c)
 	--negate
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,3))
-	e3:SetCategory(CATEGORY_DISABLE)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e3:SetCode(EVENT_CHAIN_SOLVING)
 	e3:SetRange(LOCATION_SZONE)
@@ -89,12 +88,14 @@ function s.disfilter(c)
 	return c:IsType(TYPE_XYZ) and c:IsSetCard(0x13b,0x10db) and c:IsFaceup() and c:CheckRemoveOverlayCard(c:GetControler(),1,REASON_EFFECT)
 end
 function s.discon(e,tp,eg,ep,ev,re,r,rp)
-	return rp==1-tp and Duel.IsChainDisablable(ev) and re:IsActiveType(TYPE_SPELL+TYPE_TRAP)
+	return rp==1-tp and Duel.GetFlagEffect(tp,id)==0
+		and re:IsActiveType(TYPE_SPELL+TYPE_TRAP)
 		and Duel.IsExistingMatchingCard(s.disfilter,tp,LOCATION_MZONE,0,1,nil)
-		and e:GetHandler():GetFlagEffect(id)<=0
+		and Duel.IsChainDisablable(ev) and not Duel.IsChainDisabled(ev)
 end
 function s.disop(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.SelectEffectYesNo(tp,e:GetHandler(),aux.Stringid(id,4)) then
+	if Duel.GetFlagEffect(tp,id)==0
+		and Duel.SelectEffectYesNo(tp,e:GetHandler(),aux.Stringid(id,4)) then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DEATTACHFROM)
 		local tc=Duel.SelectMatchingCard(tp,s.disfilter,tp,LOCATION_MZONE,0,1,1,nil):GetFirst()
 		if tc and tc:RemoveOverlayCard(tp,1,1,REASON_EFFECT) then

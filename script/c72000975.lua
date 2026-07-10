@@ -50,7 +50,7 @@ function s.initial_effect(c)
 end
 s.pendulum_level=7
 function s.ovfilter(c)
-	return c:IsFaceup() and c:IsCode(16195942)
+	return c:IsFaceup() and c:IsCode(16195942) and c:GetOverlayCount()==0
 end
 function s.spfilter(c,e,tp)
 	return c:IsType(TYPE_XYZ) and c:IsAttribute(ATTRIBUTE_DARK) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
@@ -68,7 +68,6 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	local tc=Duel.GetFirstTarget()
 	if tc:IsRelateToEffect(e) and Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)~=0 and c:IsRelateToEffect(e) and c:IsCanOverlay() then
-		c:CancelToGrave()
 		Duel.Overlay(tc,Group.FromCards(c))
 	end
 end
@@ -107,7 +106,7 @@ function s.lv_or_rk(c)
 end
 function s.gfcon(e)
 	local c=e:GetHandler()
-	return c:IsSetCard(0x13b) and c:IsType(TYPE_XYZ)
+	return c:IsRace(RACE_DRAGON) and c:IsAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_XYZ)
 end
 function s.pencon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

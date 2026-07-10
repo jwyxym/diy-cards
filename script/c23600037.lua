@@ -1,80 +1,99 @@
---晦海水母-茉莉安
 local s,id,o=GetID()
 function s.initial_effect(c)
-	aux.AddXyzProcedure(c,s.mfilter,3,3,nil,nil,99)
+	aux.AddXyzProcedure(c,s.xyzfilter,3,3,nil,nil,99)
 	c:EnableReviveLimit()
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e1:SetCode(EVENT_DESTROYED)
-	e1:SetRange(LOCATION_MZONE)
-	e1:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DELAY)
+	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
+	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e1:SetProperty(EFFECT_FLAG_DELAY)
 	e1:SetCountLimit(1,id)
 	e1:SetCondition(s.thcon)
-	e1:SetCost(aux.bfgcost)
-	e1:SetTarget(s.mttg)
-	e1:SetOperation(s.mtop)
+	e1:SetTarget(s.thtg)
+	e1:SetOperation(s.thop)
 	c:RegisterEffect(e1)
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetCategory(CATEGORY_DESTROY)
-	e2:SetType(EFFECT_TYPE_QUICK_O)
-	e2:SetCode(EVENT_FREE_CHAIN)
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e2:SetCode(EVENT_DESTROYED)
+	e2:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_DAMAGE_STEP)
 	e2:SetRange(LOCATION_MZONE)
-	e2:SetCountLimit(1,id+o*10000)
-	e2:SetCondition(s.descon)
-	e2:SetCost(s.descost)
-	e2:SetTarget(s.destg)
-	e2:SetOperation(s.desop)
+	e2:SetCountLimit(1,id+o*100)
+	e2:SetCondition(s.ovcon)
+	e2:SetTarget(s.ovtg)
+	e2:SetOperation(s.ovop)
 	c:RegisterEffect(e2)
+	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,2))
+	e3:SetCategory(CATEGORY_DESTROY)
+	e3:SetType(EFFECT_TYPE_QUICK_O)
+	e3:SetCode(EVENT_FREE_CHAIN)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetCountLimit(1,id+o*200)
+	e3:SetCondition(s.descon)
+	e3:SetCost(s.descost)
+	e3:SetTarget(s.destg)
+	e3:SetOperation(s.desop)
+	c:RegisterEffect(e3)
 end
-function s.mfilter(c)
+function s.xyzfilter(c)
 	return c:IsRace(RACE_AQUA) and c:IsAttribute(ATTRIBUTE_WATER)
 end
-function s.cfilter(c,tp)
-	return c:IsPreviousControler(tp) and c:IsPreviousLocation(LOCATION_ONFIELD)
-		and not c:IsType(TYPE_TOKEN)
-		and c:IsReason(REASON_BATTLE+REASON_EFFECT)
-end
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
-	return eg:IsExists(s.cfilter,1,nil,tp) and not eg:IsContains(e:GetHandler())
+	return e:GetHandler():IsSummonType(SUMMON_TYPE_XYZ)
 end
-function s.cfilter2(c,tp)
-	return not c:IsType(TYPE_TOKEN) and c:IsType(TYPE_MONSTER)
-		and c:GetOwner()==1-tp and c:IsReason(REASON_EFFECT+REASON_REDIRECT)
-		and c:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED)
-		and c:IsFaceupEx() and c:IsCanOverlay()
+function s.thfilter(c)
+	return c:IsSetCard(0xd84) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand()
+		and (not c:IsLocation(LOCATION_REMOVED) or c:IsFaceup())
 end
-function s.mttg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local g=eg:Filter(s.cfilter2,nil,tp)
-	if chk==0 then return e:GetHandler():IsType(TYPE_XYZ) and #g>0 end
-	Duel.SetTargetCard(g)
+function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED)
 end
-function s.mtop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	local g=eg:Filter(s.cfilter2,nil,tp)
-	local mg=g:Filter(aux.NecroValleyFilter(Card.IsRelateToChain),nil)
-	if #mg>0 and c:IsRelateToChain() then
-		Duel.Overlay(c,mg)
+function s.thop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.thfilter),tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil)
+	if #g>0 then
+		Duel.SendtoHand(g,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,g)
 	end
 end
+function s.ovfilter(c,excard)
+	return c~=excard and c:IsReason(REASON_BATTLE+REASON_EFFECT) and c:IsCanOverlay()
+end
+function s.ovcon(e,tp,eg,ep,ev,re,r,rp)
+	return eg:IsExists(s.ovfilter,1,nil,e:GetHandler())
+end
+function s.ovtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+end
+function s.ovop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if not c:IsRelateToEffect(e) then return end
+	local g=eg:Filter(s.ovfilter,nil,c)
+	if #g==0 then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
+	local sg=g:Select(tp,1,1,nil)
+	Duel.Overlay(c,sg)
+end
+function s.matfilter(c)
+	return c:IsAttribute(ATTRIBUTE_WATER) and c:IsRace(RACE_AQUA) and c:IsType(TYPE_XYZ)
+end
 function s.descon(e,tp,eg,ep,ev,re,r,rp)
-	return e:GetHandler():GetOverlayGroup():IsExists(aux.AND(s.mfilter,Card.IsType),1,nil,TYPE_XYZ)
+	return e:GetHandler():GetOverlayGroup():IsExists(s.matfilter,1,nil)
 end
 function s.descost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,1,REASON_COST) end
-	e:GetHandler():RemoveOverlayCard(tp,1,1,REASON_COST)
+	if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,2,REASON_COST) end
+	e:GetHandler():RemoveOverlayCard(tp,2,2,REASON_COST)
 end
 function s.destg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) end
-	local g=Duel.GetMatchingGroup(aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
-	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
 end
 function s.desop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-	local g=Duel.SelectMatchingCard(tp,aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,2,nil)
+	local g=Duel.SelectMatchingCard(tp,aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,0,2,nil)
 	if #g>0 then
-		Duel.HintSelection(g)
 		Duel.Destroy(g,REASON_EFFECT)
 	end
 end

@@ -2,7 +2,7 @@
 local s,id,o=GetID()
 function s.initial_effect(c)
 	--xyz summon
-	aux.AddXyzProcedure(c,nil,5,3,s.ovfilter,aux.Stringid(id,0))
+	aux.AddXyzProcedure(c,nil,5,3,s.ovfilter,aux.Stringid(id,0),3,s.xyzop)
 	c:EnableReviveLimit()
 	--Attribute
 	local e1=Effect.CreateEffect(c)
@@ -39,6 +39,10 @@ function s.reltg(e,c)
 end
 function s.ovfilter(c)
 	return c:IsFaceup() and (c:IsRank(4) or c:IsRank(5)) and c:IsRace(RACE_CYBERSE) and c:GetOverlayCount()==0
+end
+function s.xyzop(e,tp,chk)
+	if chk==0 then return Duel.GetFlagEffect(tp,id)==0 end
+	Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,EFFECT_FLAG_OATH,1)
 end
 function s.effilter(c)
 	return c:IsType(TYPE_MONSTER)

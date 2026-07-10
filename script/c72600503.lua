@@ -3,7 +3,7 @@ local s,id,o=GetID()
 function s.initial_effect(c)
 	c:EnableReviveLimit()
 	aux.AddFusionProcFunRep(c,s.ffilter,2,true)
-	aux.AddContactFusionProcedure(c,s.cfilter,LOCATION_REMOVED+LOCATION_MZONE+LOCATION_GRAVE,0,aux.tdcfop(c))
+	aux.AddContactFusionProcedure(c,s.cfilter,LOCATION_REMOVED+LOCATION_MZONE+LOCATION_GRAVE,0,aux.ContactFusionSendToDeck(c),2,s.altop)
 	--sp
 	local e0=Effect.CreateEffect(c)
 	e0:SetType(EFFECT_TYPE_SINGLE)
@@ -68,6 +68,10 @@ function s.ffilter(c,fc,sub,mg,sg)
 end
 function s.cfilter(c)
 	return c:IsType(TYPE_MONSTER) and c:IsAbleToDeckOrExtraAsCost()
+end
+function s.altop(e,tp,chk)
+	if chk==0 then return Duel.GetFlagEffect(tp,id+o)>0 end
+	e:GetHandler():RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD-RESET_TOFIELD+RESET_PHASE+PHASE_END,0,1)
 end
 function s.lscon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():GetFlagEffect(id)>0

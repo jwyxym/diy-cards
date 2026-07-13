@@ -38,16 +38,25 @@ function s.initial_effect(c)
 	e2a:SetOperation(s.op2)
 	c:RegisterEffect(e2a)
 	Duel.AddCustomActivityCounter(id,ACTIVITY_CHAIN,s.chainfilter)
-	if not s.global_check then
-		s.global_check=true
+	if not s.global_check2 then
+		s.global_check2=true
 		local ge1=Effect.CreateEffect(c)
 		ge1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 		ge1:SetCode(EVENT_DESTROYED)
-		ge1:SetLabel(id)
 		ge1:SetCondition(s.con3)
 		ge1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
 		ge1:SetOperation(aux.sumreg)
 		Duel.RegisterEffect(ge1,0)
+	end
+end
+function Auxiliary.sumreg(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()  
+	local tc=eg:GetFirst()
+	while tc do
+		if s.filter3(tc,c,tp) then
+			tc:RegisterFlagEffect(id,RESET_EVENT+0x1ec0000+RESET_PHASE+PHASE_END,0,1)
+		end
+		tc=eg:GetNext()
 	end
 end
 function s.chainfilter(re,tp,cid)
@@ -55,6 +64,9 @@ function s.chainfilter(re,tp,cid)
 end
 function s.filter3(c,hc,tp)
 	return c~=hc and c:IsPreviousControler(tp) and c:IsType(TYPE_MONSTER) and c:IsPreviousLocation(LOCATION_MZONE)
+end
+function s.filter4(c)
+	return c:GetFlagEffect(id)~=0
 end
 function s.con3(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()  
@@ -66,7 +78,7 @@ function s.con1(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.con2(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()  
-	return c:GetFlagEffect(id)~=0 and c:IsHasEffect(61100551)
+	return Duel.IsExistingMatchingCard(s.filter4,tp,0xff,0,1,nil) and c:IsHasEffect(61100551)
 end
 function s.cost2(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.CheckLPCost(tp,800) end
@@ -79,11 +91,14 @@ function s.tg2(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,0,tp,1)
 	Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,1,tp,0)
 end
+function s.filter5(c,e)
+	return c:IsAbleToDeck() and (c:IsFaceup() or c:IsLocation(LOCATION_HAND))
+end
 function s.op2(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if c:IsRelateToEffect(e) and Duel.SendtoHand(c,nil,REASON_EFFECT)>0 then
 		Duel.Draw(tp,1,REASON_EFFECT)
-		local g=Duel.SelectMatchingCard(tp,Card.IsAbleToDeck,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,nil)
+		local g=Duel.SelectMatchingCard(tp,s.filter5,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,nil)
 		if #g==1 then
 		Duel.BreakEffect()
 		Duel.SendtoDeck(g,nil,SEQ_DECKBOTTOM,REASON_EFFECT)

@@ -63,18 +63,18 @@ function s.initial_effect(c)
 	e3a:SetTarget(s.target)
 	e3a:SetOperation(s.activate)
 	c:RegisterEffect(e3a)
+	local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+	e4:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+	e4:SetCode(EVENT_DESTROYED)
+	e4:SetOperation(s.regop)
+	c:RegisterEffect(e4)
 	s.shanyings_effect=e1
 	s.shanyingd_effect=e3
-	if not s.global_check then
-		s.global_check=true
-		local ge1=Effect.CreateEffect(c)
-		ge1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
-		ge1:SetCode(EVENT_DESTROYED)
-		ge1:SetLabel(id)
-		ge1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-		ge1:SetOperation(aux.sumreg)
-		Duel.RegisterEffect(ge1,0)
-	end
+end
+function s.regop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	c:RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,0,1)
 end
 function s.filter15(c)
 	return c:IsType(TYPE_FUSION) and c:IsSetCard(0x57b)
@@ -158,7 +158,7 @@ function s.op2(e,tp,eg,ep,ev,re,r,rp)
 	if tc:IsRelateToEffect(e) then
 	Duel.Destroy(tc,REASON_EFFECT)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DISABLE)
-	local g=Duel.SelectMatchingCard(tp,nil,tp,0,LOCATION_ONFIELD,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,aux.NegateAnyFilter,tp,0,LOCATION_ONFIELD,1,1,nil)
 	local tc=g:GetFirst()
 	if tc then
 		local e1=Effect.CreateEffect(e:GetHandler())
@@ -180,7 +180,7 @@ function s.tdcon(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.tdcon2(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	return c:IsPreviousControler(tp) and c:IsReason(REASON_EFFECT+REASON_BATTLE) and c:IsLocation(LOCATION_GRAVE) and c:GetFlagEffect(id)~=0 and c:IsHasEffect(61100551)
+	return c:GetFlagEffect(id)~=0 and c:IsHasEffect(61100551)
 end
 
 function s.tdcost(e,tp,eg,ep,ev,re,r,rp,chk)

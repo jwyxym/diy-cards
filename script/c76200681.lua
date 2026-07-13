@@ -45,7 +45,7 @@ function cm.repop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Destroy(e:GetHandler(),REASON_EFFECT+REASON_REPLACE)
 end
 function cm.cfilter(c,tp)
-	return c:IsLocation(LOCATION_ONFIELD+LOCATION_GRAVE) and c:IsControler(tp)
+	return c:IsLocation(LOCATION_ONFIELD) and c:IsControler(tp)
 end
 function cm.negcon(e,tp,eg,ep,ev,re,r,rp)
 	if not (rp==1-tp and re:IsHasProperty(EFFECT_FLAG_CARD_TARGET)) then return false end

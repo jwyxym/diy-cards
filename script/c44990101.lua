@@ -1,0 +1,123 @@
+--莎拉达希尔
+local s,id=GetID()
+function s.initial_effect(c)
+	-- 将此卡标记为“有「伊瑟拉」的卡名记述”（兼容不同环境）
+	if aux.AddCodeList then
+		aux.AddCodeList(c,44990100)
+	end
+
+	-- 陷阱卡的发动效果（必须，否则无法翻开）
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_ACTIVATE)
+	e0:SetCode(EVENT_FREE_CHAIN)
+	c:RegisterEffect(e0)
+
+	-- ① 永续效果：自己场上的「伊瑟拉」怪兽不会被对方的效果破坏
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e1:SetRange(LOCATION_SZONE)
+	e1:SetTargetRange(LOCATION_MZONE,0)
+	e1:SetTarget(s.indtg)
+	e1:SetValue(1)
+	c:RegisterEffect(e1)
+
+	-- ② 场上启动效果：破坏自己1张记述「伊瑟拉」的卡 + 对方场上1张卡（一回合一次标志 id+200）
+	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,0))
+	e2:SetCategory(CATEGORY_DESTROY)
+	e2:SetType(EFFECT_TYPE_IGNITION)
+	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e2:SetRange(LOCATION_SZONE)
+	e2:SetCondition(s.descon)
+	e2:SetTarget(s.destg)
+	e2:SetOperation(s.desop)
+	c:RegisterEffect(e2)
+
+	-- ③ 送入墓地时诱发：苏生墓地「伊瑟拉」怪兽（一回合一次标志 id+300）
+	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,1))
+	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e3:SetCode(EVENT_TO_GRAVE)
+	e3:SetProperty(EFFECT_FLAG_CARD_TARGET+EFFECT_FLAG_DELAY)
+	e3:SetCondition(s.spcon)
+	e3:SetTarget(s.sptg)
+	e3:SetOperation(s.spop)
+	c:RegisterEffect(e3)
+end
+
+-- ① 保护对象：自己场上的「伊瑟拉」怪兽（字段0xcf1）
+function s.indtg(e,c)
+	return c:IsSetCard(0xcf1) and c:IsType(TYPE_MONSTER)
+end
+
+-- ② 条件：一回合一次
+function s.descon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetFlagEffect(tp,id+200)==0
+end
+
+-- ② 目标过滤：有「伊瑟拉」的卡名记述的卡（参考阿梅达希尔）
+function s.desfilter(c)
+	if not c:IsFaceup() then return false end
+	-- 伊瑟拉本体
+	if c:IsCode(44990100) then return true end
+	-- 卡名记述了伊瑟拉的卡（兼容判断）
+	if aux.IsCodeListed then
+		return aux.IsCodeListed(c,44990100)
+	else
+		-- 退化为字段 0xcf1
+		return c:IsSetCard(0xcf1)
+	end
+end
+
+-- ② 目标选择
+function s.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return false end
+	local b1=Duel.IsExistingTarget(s.desfilter,tp,LOCATION_ONFIELD,0,1,nil)
+	local b2=Duel.IsExistingTarget(aux.TRUE,tp,0,LOCATION_ONFIELD,1,nil)
+	if chk==0 then return b1 and b2 end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+	local g1=Duel.SelectTarget(tp,s.desfilter,tp,LOCATION_ONFIELD,0,1,1,nil)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+	local g2=Duel.SelectTarget(tp,aux.TRUE,tp,0,LOCATION_ONFIELD,1,1,nil)
+	g1:Merge(g2)
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g1,2,0,0)
+end
+
+-- ② 处理：破坏并设置标志
+function s.desop(e,tp,eg,ep,ev,re,r,rp)
+	local g=Duel.GetTargetCards(e)
+	if #g>0 then
+		Duel.Destroy(g,REASON_EFFECT)
+		Duel.RegisterFlagEffect(tp,id+200,RESET_PHASE+PHASE_END,0,1)
+	end
+end
+
+-- ③ 条件：一回合一次
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetFlagEffect(tp,id+300)==0
+end
+
+-- ③ 苏生目标：自己墓地1只「伊瑟拉」怪兽（字段0xcf1）
+function s.spfilter(c,e,tp)
+	return c:IsSetCard(0xcf1) and c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+end
+
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_GRAVE) and chkc:IsControler(tp) and s.spfilter(chkc,e,tp) end
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and Duel.IsExistingTarget(s.spfilter,tp,LOCATION_GRAVE,0,1,nil,e,tp) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local g=Duel.SelectTarget(tp,s.spfilter,tp,LOCATION_GRAVE,0,1,1,nil,e,tp)
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,g,1,0,0)
+end
+
+-- ③ 处理：特殊召唤并设置标志
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
+	local tc=Duel.GetFirstTarget()
+	if tc and tc:IsRelateToEffect(e) then
+		Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
+		Duel.RegisterFlagEffect(tp,id+300,RESET_PHASE+PHASE_END,0,1)
+	end
+end

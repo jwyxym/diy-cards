@@ -21,7 +21,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 function s.spfilter(c,e,tp)
-	return c:IsSetCard(0x725) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsSetCard(0x725) or (c:IsRace(RACE_DRAGON) and c:IsType(TYPE_XYZ)) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function s.scfilter(c,e,tp)
 	return c:IsRace(RACE_DRAGON) and c:IsType(TYPE_XYZ)

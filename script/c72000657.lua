@@ -63,5 +63,5 @@ function s.val(e,c)
 end
 function s.gfcon(e)
 	local c=e:GetHandler()
-	return c:IsAttribute(ATTRIBUTE_WATER) and c:IsAttribute(ATTRIBUTE_WATER) and c:IsType(TYPE_XYZ) and c:IsRankAbove(5)
+	return c:IsAttribute(ATTRIBUTE_WATER) and c:IsRace(RACE_AQUA) and c:IsType(TYPE_XYZ) and c:IsRankAbove(5)
 end

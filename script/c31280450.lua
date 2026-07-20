@@ -60,7 +60,7 @@ function s.bhop(e,tp,eg,ep,ev,re,r,rp)
                 for i=1,ct do                               
             		local seq=hc:GetSequence()                  
                     local tg=Duel.GetMatchingGroup(s.desfilter,tp,LOCATION_MZONE,LOCATION_MZONE,nil,seq,hc:GetControler())                               
-                    if tg:GetCount()<=0 then break end                   
+                    if tg:GetCount()<=0 or hc:IsImmuneToEffect(e) then break end                   
                     if i>1 then
                     	if Duel.SelectYesNo(tp,aux.Stringid(id,3)) then 
 							Duel.BreakEffect()

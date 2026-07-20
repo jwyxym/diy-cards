@@ -1,13 +1,6 @@
 --银冰飞雪
 local s,id,o=GetID()
 function s.initial_effect(c)
-	--规则卡名
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_SINGLE)
-	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e0:SetCode(EFFECT_ADD_CODE)
-	e0:SetValue(31280116)
-	c:RegisterEffect(e0)
 	--破坏并除外   
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))

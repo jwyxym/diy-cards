@@ -8,6 +8,9 @@ on:
 jobs:
   push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
     steps:
     - uses: actions/checkout@v4
 

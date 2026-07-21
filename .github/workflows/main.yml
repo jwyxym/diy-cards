@@ -1,4 +1,4 @@
-name: push
+name: build
 
 on:
   push:
@@ -28,8 +28,20 @@ jobs:
 
     - name: Zip Pack
       run: |
-        zip -r -9 xiao.ypk pics/ script/ *.conf *.ini *.cdb
+        zip -r xiao.ypk pics/ script/ *.conf *.ini *.cdb
 
     - name: Push to Server
       run: |
         scp xiao.ypk ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PATH }}
+
+    - name: Create release-latest
+      run: |
+        gh release delete release-latest --cleanup-tag -y || true
+        gh release create release-latest xiao.ypk \
+          --target "$GITHUB_SHA" \
+          --title "release-latest" \
+          --notes "" \
+          --latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    

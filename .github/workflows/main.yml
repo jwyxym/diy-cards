@@ -1,0 +1,35 @@
+name: push
+
+on:
+  push:
+    branches:
+      - main
+    
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup SSH
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SSH_SERVER: ${{ secrets.SSH_SERVER }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan "$SSH_SERVER" >> ~/.ssh/known_hosts
+        
+    - name: Install zip and ssh client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zip openssh-client
+
+    - name: Zip Pack
+      run: |
+        zip -r -9 xiao.ypk pics/ script/ *.conf *.ini *.cdb
+
+    - name: Push to Server
+      run: |
+        scp xiao.ypk ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PATH }}

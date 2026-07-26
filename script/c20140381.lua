@@ -1,7 +1,7 @@
 local s,id,o=GetID()
 function s.initial_effect(c)
     c:EnableReviveLimit()
-    aux.AddFusionProcFunRep(c,aux.FilterBoolFunction(Card.IsSetCard,0x2b1),3,false)
+    aux.AddFusionProcFunRep(c,aux.FilterBoolFunction(Card.IsSetCard,0x2b1),3,true)
     -- ① 最多3次攻击（1普攻+2额外）
     local e1=Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_SINGLE)

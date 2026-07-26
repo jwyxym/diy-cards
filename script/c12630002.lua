@@ -49,8 +49,16 @@ function s.indestg(e,c)
     return c:IsFaceup()
 end
 
+--===============================================================================
+-- ②效果：Cost（除外1张手卡，适配圣枪检测）
+--===============================================================================
 function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)>0 end
+    if chk==0 then 
+        if Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)<=0 then return false end
+        if Duel.IsPlayerAffectedByEffect(tp,EFFECT_CANNOT_REMOVE) then return false end
+        if Duel.IsPlayerAffectedByEffect(1-tp,EFFECT_CANNOT_REMOVE) then return false end
+        return true
+    end
     local g=Duel.GetFieldGroup(tp,LOCATION_HAND,0):Select(tp,1,1,nil)
     if #g>0 then
         Duel.Remove(g,POS_FACEUP,REASON_COST)
@@ -91,7 +99,6 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
                 local sg=g:Select(tp,1,1,nil)
                 if #sg>0 then
                     Duel.BreakEffect()
-                    -- 表侧表示放置到魔法与陷阱区域
                     Duel.MoveToField(sg:GetFirst(),tp,tp,LOCATION_SZONE,POS_FACEUP,true)
                 end
             end

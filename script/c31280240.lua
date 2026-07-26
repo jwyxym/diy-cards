@@ -12,19 +12,17 @@ function s.initial_effect(c)
 	e1:SetTarget(s.destg)
 	e1:SetOperation(s.desop)
 	c:RegisterEffect(e1)
-	--抽卡
+	--回收
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
-    e2:SetCategory(CATEGORY_DRAW)
-	e2:SetType(EFFECT_TYPE_XMATERIAL+EFFECT_TYPE_QUICK_O)
-    e2:SetCode(EVENT_FREE_CHAIN)
-	e2:SetRange(LOCATION_MZONE)
-    e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
-	e2:SetCountLimit(1)
-	e2:SetCondition(s.drcon)
-	e2:SetCost(s.drcost)
-	e2:SetTarget(s.drtg)
-	e2:SetOperation(s.drop)
+    e2:SetCategory(CATEGORY_TOHAND+CATEGORY_TODECK)
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+    e2:SetCode(EVENT_PHASE+PHASE_END)
+	e2:SetRange(LOCATION_GRAVE)
+    e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
+    e2:SetCondition(s.bdcon)
+	e2:SetTarget(s.bdtg)
+	e2:SetOperation(s.bdop)
 	c:RegisterEffect(e2)
 	--手卡发动    
     local e3=Effect.CreateEffect(c)
@@ -44,10 +42,9 @@ end
 function s.desop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	local tc=Duel.GetFirstTarget()
-	if tc:IsRelateToEffect(e) and Duel.Destroy(tc,REASON_EFFECT)~=0 and Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>0 
-    	and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then        
-    	local g=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
-		if g:GetCount()<1 then return end
+    local g=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
+	if tc:IsRelateToEffect(e) and Duel.Destroy(tc,REASON_EFFECT)~=0 and g:GetCount()>0 
+    	and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then            	
         Duel.BreakEffect()
 		Duel.ConfirmCards(1-tp,g)
         if g:GetClassCount(Card.GetCode)==g:GetCount() then
@@ -70,23 +67,44 @@ function s.aclimit(e,re,tp)
 	local tc=e:GetLabelObject()
 	return re:IsActiveType(TYPE_MONSTER+TYPE_SPELL+TYPE_TRAP) and rc:IsOriginalCodeRule(tc:GetOriginalCodeRule())
 end
-function s.drcon(e,tp,eg,ep,ev,re,r,rp)
+function s.bdfilter(c,e)
+	return c:IsSetCard(0xacaa) and c:IsCanBeEffectTarget(e)
+end    
+function s.bhfilter(c,g)
+	return c:IsAbleToHand() and g:IsExists(Card.IsAbleToDeck,1,c)
+end
+function s.fselect(g,mc)
+	return g:IsExists(s.bhfilter,1,nil,g) and g:IsContains(mc)
+end
+function s.bdcon(e,tp,eg,ep,ev,re,r,rp)
+	return tp==Duel.GetTurnPlayer()
+end
+function s.bdtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local c=e:GetHandler()
-	return c:IsSetCard(0xacaa) and c:IsType(TYPE_XYZ)
-end
-function s.drcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckRemoveOverlayCard(tp,1,0,1,REASON_COST) end
-	Duel.RemoveOverlayCard(tp,1,0,1,1,REASON_COST)
-end
-function s.drtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsPlayerCanDraw(tp,1) end
-	Duel.SetTargetPlayer(tp)
-	Duel.SetTargetParam(1)
-	Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,1)
-end
-function s.drop(e,tp,eg,ep,ev,re,r,rp)
-	local p,d=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER,CHAININFO_TARGET_PARAM)
-	Duel.Draw(p,d,REASON_EFFECT)
+    local g=Duel.GetMatchingGroup(s.bdfilter,tp,LOCATION_GRAVE,0,nil,e)
+	if chkc then return false end
+	if chk==0 then return g:CheckSubGroup(s.fselect,2,2,c) and c:IsCanBeEffectTarget(e) 
+    	and (c:IsAbleToHand() or c:IsAbleToDeck()) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_OPERATECARD)
+	local sg=g:SelectSubGroup(tp,s.fselect,false,2,2,c)
+	Duel.SetTargetCard(sg)    
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_GRAVE)
+	Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,tp,LOCATION_GRAVE)
+end    
+function s.bdop(e,tp,eg,ep,ev,re,r,rp)
+	local g=Duel.GetChainInfo(0,CHAININFO_TARGET_CARDS):Filter(aux.NecroValleyFilter(Card.IsRelateToEffect),nil,e)
+    if g:GetCount()>0 then
+    	local sg=g:Filter(Card.IsAbleToHand,nil)
+        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+		local sc=sg:Select(tp,1,1,nil):GetFirst()
+		if not sc then return end
+        if Duel.SendtoHand(sc,nil,REASON_EFFECT)~=0 and sc:IsLocation(LOCATION_HAND) then
+        	g:RemoveCard(sc)
+			if g:GetCount()>0 then
+				Duel.SendtoDeck(g,nil,SEQ_DECKBOTTOM,REASON_EFFECT)
+            end
+        end
+    end    
 end
 function s.handcon(e)
 	return Duel.IsExistingMatchingCard(Card.IsFaceup,e:GetHandlerPlayer(),LOCATION_MZONE,0,1,nil) 

@@ -2,7 +2,7 @@
 local this,id,ofs=GetID()
 function this.initial_effect(c)
 	aux.AddCodeList(c,31000201)
-	aux.AddLinkProcedure(c,nil,2,2,this.lcheck)
+	aux.AddLinkProcedure(c,aux.FilterBoolFunction(Card.IsLinkRace,RACE_BEAST+RACE_BEASTWARRIOR),2,2)
 	c:EnableReviveLimit()
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
@@ -23,12 +23,6 @@ function this.initial_effect(c)
 	e5:SetTarget(this.thtg2)
 	e5:SetOperation(this.thop2)
 	c:RegisterEffect(e5)
-end
-function this.lfilter(c)
-	return c:IsLinkRace(RACE_BEASTWARRIOR+RACE_BEAST)
-end
-function this.lcheck(g)
-	return g:IsExists(this.lfilter,1,nil)
 end
 function this.thcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_LINK)

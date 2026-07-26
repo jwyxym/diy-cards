@@ -1,9 +1,9 @@
---满怀希望的树妖
+--满怀希望的树妖（重置版）
 local s,id=GetID()
 function s.initial_effect(c)
-	if aux.AddCodeList then aux.AddCodeList(c,44990100) end
-
-	-- ① 手卡特殊召唤
+	-- 记述标记
+	aux.AddCodeList(c,44990100)
+	-- ① 手卡特召（空场）
 	local e1=Effect.CreateEffect(c)
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetCode(EFFECT_SPSUMMON_PROC)
@@ -11,14 +11,14 @@ function s.initial_effect(c)
 	e1:SetRange(LOCATION_HAND)
 	e1:SetCondition(s.spcon1)
 	c:RegisterEffect(e1)
-
-	-- ② 召唤·特殊召唤成功检索
+	-- ② 召唤·特召成功时（一回合一次）
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,0))
 	e2:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
 	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e2:SetCode(EVENT_SUMMON_SUCCESS)
 	e2:SetProperty(EFFECT_FLAG_DELAY)
+	e2:SetCountLimit(1,id)
 	e2:SetCondition(s.con2)
 	e2:SetTarget(s.tg2)
 	e2:SetOperation(s.op2)
@@ -26,8 +26,7 @@ function s.initial_effect(c)
 	local e3=e2:Clone()
 	e3:SetCode(EVENT_SPSUMMON_SUCCESS)
 	c:RegisterEffect(e3)
-
-	-- ③ 等级当作8或9（修正：使用 0x10000 偏移量格式）
+	-- ③ 等级当作8/9（深渊鲨模式）
 	local e4=Effect.CreateEffect(c)
 	e4:SetType(EFFECT_TYPE_SINGLE)
 	e4:SetCode(EFFECT_XYZ_LEVEL)
@@ -39,8 +38,7 @@ function s.initial_effect(c)
 	local e5=e4:Clone()
 	e5:SetLabel(9)
 	c:RegisterEffect(e5)
-
-	-- ②发动后的特殊召唤限制
+	-- ②发动后自肃（本回合非风属性不能特召）
 	local e6=Effect.CreateEffect(c)
 	e6:SetType(EFFECT_TYPE_FIELD)
 	e6:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -58,26 +56,19 @@ function s.spcon1(e,c)
 end
 
 function s.con2(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetFlagEffect(tp,id)==0
+	return Duel.GetFlagEffect(tp,id+200)==0
 end
-
 function s.filter2(c)
-	if aux.IsCodeListed then
-		return aux.IsCodeListed(c,44990100)
-	else
-		return c:IsSetCard(0xcf1)
-	end
+	return aux.IsCodeListed(c,44990100)
 end
-
 function s.tg2(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then
 		local g=Duel.GetMatchingGroup(s.filter2,tp,LOCATION_DECK,0,nil)
 		return g:GetClassCount(Card.GetCode)>=3
 	end
 end
-
 function s.op2(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.GetFlagEffect(tp,id)>0 then return end
+	if Duel.GetFlagEffect(tp,id+200)>0 then return end
 	local g=Duel.GetMatchingGroup(s.filter2,tp,LOCATION_DECK,0,nil)
 	if g:GetClassCount(Card.GetCode)<3 then return end
 	local selgroup=Group.CreateGroup()
@@ -94,23 +85,21 @@ function s.op2(e,tp,eg,ep,ev,re,r,rp)
 	Duel.SendtoHand(oc,nil,REASON_EFFECT)
 	selgroup:RemoveCard(oc)
 	Duel.SendtoDeck(selgroup,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
-	Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
-	Duel.RegisterFlagEffect(tp,id+100,RESET_PHASE+PHASE_END,0,1)
+	Duel.RegisterFlagEffect(tp,id+200,RESET_PHASE+PHASE_END,0,1)
+	Duel.RegisterFlagEffect(tp,id+300,RESET_PHASE+PHASE_END,0,1)
 end
 
--- 修正后的等级函数（参考深渊鲨）
 function s.xyzlv(e,c,rc)
 	if rc:IsSetCard(0xcf1) then
-		return c:GetLevel() + 0x10000 * e:GetLabel()
+		return c:GetLevel()+0x10000*e:GetLabel()
 	else
 		return c:GetLevel()
 	end
 end
 
 function s.splimcon(e)
-	return Duel.GetFlagEffect(e:GetHandlerPlayer(),id+100)>0
+	return Duel.GetFlagEffect(e:GetHandlerPlayer(),id+300)>0
 end
-
 function s.splimit(e,c,tp,sumtp)
 	return not c:IsAttribute(ATTRIBUTE_WIND)
 end

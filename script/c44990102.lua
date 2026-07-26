@@ -1,16 +1,16 @@
 --阿梅达希尔
 local s,id=GetID()
 function s.initial_effect(c)
-	-- 将此卡标记为“有「伊瑟拉」的卡名记述”
-	if aux.AddCodeList then
-		aux.AddCodeList(c,44990100)
-	end
+	-- 记述标记
+	aux.AddCodeList(c,44990100)
 
-	-- 永续魔法的发动效果（用于①的处理）
+	-- 发动时检索效果（①）
 	local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
-	e1:SetTarget(s.acttg)
+	e1:SetCountLimit(1,id)
 	e1:SetOperation(s.actop)
 	c:RegisterEffect(e1)
 
@@ -25,7 +25,7 @@ function s.initial_effect(c)
 	e2:SetValue(s.tgval)
 	c:RegisterEffect(e2)
 
-	-- ③ 强制诱发：表侧表示从魔陷区送去墓地时，场上的「伊瑟拉」怪兽全部破坏
+	-- ③ 表侧表示从魔陷区送去墓地时，场上的「伊瑟拉」怪兽全部破坏
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
 	e3:SetCategory(CATEGORY_DESTROY)
@@ -37,61 +37,51 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 end
 
--- ① 发动时的 target
-function s.acttg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return true end
-end
-
--- ① 检索 filter（有「伊瑟拉」的卡名记述）
+-- ① 检索过滤
 function s.thfilter(c)
-	if c:IsCode(44990100) then return c:IsAbleToHand() end
-	if aux.IsCodeListed then
-		return aux.IsCodeListed(c,44990100) and c:IsAbleToHand()
-	else
-		return c:IsSetCard(0xcf1) and c:IsAbleToHand()
-	end
+	return aux.IsCodeListed(c,44990100) and c:IsAbleToHand()
 end
 
--- ① 发动时的处理：可选检索，一回合一次
+-- ① 发动操作
 function s.actop(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.GetFlagEffect(tp,id)>0 then return end
-	local c=e:GetHandler()
-	if not c:IsRelateToEffect(e) then return end
 	if Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil)
-		and Duel.SelectYesNo(tp,aux.Stringid(id,0)) then
+		and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
 		local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
 		if #g>0 then
 			Duel.SendtoHand(g,nil,REASON_EFFECT)
 			Duel.ConfirmCards(1-tp,g)
-			Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
 		end
 	end
 end
 
--- ② 保护对象：自己场上的「伊瑟拉」怪兽（字段0xcf1）
+-- ② 对象过滤：自己场上的「伊瑟拉」怪兽（字段0xcf1）
 function s.indtg(e,c)
 	return c:IsSetCard(0xcf1) and c:IsType(TYPE_MONSTER)
 end
+
+-- ② 只免疫对方效果的取对象
 function s.tgval(e,re,rp)
 	return rp~=e:GetHandlerPlayer()
 end
 
--- ③ 条件：表侧表示从魔陷区送去墓地
+-- ③ 条件：从魔法陷阱区表侧表示送去墓地
 function s.descon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	return c:IsPreviousLocation(LOCATION_SZONE) and c:IsPreviousPosition(POS_FACEUP)
 end
--- ③ 不取对象，检查存在
-function s.destg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local g=Duel.GetMatchingGroup(s.desfilter,tp,LOCATION_MZONE,LOCATION_MZONE,nil)
-	if chk==0 then return #g>0 end
-	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
-end
--- ③ 破坏场上所有「伊瑟拉」怪兽
+
+-- ③ 目标：不取对象，确认场上存在伊瑟拉怪兽即可
 function s.desfilter(c)
 	return c:IsFaceup() and c:IsSetCard(0xcf1) and c:IsType(TYPE_MONSTER)
 end
+function s.destg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.desfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) end
+	local g=Duel.GetMatchingGroup(s.desfilter,tp,LOCATION_MZONE,LOCATION_MZONE,nil)
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
+end
+
+-- ③ 操作：破坏所有场上伊瑟拉怪兽
 function s.desop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetMatchingGroup(s.desfilter,tp,LOCATION_MZONE,LOCATION_MZONE,nil)
 	if #g>0 then

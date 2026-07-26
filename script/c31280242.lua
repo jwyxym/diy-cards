@@ -12,17 +12,17 @@ function s.initial_effect(c)
 	e1:SetTarget(s.distg)
 	e1:SetOperation(s.disop)
 	c:RegisterEffect(e1)
-	--加入手卡    
+	--耐性   
     local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
-    e2:SetCategory(CATEGORY_TOHAND)
-	e2:SetType(EFFECT_TYPE_XMATERIAL+EFFECT_TYPE_IGNITION)
-	e2:SetRange(LOCATION_MZONE)
-	e2:SetCountLimit(1)
-	e2:SetCondition(s.thcon)
-	e2:SetCost(s.thcost)
-	e2:SetTarget(s.thtg)
-	e2:SetOperation(s.thop)
+    e2:SetCategory(CATEGORY_TODECK)
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e2:SetCode(EVENT_PHASE+PHASE_BATTLE_START)
+	e2:SetRange(LOCATION_GRAVE)
+    e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e2:SetCondition(s.indcon)
+	e2:SetTarget(s.indtg)
+	e2:SetOperation(s.indop)
 	c:RegisterEffect(e2)
     --手卡发动    
     local e3=Effect.CreateEffect(c)
@@ -67,64 +67,54 @@ function s.disop(e,tp,eg,ep,ev,re,r,rp)
 			tc:RegisterEffect(e3)
 		end
     	Duel.AdjustInstantly()
-        if Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>0 and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then        
-    		local g=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
-			if g:GetCount()<1 then return end
+        local g=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
+        if g:GetCount()>0 and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then 
         	Duel.BreakEffect()
 			Duel.ConfirmCards(1-tp,g)
         	if g:GetClassCount(Card.GetCode)==g:GetCount() and tc:IsAbleToRemove() then
             	Duel.BreakEffect()            		
-				Duel.Remove(tc,POS_FACEUP,REASON_EFFECT)
-        		Duel.Damage(1-tp,1200,REASON_EFFECT)   
+				if Duel.Remove(tc,POS_FACEUP,REASON_EFFECT)~=0 and tc:IsLocation(LOCATION_REMOVED) then
+        			Duel.Damage(1-tp,1200,REASON_EFFECT)  
+                end     
 			end        
             Duel.ShuffleDeck(tp)
 		end		        
 	end            
 end
-function s.xyzfilter(c)
+function s.indcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetTurnPlayer()==1-tp
+end
+function s.tgfilter(c)
 	return c:IsFaceup() and c:IsSetCard(0xacaa)
-end
-function s.thfilter(c,tp)
-	return c:IsAbleToHand() and c:GetOwner()==tp
-end
-function s.thcon(e,tp,eg,ep,ev,re,r,rp)
+end    
+function s.indtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local c=e:GetHandler()
-	return c:IsSetCard(0xacaa) and c:IsType(TYPE_XYZ)
-end
-function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckRemoveOverlayCard(tp,1,0,1,REASON_COST) end
-	Duel.RemoveOverlayCard(tp,1,0,1,1,REASON_COST)
-end
-function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local rg=Group.CreateGroup()
-	local xg=Duel.GetMatchingGroup(s.xyzfilter,tp,LOCATION_MZONE,0,nil)
-	if xg:GetCount()<1 then return false end
-	for tc in aux.Next(xg) do
-		local hg=tc:GetOverlayGroup()
-		if hg:GetCount()>0 then
-			rg:Merge(hg)
-		end
-	end
-	if chk==0 then return rg and rg:FilterCount(s.thfilter,nil,tp)>0 end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_OVERLAY)
-end
-function s.thop(e,tp,eg,ep,ev,re,r,rp)
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and s.tgfilter(chkc,tp) end
+	if chk==0 then return Duel.IsExistingTarget(s.tgfilter,tp,LOCATION_MZONE,0,1,nil,tp) 
+    	and c:IsAbleToDeck() end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+	Duel.SelectTarget(tp,s.tgfilter,tp,LOCATION_MZONE,0,1,1,nil,tp)
+    Duel.SetOperationInfo(0,CATEGORY_TODECK,c,1,0,0)
+end	
+function s.indop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	local rg=Group.CreateGroup()
-	local xg=Duel.GetMatchingGroup(s.xyzfilter,tp,LOCATION_MZONE,0,nil)
-	if xg:GetCount()<1 then return end
-	for tc in aux.Next(xg) do
-		local hg=tc:GetOverlayGroup()
-		if hg:GetCount()>0 then
-			rg:Merge(hg)
-		end
-	end
-	if rg and rg:FilterCount(s.thfilter,nil,tp)>0 then
-		local tc=rg:FilterSelect(tp,s.thfilter,1,1,nil,tp):GetFirst()
-		Duel.SendtoHand(tc,nil,REASON_EFFECT)
-		Duel.ConfirmCards(1-tp,tc)
-	end            
-end            
+	local tc=Duel.GetFirstTarget()
+    if c:IsRelateToEffect(e) and aux.NecroValleyFilter()(c) and Duel.SendtoDeck(c,nil,SEQ_DECKBOTTOM,REASON_EFFECT)~=0
+    	and c:IsLocation(LOCATION_DECK) and tc:IsRelateToEffect(e) and tc:IsFaceup() then
+        local e1=Effect.CreateEffect(c)
+		e1:SetDescription(aux.Stringid(id,4))
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_CLIENT_HINT)
+		e1:SetCode(EFFECT_INDESTRUCTABLE_COUNT)
+		e1:SetCountLimit(1)
+		e1:SetValue(s.valcon)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+		tc:RegisterEffect(e1)
+    end    
+end    
+function s.valcon(e,re,r,rp)
+	return bit.band(r,REASON_BATTLE)~=0
+end
 function s.handcon(e)
 	return Duel.IsExistingMatchingCard(Card.IsFaceup,e:GetHandlerPlayer(),LOCATION_MZONE,0,1,nil) 
     	and not Duel.IsExistingMatchingCard(Card.IsFaceup,e:GetHandlerPlayer(),LOCATION_MZONE,0,2,nil) 

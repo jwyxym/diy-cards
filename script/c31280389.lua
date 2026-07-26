@@ -97,7 +97,7 @@ function s.tdrop(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.PayLPCost(1-tp,lp2)~=0 then dr2=math.floor(lp2/400) end
     if dr1~=0 then ct1=Duel.Draw(tp,dr1,REASON_EFFECT) end
     if dr2~=0 then ct2=Duel.Draw(1-tp,dr2,REASON_EFFECT) end
-    if ct1~=0 or ct2~=0 then
+    if ct1>=2 or ct2>=2 then
     	Duel.BreakEffect()
         local tt1=ct1-1
         local tt2=ct2-1

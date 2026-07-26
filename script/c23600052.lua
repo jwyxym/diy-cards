@@ -1,117 +1,132 @@
---苍忘胧灵·柳离
+-- 教皇
 local s,id,o=GetID()
 function s.initial_effect(c)
-	--xyz summon
-	aux.AddXyzProcedure(c,s.matfilter,5,2,s.ovfilter,aux.Stringid(id,0),99,s.xyzop1)
+	-- Xyz 召唤手续：包含机械族怪兽的 9 星怪兽×2只以上 (可重叠在机械族·地属性超量怪兽上)
+	aux.AddXyzProcedureLevelFree(c,s.mfilter,s.xyzcheck,2,7,s.ovfilter,aux.Stringid(id,0),s.xyzop)
 	c:EnableReviveLimit()
-	--destroy replace
+
+	-- ①：素材有机械族超量怪兽时，攻守+900，不可被成为对象
 	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_DESTROY_REPLACE)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetCode(EFFECT_UPDATE_ATTACK)
 	e1:SetRange(LOCATION_MZONE)
-	e1:SetTarget(s.desreptg)
-	e1:SetValue(s.desrepval)
-	e1:SetOperation(s.desrepop)
+	e1:SetCondition(s.matcon)
+	e1:SetValue(900)
 	c:RegisterEffect(e1)
-	--to deck
-	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetCategory(CATEGORY_TODECK)
-	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-	e2:SetCode(EVENT_TO_GRAVE)
-	e2:SetProperty(EFFECT_FLAG_CARD_TARGET+EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DELAY)
-	e2:SetCondition(s.tdcon)
-	e2:SetTarget(s.tdtg)
-	e2:SetOperation(s.tdop)
+	local e2=e1:Clone()
+	e2:SetCode(EFFECT_UPDATE_DEFENSE)
 	c:RegisterEffect(e2)
-	--material
 	local e3=Effect.CreateEffect(c)
-	e3:SetDescription(aux.Stringid(id,2))
-	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e3:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
-	e3:SetProperty(EFFECT_FLAG_DELAY)
+	e3:SetType(EFFECT_TYPE_SINGLE)
+	e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE+EFFECT_FLAG_IGNORE_IMMUNE)
 	e3:SetRange(LOCATION_MZONE)
-	e3:SetCode(EVENT_REMOVE)
-	e3:SetCountLimit(1)
-	e3:SetTarget(s.xyztg)
-	e3:SetOperation(s.xyzop)
+	e3:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+	e3:SetValue(aux.tgoval)
+	e3:SetCondition(s.matcon)
 	c:RegisterEffect(e3)
+
+	-- ②：响应效果发动，拔 2 素材选场上 1 张卡送墓 (自己回合穿透全抗)
+	local e4=Effect.CreateEffect(c)
+	e4:SetDescription(aux.Stringid(id,1))
+	e4:SetCategory(CATEGORY_TOGRAVE)
+	e4:SetType(EFFECT_TYPE_QUICK_O)
+	e4:SetCode(EVENT_CHAINING)
+	e4:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL+EFFECT_FLAG_CARD_TARGET)
+	e4:SetRange(LOCATION_MZONE)
+	e4:SetCountLimit(1,id+o*100)
+	e4:SetCost(s.tgcost)
+	e4:SetTarget(s.tgtg)
+	e4:SetOperation(s.tgop)
+	c:RegisterEffect(e4)
+
+	-- ③：卡被除外的场合，吸墓地/除外区的机械族怪兽做素材
+	local e5=Effect.CreateEffect(c)
+	e5:SetDescription(aux.Stringid(id,2))
+	e5:SetCategory(CATEGORY_LEAVE_GRAVE+CATEGORY_GRAVE_ACTION)
+	e5:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e5:SetCode(EVENT_REMOVE)
+	e5:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
+	e5:SetRange(LOCATION_MZONE)
+	e5:SetCountLimit(1,id+o*200)
+	e5:SetTarget(s.mttg)
+	e5:SetOperation(s.mtop)
+	c:RegisterEffect(e5)
 end
-function s.matfilter(c)
-	return c:IsAttribute(ATTRIBUTE_DARK)
+
+-- 超量素材过滤：9 星怪兽
+function s.mfilter(c,xyzc)
+	return c:IsXyzLevel(xyzc,9)
 end
+
+-- 素材组校验：必须包含至少 1 只机械族怪兽
+function s.xyzcheck(g)
+	return g:IsExists(Card.IsRace,1,nil,RACE_MACHINE)
+end
+
+-- 重叠召唤过滤：机械族·地属性超量怪兽
 function s.ovfilter(c)
-	return c:IsFaceup() and c:IsAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_XYZ) and c:IsRank(5)
+	return c:IsFaceup() and c:IsType(TYPE_XYZ) and c:IsRace(RACE_MACHINE) and c:IsAttribute(ATTRIBUTE_EARTH)
 end
-function s.xfilter(c,tp)
-	return c:IsType(TYPE_XYZ) and c:CheckRemoveOverlayCard(tp,1,REASON_COST)
+
+-- 重叠召唤 1 回合 1 次限制
+function s.xyzop(e,tp,chk)
+	if chk==0 then return Duel.GetFlagEffect(tp,id)==0 end
+	Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
 end
-function s.xyzop1(e,tp,chk) 
-	if chk==0 then return Duel.GetFlagEffect(tp,id)==0 and Duel.IsExistingMatchingCard(s.xfilter,tp,LOCATION_MZONE,0,1,nil,tp) end
-	local sg=Duel.GetMatchingGroup(s.xfilter,tp,LOCATION_MZONE,0,nil,tp)
-	if sg:GetCount()==0 then return false end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DEATTACHFROM)
-	local tc=sg:Select(tp,1,1,nil):GetFirst()
-	if tc then
-		tc:RemoveOverlayCard(tp,1,1,REASON_COST)
-	end
-	Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,EFFECT_FLAG_OATH,1)
-	return true
-end
-function s.repfilter(c,tp)
-	return c:IsControler(tp) and c:IsType(TYPE_XYZ) and c:IsFaceup() and c:IsLocation(LOCATION_MZONE)
-		and c:IsReason(REASON_BATTLE+REASON_EFFECT) and not c:IsReason(REASON_REPLACE)
-end
-function s.desreptg(e,tp,eg,ep,ev,re,r,rp,chk)
+
+-- ①效果：素材包含机械族超量怪兽判断
+function s.matcon(e)
 	local c=e:GetHandler()
-	if chk==0 then return eg:IsExists(s.repfilter,1,nil,tp)
-		and c:CheckRemoveOverlayCard(tp,1,REASON_EFFECT) end
-	return Duel.SelectEffectYesNo(tp,c,96)
+	return c:GetOverlayGroup():IsExists(function(mc) return mc:IsRace(RACE_MACHINE) and mc:IsType(TYPE_XYZ) end,1,nil)
 end
-function s.desrepval(e,c)
-	return s.repfilter(c,e:GetHandlerPlayer())
+
+-- ②效果：Cost / Target / Operation
+function s.tgcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return c:CheckRemoveOverlayCard(tp,2,REASON_COST) end
+	c:RemoveOverlayCard(tp,2,2,REASON_COST)
 end
-function s.desrepop(e,tp,eg,ep,ev,re,r,rp)
-	e:GetHandler():RemoveOverlayCard(tp,1,1,REASON_EFFECT)
-	Duel.Hint(HINT_CARD,0,id)
+
+function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsOnField() end
+	if chk==0 then return Duel.IsExistingTarget(Card.IsOnField,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local g=Duel.SelectTarget(tp,Card.IsOnField,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
+	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,g,1,0,0)
 end
-function s.xyzfilter(c)
-	return c:IsAttribute(ATTRIBUTE_DARK) and c:IsType(TYPE_MONSTER) and c:IsCanOverlay()
+
+function s.tgop(e,tp,eg,ep,ev,re,r,rp)
+	local tc=Duel.GetFirstTarget()
+	if not tc or not tc:IsRelateToEffect(e) then return end
+	-- 自己回合发动：持有者必须送去墓地（玩家行为/REASON_RULE，穿透全抗）
+	if Duel.GetTurnPlayer()==tp then
+		local p=tc:GetOwner()
+		Duel.SendtoGrave(tc,REASON_RULE,p)
+	else
+		-- 对方回合发动：一般的效果送去墓地
+		Duel.SendtoGrave(tc,REASON_EFFECT)
+	end
 end
-function s.xyztg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and s.xyzfilter(chkc) end
-	if chk==0 then return e:GetHandler():IsType(TYPE_XYZ)
-		and Duel.IsExistingTarget(s.xyzfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil) end
+
+-- ③效果：墓地/除外区机械族怪兽过滤
+function s.mtfilter(c,e,tp)
+	return c:IsRace(RACE_MACHINE) and c:IsType(TYPE_MONSTER)
+		and (c:IsLocation(LOCATION_GRAVE) or c:IsFaceup())
+		and not c:IsForbidden()
+end
+
+function s.mttg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and chkc:IsControler(tp) and s.mtfilter(chkc,e,tp) end
+	if chk==0 then return Duel.IsExistingTarget(s.mtfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,e,tp) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
-	local g=Duel.SelectTarget(tp,s.xyzfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil)
+	local g=Duel.SelectTarget(tp,s.mtfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,e,tp)
 	Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,g,1,0,0)
 end
-function s.xyzop(e,tp,eg,ep,ev,re,r,rp)
+
+function s.mtop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	local tc=Duel.GetFirstTarget()
-	if c:IsRelateToEffect(e) and tc:IsRelateToEffect(e) and tc:IsCanOverlay() then
-		Duel.Overlay(c,Group.FromCards(tc))
-	end
-end
-function s.tdcon(e,tp,eg,ep,ev,re,r,rp)
-	return e:GetHandler():GetPreviousOverlayCountOnField()>0 and e:GetHandler():IsPreviousLocation(LOCATION_MZONE)
-end
-function s.tdfilter(c)
-	return c:IsAttribute(ATTRIBUTE_DARK) and ((c:IsLevel(5) and c:IsAbleToDeck()) or (c:IsRank(5) and c:IsAbleToExtra()))
-end
-function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	local c=e:GetHandler()
-	if chkc then return chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and chkc:IsControler(tp) and s.tdfilter(chkc) end
-	if chk==0 then return Duel.IsExistingTarget(s.tdfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil) and c:IsAbleToDeck() end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
-	local g=Duel.SelectTarget(tp,s.tdfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil)
-	g:AddCard(c)
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,g,g:GetCount(),0,0)
-end
-function s.tdop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	local tc=Duel.GetFirstTarget()
-	if tc:IsRelateToEffect(e) and Duel.SendtoDeck(tc,nil,SEQ_DECKBOTTOM,REASON_EFFECT)>0 and c:IsRelateToEffect(e) then
-		Duel.SendtoDeck(c,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+	if c:IsRelateToEffect(e) and tc and tc:IsRelateToEffect(e) and not tc:IsImmuneToEffect(e) then
+		Duel.Overlay(c,tc)
 	end
 end

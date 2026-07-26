@@ -27,16 +27,14 @@ function s.initial_effect(c)
 	e2:SetTarget(s.ovtg)
 	e2:SetOperation(s.ovop)
 	c:RegisterEffect(e2)
-	--战破抗性       
+	--代替破坏  
     local e3=Effect.CreateEffect(c)
-	e3:SetType(EFFECT_TYPE_XMATERIAL)
-	e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e3:SetType(EFFECT_TYPE_XMATERIAL+EFFECT_TYPE_CONTINUOUS)
+	e3:SetCode(EFFECT_DESTROY_REPLACE)
+    e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
 	e3:SetRange(LOCATION_MZONE)
-	e3:SetCode(EFFECT_INDESTRUCTABLE_COUNT)
-	e3:SetCountLimit(1)
-    e3:SetCondition(s.indcon)
-	e3:SetValue(s.indval)
-	c:RegisterEffect(e3)   
+	e3:SetTarget(s.reptg)
+	c:RegisterEffect(e3)
 end
 function s.spcon(e)
 	return Duel.GetFieldGroupCount(e:GetHandlerPlayer(),LOCATION_ONFIELD,0)==1
@@ -66,8 +64,8 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 				Duel.SpecialSummon(sg,0,tp,tp,false,false,POS_FACEUP)
             end   
     	end
-	end
-    Duel.ShuffleDeck(tp)
+        Duel.ShuffleDeck(tp)
+	end    
 end
 function s.codecon(e)
 	return e:GetHandler():IsPreviousLocation(LOCATION_EXTRA)
@@ -109,10 +107,12 @@ function s.ovop(e,tp,eg,ep,ev,re,r,rp)
 		end            
 	end
 end
-function s.indcon(e,tp,eg,ep,ev,re,r,rp)
+function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
-	return c:IsSetCard(0xacaa) and c:IsType(TYPE_XYZ)
-end
-function s.indval(e,re,r,rp)
-	return r&REASON_BATTLE~=0
+	if chk==0 then return c:IsReason(REASON_BATTLE) and not c:IsReason(REASON_REPLACE)
+		and c:CheckRemoveOverlayCard(tp,1,REASON_EFFECT) end
+	if Duel.SelectEffectYesNo(tp,c,96) then
+		c:RemoveOverlayCard(tp,1,1,REASON_EFFECT)
+		return true
+	else return false end
 end

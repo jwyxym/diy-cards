@@ -1,8 +1,9 @@
 --绝大唯我·马塞班恩
 local s,id,o=GetID()
 function s.initial_effect(c)
+	aux.AddCodeList(c,31280237)
 	--超量召唤
-	aux.AddXyzProcedure(c,nil,6,6,s.ovfilter,aux.Stringid(id,0),6,s.xyzop)
+	aux.AddXyzProcedure(c,nil,6,6,s.ovfilter,aux.Stringid(id,0))
 	c:EnableReviveLimit()
 	--效果耐性      
     local e1=Effect.CreateEffect(c)
@@ -40,17 +41,13 @@ function s.initial_effect(c)
 	e3:SetTarget(s.damtg)
 	e3:SetOperation(s.damop)
 	c:RegisterEffect(e3)   
-    Duel.AddCustomActivityCounter(id+o*2,ACTIVITY_CHAIN,s.chainfilter)
+    Duel.AddCustomActivityCounter(id,ACTIVITY_CHAIN,s.chainfilter)
 end    
 function s.chainfilter(re,tp,cid)
 	return not (re:IsActiveType(TYPE_SPELL) and re:GetHandler():IsSetCard(0xacaa))
 end
 function s.ovfilter(c)
 	return c:IsFaceup() and c:IsCode(31280237) and c:GetOverlayCount()==0
-end
-function s.xyzop(e,tp,chk)
-	if chk==0 then return Duel.GetFlagEffect(tp,id+o)==0 end
-	Duel.RegisterFlagEffect(tp,id+o,RESET_PHASE+PHASE_END,EFFECT_FLAG_OATH,1)
 end
 function s.imcon(e,tp,eg,ep,ev,re,r,rp)
 	return re:GetHandler()~=e:GetHandler()
@@ -60,7 +57,7 @@ function s.cfilter(c)
 end
 function s.imcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	local b1=Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_HAND,0,1,nil)
-	local b2=Duel.GetCustomActivityCount(id+o*2,tp,ACTIVITY_CHAIN)>0
+	local b2=Duel.GetCustomActivityCount(id,tp,ACTIVITY_CHAIN)>0
 	if chk==0 then return b1 or b2 end
 	if b1 then
 		if b2 and not Duel.SelectYesNo(tp,aux.Stringid(id,4)) then return end

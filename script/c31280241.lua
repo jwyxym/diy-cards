@@ -4,24 +4,24 @@ function s.initial_effect(c)
 	--发动
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetCategory(CATEGORY_REMOVE+CATEGORY_DRAW+CATEGORY_SPECIAL_SUMMON)
-	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e1:SetCategory(CATEGORY_TOGRAVE+CATEGORY_DRAW+CATEGORY_RECOVER)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetCountLimit(1,id+EFFECT_COUNT_CODE_OATH)
-	e1:SetTarget(s.rmtg)
-	e1:SetOperation(s.rmop)
+	e1:SetTarget(s.tgtg)
+	e1:SetOperation(s.tgop)
 	c:RegisterEffect(e1)
-	--补充超量素材
+	--特殊召唤
     local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetType(EFFECT_TYPE_XMATERIAL+EFFECT_TYPE_IGNITION)
-	e2:SetRange(LOCATION_MZONE)
-	e2:SetCountLimit(1)
-	e2:SetCondition(s.ovcon)
-	e2:SetCost(s.ovcost)
-	e2:SetTarget(s.ovtg)
-	e2:SetOperation(s.ovop)
+    e2:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TODECK)
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+    e2:SetCode(EVENT_PHASE+PHASE_END)
+	e2:SetRange(LOCATION_GRAVE)
+    e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
+    e2:SetCondition(s.spcon)
+	e2:SetTarget(s.sptg)
+	e2:SetOperation(s.spop)
 	c:RegisterEffect(e2)
     --手卡发动    
     local e3=Effect.CreateEffect(c)
@@ -31,87 +31,68 @@ function s.initial_effect(c)
 	e3:SetCondition(s.handcon)
 	c:RegisterEffect(e3)
 end    
-function s.rmtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-	if chk==0 then return Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>0 
-    	and Duel.IsExistingMatchingCard(Card.IsAbleToRemove,tp,0,LOCATION_MZONE,1,nil) end
+function s.tgfilter(c)
+	return c:IsAbleToGrave() and c:IsLevelBelow(5)
+end
+function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.tgfilter,tp,0,LOCATION_MZONE,1,nil) end
+    Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,1-tp,LOCATION_MZONE)
 end
 function s.spfilter(c)
 	return c:IsXyzSummonable(nil)
 end
-function s.rmop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	local g=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
-	if g:GetCount()<1 then return end
-	Duel.ConfirmCards(1-tp,g)
-    Duel.ShuffleDeck(tp)
-	if g:GetClassCount(Card.GetCode)==g:GetCount() then
-    	local rg=Duel.GetMatchingGroup(Card.IsAbleToRemove,tp,0,LOCATION_MZONE,nil)
-		if rg:GetCount()>0 then
-			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-			local sg=rg:Select(tp,1,1,nil)
-			Duel.HintSelection(sg)
-			if Duel.Remove(sg,POS_FACEUP,REASON_EFFECT)~=0 
-            	and Duel.CheckRemoveOverlayCard(tp,1,0,1,REASON_EFFECT) 
-                and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
-                Duel.BreakEffect()				              	
-                local ct=Duel.RemoveOverlayCard(tp,1,0,1,2,REASON_EFFECT)
-                local cg=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_EXTRA,0,nil)
-                local b1=ct>0 and Duel.IsPlayerCanDraw(tp,ct)
-                local b2=cg:GetCount()>0
-               	local off=1
-				local ops={}
-				local opval={}
-                if b1 then
-					ops[off]=aux.Stringid(id,4)
-					opval[off-1]=1
-					off=off+1
-				end
-				if b2 then
-					ops[off]=aux.Stringid(id,5)
-					opval[off-1]=2
-					off=off+1
-				end
-                local op=Duel.SelectOption(tp,table.unpack(ops))
-				if opval[op]==1 then
-                    Duel.BreakEffect()
-					Duel.Draw(tp,ct,REASON_EFFECT)
-				elseif opval[op]==2 then
-					Duel.BreakEffect()
-					Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-					local tg=cg:Select(tp,1,1,nil)
-					Duel.XyzSummon(tp,tg:GetFirst(),nil)                  
-				end    
-			end
-		end        
+function s.tgop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local sc=Duel.GetMatchingGroup(s.tgfilter,tp,0,LOCATION_MZONE,nil):Select(tp,1,1,nil):GetFirst()
+    if not sc then return end
+    Duel.HintSelection(Group.FromCards(sc))
+    local g=Duel.GetFieldGroup(tp,LOCATION_DECK,0)
+    if Duel.SendtoGrave(sc,REASON_EFFECT)~=0 and sc:IsLocation(LOCATION_GRAVE) 
+    	and g:GetCount()>0 and Duel.IsPlayerCanDraw(tp,1) and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
+        Duel.BreakEffect()
+		Duel.ConfirmCards(1-tp,g)
+    	if g:GetClassCount(Card.GetCode)==g:GetCount() and Duel.Draw(tp,1,REASON_EFFECT)~=0 then
+        	Duel.Recover(tp,800,REASON_EFFECT)		
+		end
+        Duel.ShuffleDeck(tp)        
 	end        
 end
-function s.ovfilter(c,e)
-	return c:IsCanOverlay() and (not e or not c:IsImmuneToEffect(e)) and c:IsSetCard(0xacaa)
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+	return tp==Duel.GetTurnPlayer()
+end
+function s.spfilter(c,e,tp)
+	return c:IsCanBeSpecialSummoned(e,0,tp,false,false) and c:IsSetCard(0xacaa) and (c:IsFaceup() or c:IsLocation(LOCATION_GRAVE))
+    	and c:IsType(TYPE_XYZ)
+end
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	local c=e:GetHandler()
+	if chkc then return chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and chkc:IsControler(tp) and s.spfilter(chkc,e,tp) end
+	if chk==0 then return Duel.IsExistingTarget(s.spfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,e,tp) 
+    	and c:IsAbleToDeck() end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local g=Duel.SelectTarget(tp,s.spfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,e,tp)
+    Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,g,1,0,0)
+    Duel.SetOperationInfo(0,CATEGORY_TODECK,c,1,0,0)
+end	
+function s.mtfilter(c,e)
+	return c:IsCanOverlay() and not (e and c:IsImmuneToEffect(e))
+end
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tc=Duel.GetFirstTarget()
+    if c:IsRelateToEffect(e) and aux.NecroValleyFilter()(c) and Duel.SendtoDeck(c,nil,SEQ_DECKBOTTOM,REASON_EFFECT)~=0
+    	and c:IsLocation(LOCATION_DECK) and tc:IsRelateToEffect(e) and aux.NecroValleyFilter()(tc) and Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)~=0 
+        and tc:IsType(TYPE_XYZ) and not tc:IsImmuneToEffect(e) and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(s.mtfilter),tp,LOCATION_GRAVE,0,1,nil,e) 
+        and Duel.SelectYesNo(tp,aux.Stringid(id,4)) then
+        Duel.BreakEffect()
+        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
+		local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.mtfilter),tp,LOCATION_GRAVE,0,1,1,nil,e)
+		if g:GetCount()>0 then
+        	Duel.HintSelection(g)
+        	Duel.Overlay(tc,g)
+        end
+	end        
 end        
-function s.ovcon(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	return c:IsSetCard(0xacaa) and c:IsType(TYPE_XYZ)
-end
-function s.ovcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckRemoveOverlayCard(tp,1,0,2,REASON_COST) end
-	Duel.RemoveOverlayCard(tp,1,0,2,2,REASON_COST)
-end
-function s.ovtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return e:GetHandler():IsType(TYPE_XYZ) and Duel.IsExistingMatchingCard(s.ovfilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,nil) end
-end
-function s.ovop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) then
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
-		local g=Duel.SelectMatchingCard(tp,s.ovfilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil,e)
-		local tc=g:GetFirst()
-		if tc then
-			Duel.Overlay(c,tc)
-		end
-		Duel.ShuffleDeck(tp)
-	end
-end
 function s.handcon(e)
 	return Duel.IsExistingMatchingCard(Card.IsFaceup,e:GetHandlerPlayer(),LOCATION_MZONE,0,1,nil) 
     	and not Duel.IsExistingMatchingCard(Card.IsFaceup,e:GetHandlerPlayer(),LOCATION_MZONE,0,2,nil) 

@@ -16,7 +16,7 @@ function s.initial_effect(c)
     e1:SetOperation(s.rmop)
     c:RegisterEffect(e1)
     
-    --②效果：主要阶段，把墓地1张哥布林卡除外，从卡组·除外状态盖放1张哥布林魔陷
+    --②效果：双方的主要阶段，把墓地1张哥布林卡除外，从卡组·除外状态盖放1张哥布林魔陷
     local e2=Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id,1))
     e2:SetCategory(CATEGORY_REMOVE+CATEGORY_LEAVE_GRAVE)
@@ -25,6 +25,7 @@ function s.initial_effect(c)
     e2:SetRange(LOCATION_MZONE)
     e2:SetHintTiming(0,TIMING_MAIN_END)
     e2:SetCountLimit(1,id+100)
+    e2:SetCondition(s.setcon)
     e2:SetCost(s.setcost)
     e2:SetTarget(s.settg)
     e2:SetOperation(s.setop)
@@ -49,15 +50,18 @@ end
 
 function s.rmop(e,tp,eg,ep,ev,re,r,rp)
     local c=e:GetHandler()
-    --从卡组除外1只哥布林怪兽
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
     local g=Duel.SelectMatchingCard(tp,s.rmfilter,tp,LOCATION_DECK,0,1,1,nil)
     if #g==0 then return end
     if Duel.Remove(g,POS_FACEUP,REASON_EFFECT)==0 then return end
-    --特殊召唤这张卡
     if c:IsRelateToEffect(e) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 then
         Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
     end
+end
+
+--②效果条件：双方的主要阶段
+function s.setcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.IsMainPhase()
 end
 
 --②效果Cost：把墓地1张哥布林卡除外

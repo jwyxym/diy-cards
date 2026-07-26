@@ -46,7 +46,7 @@ function s.tg2(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 function s.op2(e,tp,eg,ep,ev,re,r,rp)
     local ct=1
-    local mat3=e:GetHandler():GetMaterialCount()>=3
+    local mat3=e:GetHandler():GetMaterialCount()>=3 and e:GetHandler():IsSummonType(SUMMON_TYPE_FUSION)
     if mat3 and Duel.IsExistingMatchingCard(s.filter2,tp,LOCATION_DECK,0,2,nil)
         and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then ct=2 end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)

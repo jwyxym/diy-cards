@@ -35,7 +35,18 @@ jobs:
 
     - name: Push to Server
       run: |
-        scp xiao.ypk ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PATH }}
+        scp xiao.ypk ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PATH }}/expansions/
+
+    - name: Deploy to Server via SFTP
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.5
+      with:
+        username: ${{ secrets.SSH_USER }}
+        server: ${{ secrets.SSH_SERVER }}
+        port: 22
+        local_path: './pics/*'
+        remote_path: ${{ secrets.SSH_PATH }}/pics
+        sftp_only: true
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Create release-latest
       run: |

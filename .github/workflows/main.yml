@@ -6,7 +6,23 @@ on:
       - main
     
 jobs:
-  push:
+  push-pic:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy to Server via SFTP
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.5
+      with:
+        username: ${{ secrets.SSH_USER }}
+        server: ${{ secrets.SSH_SERVER }}
+        port: 22
+        local_path: './pics/*'
+        remote_path: ${{ secrets.SSH_PATH }}/pics
+        sftp_only: true
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+  push-pack:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -37,17 +53,6 @@ jobs:
       run: |
         scp xiao.ypk ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PATH }}/expansions/
 
-    - name: Deploy to Server via SFTP
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.5
-      with:
-        username: ${{ secrets.SSH_USER }}
-        server: ${{ secrets.SSH_SERVER }}
-        port: 22
-        local_path: './pics/*'
-        remote_path: ${{ secrets.SSH_PATH }}/pics
-        sftp_only: true
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-
     - name: Create release-latest
       run: |
         gh release delete release-latest --cleanup-tag -y || true
@@ -58,4 +63,3 @@ jobs:
           --latest
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    

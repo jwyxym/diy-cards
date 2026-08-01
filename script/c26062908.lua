@@ -36,9 +36,9 @@ function s.initial_effect(c)
     c:RegisterEffect(e2)
 end
 
--- ① 对象：自己墓地最多2只记述「春日影」怪兽
+-- ① 对象：自己墓地最多2只记述「春日影」的怪兽（必须是怪兽）
 function s.filter1(c)
-    return aux.IsCodeListed(c,26062911) and c:IsAbleToDeck()
+    return aux.IsCodeListed(c,26062911) and c:IsType(TYPE_MONSTER) and c:IsAbleToDeck()
 end
 function s.target1(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
     if chkc then return chkc:IsLocation(LOCATION_GRAVE) and chkc:IsControler(tp) and s.filter1(chkc) end

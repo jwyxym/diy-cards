@@ -4,26 +4,28 @@ function s.initial_effect(c)
 	-- 标记为有「伊瑟拉」卡名记述
 	aux.AddCodeList(c,44990100)
 
-	-- ① 对方发动怪兽效果时，丢1手卡特召自身（一回合一次）
+	-- ① 对方发动怪兽效果时，丢1手卡特召自身
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e1:SetType(EFFECT_TYPE_QUICK_O)
 	e1:SetCode(EVENT_CHAINING)
 	e1:SetRange(LOCATION_HAND)
+	e1:SetCountLimit(1,id)
 	e1:SetCondition(s.spcon)
 	e1:SetCost(s.spcost)
 	e1:SetTarget(s.sptg)
 	e1:SetOperation(s.spop)
 	c:RegisterEffect(e1)
 
-	-- ② 特殊召唤成功时，超量召唤「伊瑟拉」并填充素材（一回合一次）
+	-- ② 特殊召唤成功时，超量召唤「伊瑟拉」并填充素材
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e2:SetCode(EVENT_SPSUMMON_SUCCESS)
 	e2:SetProperty(EFFECT_FLAG_DELAY)
+	e2:SetCountLimit(1,id+100)
 	e2:SetCondition(s.xyzcon)
 	e2:SetTarget(s.xyztg)
 	e2:SetOperation(s.xyzop)
@@ -40,10 +42,9 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 end
 
--- ① 条件：对方发动怪兽效果 + 一回合一次
+-- ① 条件：对方发动怪兽效果
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return ep==1-tp and re:IsActiveType(TYPE_MONSTER)
-		and Duel.GetFlagEffect(tp,id)==0
 end
 
 -- ① cost：丢弃手卡1张此卡以外的卡
@@ -63,36 +64,26 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
 
--- ① 操作：特殊召唤并设置标志
+-- ① 操作：特殊召唤并设置自肃标志
 function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if c:IsRelateToEffect(e) then
 		Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
-		Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
+		Duel.RegisterFlagEffect(tp,id+200,RESET_PHASE+PHASE_END,0,1) -- 自肃标志
 	end
 end
 
--- ② 条件：一回合一次
+-- ② 条件：一回合一次（标志检查）
 function s.xyzcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetFlagEffect(tp,id+100)==0
+	return Duel.GetFlagEffect(tp,id+300)==0
 end
 
--- ② 目标：额外有伊瑟拉，墓地有记述伊瑟拉的怪兽
-function s.xyztg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then
-		if Duel.GetFlagEffect(tp,id+100)>0 then return false end
-		if not Duel.IsExistingMatchingCard(s.xyzfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp) then return false end
-		if not Duel.IsExistingMatchingCard(s.mfilter,tp,LOCATION_GRAVE,0,1,nil) then return false end
-		return true
-	end
-end
-
--- 额外卡组的伊瑟拉
+-- ② 额外卡组的「伊瑟拉」超量怪兽（修正：不再限定44990100）
 function s.xyzfilter(c,e,tp)
-	return c:IsCode(44990100) and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_XYZ,tp,false,false)
+	return c:IsSetCard(0xcf1) and c:IsType(TYPE_XYZ) and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_XYZ,tp,false,false)
 end
 
--- 墓地记述「伊瑟拉」的怪兽（兼容）
+-- ② 墓地记述「伊瑟拉」的怪兽（兼容）
 function s.mfilter(c)
 	if aux.IsCodeListed then
 		return aux.IsCodeListed(c,44990100) and c:IsType(TYPE_MONSTER)
@@ -101,31 +92,41 @@ function s.mfilter(c)
 	end
 end
 
+-- ② 目标检查
+function s.xyztg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then
+		if Duel.GetFlagEffect(tp,id+300)>0 then return false end
+		if not Duel.IsExistingMatchingCard(s.xyzfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp) then return false end
+		if not Duel.IsExistingMatchingCard(s.mfilter,tp,LOCATION_GRAVE,0,1,nil) then return false end
+		return true
+	end
+end
+
 -- ② 操作：特召伊瑟拉并叠放素材
 function s.xyzop(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.GetFlagEffect(tp,id+100)>0 then return end
+	if Duel.GetFlagEffect(tp,id+300)>0 then return end
 	local c=e:GetHandler()
 	if not c:IsRelateToEffect(e) or c:IsFacedown() then return end
 
-	-- 选择额外卡组的伊瑟拉
+	-- 选择额外卡组的伊瑟拉超量怪兽
 	local xg=Duel.GetMatchingGroup(s.xyzfilter,tp,LOCATION_EXTRA,0,nil,e,tp)
 	if #xg==0 then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 	local xyz=xg:Select(tp,1,1,nil):GetFirst()
 
-	-- 选择墓地1只怪兽
+	-- 选择墓地1只记述伊瑟拉的怪兽
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
 	local mg=Duel.SelectMatchingCard(tp,s.mfilter,tp,LOCATION_GRAVE,0,1,1,nil)
 	if #mg==0 then return end
 
-	-- 特殊召唤伊瑟拉（视为超量召唤）
+	-- 特殊召唤选中的伊瑟拉超量怪兽（视为超量召唤）
 	if Duel.SpecialSummon(xyz,SUMMON_TYPE_XYZ,tp,tp,false,false,POS_FACEUP)>0 then
 		-- 将场上的这张卡与墓地怪兽作为超量素材
 		local og=Group.FromCards(c,mg:GetFirst())
 		Duel.Overlay(xyz,og)
 
 		-- 设置一回合一次标志与自肃标志
-		Duel.RegisterFlagEffect(tp,id+100,RESET_PHASE+PHASE_END,0,1)
+		Duel.RegisterFlagEffect(tp,id+300,RESET_PHASE+PHASE_END,0,1)
 		Duel.RegisterFlagEffect(tp,id+200,RESET_PHASE+PHASE_END,0,1)
 	end
 end

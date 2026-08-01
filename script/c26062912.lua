@@ -1,7 +1,10 @@
 -- 为什么要演奏春日影？！ 长崎爽世
 -- ID: 26062912
+-- 记述「春日影」(26062911)
 local s,id=GetID()
 function s.initial_effect(c)
+    aux.AddCodeList(c,26062911)  -- 声明卡名记述，使其可以被「春日影」检索
+
     -- ① 场地魔法卡发动成功后，从手卡另开连锁特召，并视情况破坏双方场地
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))
@@ -85,14 +88,14 @@ function s.rmop(e,tp,eg,ep,ev,re,r,rp)
         e1:SetValue(800)
         e1:SetReset(RESET_EVENT+RESETS_STANDARD)
         c:RegisterEffect(e1)
-        -- 双倍穿防 (参考白き森の魔狼)
+        -- 双倍穿防
         local e2=Effect.CreateEffect(c)
         e2:SetType(EFFECT_TYPE_SINGLE)
         e2:SetCode(EFFECT_PIERCE)
         e2:SetValue(DOUBLE_DAMAGE)
         e2:SetReset(RESET_EVENT+RESETS_STANDARD)
         c:RegisterEffect(e2)
-        -- 结束阶段送墓（全局持续效果+Flag标记）
+        -- 结束阶段送墓
         local fid=c:GetFieldID()
         c:RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD,0,1,fid)
         local e4=Effect.CreateEffect(c)

@@ -32,7 +32,7 @@ function s.initial_effect(c)
     e2:SetOperation(s.thop)
     c:RegisterEffect(e2)
 
-    -- ③ 代替破坏（保护记述「春日影」的怪兽，除外墓地1只怪兽）
+    -- ③ 代替破坏（保护记述「春日影」的怪兽，除外墓地1只怪兽和这张卡自身）
     local e3=Effect.CreateEffect(c)
     e3:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_FIELD)
     e3:SetCode(EFFECT_DESTROY_REPLACE)
@@ -92,16 +92,17 @@ end
 function s.repval(e,c)
     return s.repfilter(c,e:GetHandlerPlayer())
 end
--- ③ 执行代替
+-- ③ 执行代替（修正：确保除外墓地怪兽和自身）
 function s.repop(e,tp,eg,ep,ev,re,r,rp)
     local c=e:GetHandler()
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
     local g=Duel.SelectMatchingCard(tp,s.rmfilter,tp,LOCATION_GRAVE,0,1,1,nil)
     if #g>0 then
         Duel.Remove(g,POS_FACEUP,REASON_EFFECT)
-        if c:IsRelateToEffect(e) then
-            Duel.Remove(c,POS_FACEUP,REASON_EFFECT)
-        end
+    end
+    -- 直接除外场地，不再检查 IsRelateToEffect
+    if c:IsAbleToRemove() then
+        Duel.Remove(c,POS_FACEUP,REASON_EFFECT)
     end
     Duel.Hint(HINT_CARD,0,id)
 end

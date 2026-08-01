@@ -45,9 +45,9 @@ function s.tgcon(e,tp,eg,ep,ev,re,r,rp)
     return not e:GetHandler():IsPreviousLocation(LOCATION_DECK)
 end
 
--- ② 检索对象：记述「春日影」、战士族以外
+-- ② 检索对象：记述「春日影」的怪兽，且战士族以外
 function s.tgfilter(c)
-    return aux.IsCodeListed(c,26062911) and not c:IsRace(RACE_WARRIOR) and c:IsAbleToHand()
+    return aux.IsCodeListed(c,26062911) and c:IsType(TYPE_MONSTER) and not c:IsRace(RACE_WARRIOR) and c:IsAbleToHand()
 end
 function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return Duel.IsExistingMatchingCard(s.tgfilter,tp,LOCATION_DECK,0,1,nil) end

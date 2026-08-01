@@ -2,7 +2,8 @@
 local s,id=GetID()
 function s.initial_effect(c)
 	aux.AddCodeList(c,id)
-	aux.AddXyzProcedure(c,s.xyzfilter,9,2)
+	-- 超量召唤：风属性9星×2（标准写法，与觉醒巨龙、沉睡者完全一致）
+	aux.AddXyzProcedure(c,aux.FilterBoolFunction(Card.IsAttribute,ATTRIBUTE_WIND),9,2)
 	c:EnableReviveLimit()
 
 	-- ① 无效魔法并破坏
@@ -33,10 +34,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 
-function s.xyzfilter(c)
-	return c:IsAttribute(ATTRIBUTE_WIND) and c:IsLevel(9) and c:IsFaceup()
-end
-
+-- ① 效果
 function s.negcon(e,tp,eg,ep,ev,re,r,rp)
 	return ep==1-tp and re:IsActiveType(TYPE_SPELL) and Duel.IsChainDisablable(ev)
 end
@@ -57,22 +55,20 @@ function s.negop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
+-- ② 效果
 function s.IsYseraCard(c)
 	return aux.IsCodeListed(c,id)
 end
-
 function s.abscon(e,tp,eg,ep,ev,re,r,rp)
 	if not (re:IsHasType(EFFECT_TYPE_ACTIVATE) and rp==tp) then return false end
 	local rc=re:GetHandler()
 	return rc and rc:IsType(TYPE_SPELL) and s.IsYseraCard(rc)
 end
-
 function s.abstg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return re:GetHandler():IsCanOverlay() end
 	re:GetHandler():CreateEffectRelation(e)
 	Duel.SetOperationInfo(0,CATEGORY_DESTROY,nil,1,0,0)
 end
-
 function s.absop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	local tc=re:GetHandler()

@@ -7,6 +7,7 @@ function s.initial_effect(c)
 	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
 	e1:SetType(EFFECT_TYPE_SINGLE)
 	e1:SetCode(EFFECT_SUMMON_PROC)
+    e1:SetCondition(s.ntcon)
 	c:RegisterEffect(e1)
 	--卡组检索    
     local e2=Effect.CreateEffect(c)
@@ -40,6 +41,10 @@ function s.initial_effect(c)
     e5:SetCondition(s.regcon)
 	e5:SetOperation(s.regop)
 	c:RegisterEffect(e5)
+end
+function s.ntcon(e,c,minc)
+	if c==nil then return true end
+	return minc==0 and c:IsLevelAbove(5) and Duel.GetLocationCount(c:GetControler(),LOCATION_MZONE)>0
 end
 function s.thfilter(c)
 	return c:IsSetCard(0x9ca1) and not c:IsCode(id) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()

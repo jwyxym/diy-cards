@@ -61,6 +61,7 @@ end
 function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsAbleToDeckAsCost() end
 	Duel.SendtoDeck(e:GetHandler(),nil,2,REASON_COST)
+    Duel.ConfirmCards(1-tp,e:GetHandler())
 end
 function s.spfilter(c,e,tp)
 	return c:IsSetCard(0x9ca1) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)

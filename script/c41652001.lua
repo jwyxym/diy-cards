@@ -12,12 +12,11 @@ function s.initial_effect(c)
 	e1:SetCondition(s.atkcon)
 	e1:SetOperation(s.atkop)
 	c:RegisterEffect(e1)
-	--to grave
+	--destroy & draw/search
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,0))
-	e2:SetCategory(CATEGORY_DESTROY)
-	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-	e2:SetProperty(EFFECT_FLAG_DELAY)
+	e2:SetCategory(CATEGORY_DESTROY+CATEGORY_DRAW+CATEGORY_SEARCH)
+	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_F)
 	e2:SetCode(EVENT_SPSUMMON_SUCCESS)
 	e2:SetCountLimit(1,id)
 	e2:SetCondition(s.descon)
@@ -54,24 +53,25 @@ function s.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
 end
 function s.thfilter(c)
-	return c:IsSetCard(0xe91) and c:IsAbleToHand()
+	return c:IsSetCard(0xe91) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
 end
 function s.desop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	local tc=Duel.GetFirstTarget()
 	if tc:IsRelateToEffect(e) and Duel.Destroy(tc,REASON_EFFECT)~=0 then
-		if tc:GetOriginalType()&TYPE_MONSTER>0 then
+		-- 检查是否破坏的是怪兽卡且对方场上有怪兽
+		if (tc:GetOriginalType()&TYPE_MONSTER)>0 and Duel.IsExistingMatchingCard(Card.IsFaceup,tp,0,LOCATION_MZONE,1,nil) then
 			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
 			local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
-			if g:GetCount()>0 then
+			if #g>0 then
 				Duel.SendtoHand(g,nil,REASON_EFFECT)
 				Duel.ConfirmCards(1-tp,g)
 			end
 		else
-			Duel.BreakEffect()
 			Duel.Draw(tp,1,REASON_EFFECT)
 		end
 	end
+	-- 自肃
 	local e1=Effect.CreateEffect(c)
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -82,5 +82,5 @@ function s.desop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e1,tp)
 end
 function s.splimit(e,c,sump,sumtype,sumpos,targetp)
-	return not c:IsType(TYPE_NORMAL) and c:IsLocation(LOCATION_HAND+LOCATION_DECK)
+	return not c:IsType(TYPE_NORMAL) and not c:IsSetCard(0xe91) and c:IsLocation(LOCATION_HAND+LOCATION_DECK)
 end

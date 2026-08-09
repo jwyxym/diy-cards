@@ -30,11 +30,11 @@ function s.initial_effect(c)
 	e3:SetOperation(s.repop)
 	c:RegisterEffect(e3)
 end
+function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(nil,tp,0,LOCATION_HAND,1,nil) end
+end
 function s.cffilter(c)
 	return not c:IsPublic() and c:IsType(TYPE_MONSTER)
-end
-function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.cffilter,tp,0,LOCATION_HAND,1,nil) end
 end
 function s.thfilter(c,att)
 	return aux.IsCodeOrListed(c,41652000) and c:IsAttribute(att) and c:IsAbleToHand()
@@ -54,16 +54,22 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function s.chcon(e,tp,eg,ep,ev,re,r,rp)
-	return rp==1-tp
+	return rp==1-tp and e:GetHandler():GetFlagEffect(id)<=0
+end
+function s.disfilter(c,att)
+	return aux.IsCodeOrListed(c,41652000) and c:IsDiscardable()
 end
 function s.chop(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.SelectYesNo(tp,aux.Stringid(id,0)) then
+	local tp=e:GetHandlerPlayer()
+	if Duel.IsExistingMatchingCard(s.disfilter,tp,LOCATION_HAND,0,1,nil) and Duel.SelectYesNo(tp,aux.Stringid(id,0)) then
+		Duel.DiscardHand(tp,s.disfilter,1,1,REASON_DISCARD)
 		local g=Group.CreateGroup()
 		Duel.ChangeTargetCard(ev,g)
-		Duel.ChangeChainOperation(ev,s.repop)
+		Duel.ChangeChainOperation(ev,s.chpop)
+		e:GetHandler():RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,EFFECT_FLAG_CLIENT_HINT,1,0,aux.Stringid(id,1))
 	end
 end
-function s.repop(e,tp,eg,ep,ev,re,r,rp)
+function s.chpop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Draw(1-tp,2,REASON_EFFECT)
 end
 function s.repfilter(c)

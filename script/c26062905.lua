@@ -1,7 +1,7 @@
 -- 决定性的一句话 若叶睦
 -- ID: 26062905
 -- 记述「春日影」(26062911)
--- 「丰川祥子」字段 (0x951)
+-- 「丰川祥子」字段 (0xb10)
 local s,id=GetID()
 function s.initial_effect(c)
     aux.AddCodeList(c,26062911)  -- 声明卡名记述
@@ -53,8 +53,8 @@ function s.operation1(e,tp,eg,ep,ev,re,r,rp)
     if Duel.SendtoGrave(c,REASON_EFFECT)~=0 then
         local tc=Duel.GetFirstTarget()
         if tc:IsRelateToEffect(e) and Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)>0 then
-            -- 如果是「丰川祥子」怪兽 (0x951)，可以抽1张
-            if tc:IsSetCard(0x951) and Duel.IsPlayerCanDraw(tp,1)
+            -- 如果是「丰川祥子」怪兽 (0xb10)，可以抽1张
+            if tc:IsSetCard(0xb10) and Duel.IsPlayerCanDraw(tp,1)
                 and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
                 Duel.Draw(tp,1,REASON_EFFECT)
             end

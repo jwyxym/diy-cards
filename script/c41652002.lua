@@ -1,4 +1,4 @@
--- 点画龙神
+-- 画龙之南·赤
 local s,id,o=GetID()
 function s.initial_effect(c)
 	c:EnableReviveLimit()
@@ -61,7 +61,7 @@ function s.refilter(c,tp)
 	return ((c:GetOriginalRace()&RACE_WYRM>0 and not c:IsLocation(LOCATION_MZONE)) or c:IsRace(RACE_WYRM)) and ((c:IsControler(tp) and c:IsFaceupEx()) or c:IsFaceup()) and c:IsAbleToRemoveAsCost()
 end
 function s.rfilter(c,tp)
-	return ((c:GetOriginalAttribute()&ATTRIBUTE_WATER>0 and not c:IsLocation(LOCATION_MZONE)) or c:IsAttribute(ATTRIBUTE_WATER)) and ((c:IsControler(tp) and c:IsFaceupEx()) or c:IsFaceup()) and c:IsAbleToRemoveAsCost()
+	return ((c:GetOriginalAttribute()&(ATTRIBUTE_WATER+ATTRIBUTE_FIRE)>0 and not c:IsLocation(LOCATION_MZONE)) or c:IsAttribute(ATTRIBUTE_WATER+ATTRIBUTE_FIRE)) and ((c:IsControler(tp) and c:IsFaceupEx()) or c:IsFaceup()) and c:IsAbleToRemoveAsCost()
 end
 function s.fselect(g,tp)
 	return g:IsExists(s.rfilter,1,nil,tp)	and Duel.GetMZoneCount(tp,g)>0
@@ -86,7 +86,7 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
 	local g=e:GetLabelObject()
 	Duel.Remove(g,POS_FACEUP,REASON_SPSUMMON)
 	local g1=g:Filter(Card.IsPreviousLocation,nil,LOCATION_MZONE)
-	local g2=g:Filter(Card.IsPreviousLocation,nil,LOCATION_SZONE)
+	local g2=g:Filter(Card.IsPreviousLocation,nil,LOCATION_SZONE+LOCATION_EXTRA)
 	local atk=g1:GetSum(Card.GetPreviousAttackOnField)+g2:GetSum(Card.GetBaseAttack)
 	local def=g1:GetSum(Card.GetPreviousDefenseOnField)+g2:GetSum(Card.GetBaseDefense)
 	local e1=Effect.CreateEffect(c)

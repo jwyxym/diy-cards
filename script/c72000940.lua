@@ -80,7 +80,7 @@ function s.xyzcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	aux.bfgcost(e,tp,eg,ep,ev,re,r,rp,1)
 end
 function s.spfilter(c,e,tp)
-	return (c:IsAttack(0) or c:IsDefense(0)) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsAttribute(ATTRIBUTE_WATER) and c:IsType(TYPE_XYZ) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function s.xyztg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.CheckRemoveOverlayCard(tp,1,0,1,REASON_EFFECT) end

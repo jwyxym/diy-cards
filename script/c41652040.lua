@@ -17,7 +17,6 @@ function s.initial_effect(c)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetCountLimit(1,id+EFFECT_COUNT_CODE_DUEL)
-	e1:SetCost(s.cost)
 	e1:SetOperation(s.activate)
 	c:RegisterEffect(e1)
 	--to grave
@@ -37,42 +36,50 @@ function s.condition(e)
 	return e:GetHandler():IsLocation(LOCATION_HAND)
 end
 function s.actcfilter(c)
-	return c:IsCode(41652000) and not c:IsType(TYPE_NORMAL) and c:IsAbleToRemoveAsCost()
+	return not aux.IsCodeOrListed(c,41652000) and c:IsAbleToRemove()
 end
 function s.actcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.actcfilter,tp,LOCATION_DECK,0,1,nil) end
 	local g=Duel.GetMatchingGroup(s.actcfilter,tp,LOCATION_DECK,0,nil)
 	Duel.Remove(g,POS_FACEDOWN,REASON_COST)
 end
-function s.cfilter(c)
-	return c:IsType(TYPE_EFFECT) and aux.IsCodeOrListed(c,41652000) and c:IsAbleToRemoveAsCost()
-end
-function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_HAND+LOCATION_MZONE,0,1,nil) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-	local g=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_HAND+LOCATION_MZONE,0,1,1,nil)
-	Duel.Remove(g,POS_FACEUP,REASON_COST)
-end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
+	--自己受到的伤害变为0
 	local e0=Effect.CreateEffect(e:GetHandler())
 	e0:SetType(EFFECT_TYPE_FIELD)
-	e0:SetCode(EFFECT_AVOID_BATTLE_DAMAGE)
+	e0:SetCode(EFFECT_CHANGE_DAMAGE)
 	e0:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 	e0:SetTargetRange(1,0)
-	e0:SetValue(1)
+	e0:SetValue(0)
 	e0:SetReset(RESET_PHASE+PHASE_END)
 	Duel.RegisterEffect(e0,tp)
+	--不会被战斗破坏
 	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e1:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
 	e1:SetTargetRange(LOCATION_ONFIELD,0)
 	e1:SetTarget(s.tgfilter)
 	e1:SetReset(RESET_PHASE+PHASE_END)
 	e1:SetValue(1)
 	Duel.RegisterEffect(e1,tp)
-	local e2=e1:Clone()
-	e2:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+	--不会被效果破坏
+	local e2=Effect.CreateEffect(e:GetHandler())
+	e2:SetType(EFFECT_TYPE_FIELD)
+	e2:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e2:SetTargetRange(LOCATION_ONFIELD,0)
+	e2:SetTarget(s.tgfilter)
+	e2:SetReset(RESET_PHASE+PHASE_END)
+	e2:SetValue(1)
 	Duel.RegisterEffect(e2,tp)
+	--不会成为效果对象
+	local e3=Effect.CreateEffect(e:GetHandler())
+	e3:SetType(EFFECT_TYPE_FIELD)
+	e3:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+	e3:SetTargetRange(LOCATION_ONFIELD,0)
+	e3:SetTarget(s.tgfilter)
+	e3:SetReset(RESET_PHASE+PHASE_END)
+	e3:SetValue(1)
+	Duel.RegisterEffect(e3,tp)
 end
 function s.tgfilter(c)
 	return aux.IsCodeOrListed(c,41652000)
@@ -87,7 +94,7 @@ function s.costfilter(c,e,tp)
 	return c:IsType(TYPE_MONSTER) and c:IsAbleToRemove() and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_DECK+LOCATION_EXTRA,0,1,nil,c,e,tp)
 end
 function s.spfilter(c,tc,e,tp)
-	return aux.IsCodeOrListed(c,41652000) and c:GetOriginalAttribute()==tc:GetOriginalAttribute() and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return aux.IsCodeOrListed(c,41652000) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local g=Duel.GetMatchingGroup(s.costfilter,tp,LOCATION_MZONE,0,nil,e,tp)
@@ -99,9 +106,8 @@ function s.tgop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
 	local rg=g:SelectSubGroup(tp,s.fselect,false,2,2)
 	if Duel.Remove(rg,POS_FACEDOWN,REASON_EFFECT)~=0 then
-		local tc=rg:GetFirst()
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-		local sg=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_DECK+LOCATION_EXTRA,0,1,1,nil,tc,e,tp)
+		local sg=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_DECK+LOCATION_EXTRA,0,1,1,nil,nil,e,tp)
 		if sg:GetCount()>0 then
 			Duel.SpecialSummon(sg,0,tp,tp,false,false,POS_FACEUP)
 		end

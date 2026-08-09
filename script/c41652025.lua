@@ -9,7 +9,7 @@ function s.initial_effect(c)
 	e0:SetType(EFFECT_TYPE_QUICK_O)
 	e0:SetCode(EVENT_FREE_CHAIN)
 	e0:SetRange(LOCATION_HAND)
-	e0:SetCountLimit(2,id+EFFECT_COUNT_CODE_CHAIN)
+	e0:SetCountLimit(2,id)
 	e0:SetCost(s.effcost)
 	e0:SetTarget(s.efftg)
 	e0:SetOperation(s.effop)
@@ -37,7 +37,7 @@ function s.effcost(e,tp,eg,ep,ev,re,r,rp,chk)
 		local cg=Duel.GetDecktopGroup(1-tp,1)
 		g:Merge(cg)
 	end
-	if chk==0 then return g:GetCount()>0 end
+	if chk==0 then return g:GetCount()>0 and Duel.GetFlagEffect(tp,id+1000)==0 end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
 	local tc=g:Select(tp,1,1,c):GetFirst()
 	local cg=Group.CreateGroup()
@@ -67,6 +67,7 @@ function s.effcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	tc:CreateEffectRelation(e)
 	e:SetLabelObject(tc)
 	Duel.ShuffleHand(tp)
+	Duel.RegisterFlagEffect(tp,id+1000,RESET_CHAIN,0,1)
 end
 function s.efftg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local eff=e:GetLabel()
@@ -114,12 +115,13 @@ function s.effop(e,tp,eg,ep,ev,re,r,rp)
 		sc:RegisterEffect(e2,true)
 		Duel.SpecialSummonComplete()
 	elseif eff==1 then
-		Duel.SendtoGrave(sc,REASON_EFFECT)
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-		local tg=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
-		if #tg>0 then
-			Duel.SendtoHand(tg,nil,REASON_EFFECT)
-			Duel.ConfirmCards(1-tp,tg)
+		if Duel.SendtoGrave(sc,REASON_EFFECT)~=0 and sc:IsLocation(LOCATION_GRAVE) then
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+			local tg=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
+			if #tg>0 then
+				Duel.SendtoHand(tg,nil,REASON_EFFECT)
+				Duel.ConfirmCards(1-tp,tg)
+			end
 		end
 	elseif eff==2 then
 		Duel.Remove(sc,POS_FACEUP,REASON_EFFECT)
@@ -139,7 +141,7 @@ function s.effcost2(e,tp,eg,ep,ev,re,r,rp,chk)
 		local cg=Duel.GetDecktopGroup(1-tp,1)
 		g:Merge(cg)
 	end
-	if chk==0 then return g:GetCount()>0 end
+	if chk==0 then return g:GetCount()>0 and Duel.GetFlagEffect(tp,id+1000)==0 end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
 	local tc=g:Select(tp,1,1,c):GetFirst()
 	local cg=Group.CreateGroup()
@@ -169,6 +171,7 @@ function s.effcost2(e,tp,eg,ep,ev,re,r,rp,chk)
 	end
 	tc:CreateEffectRelation(e)
 	e:SetLabelObject(tc)
+	Duel.RegisterFlagEffect(tp,id+1000,RESET_CHAIN,0,1)
 end
 function s.efftg2(e,tp,eg,ep,ev,re,r,rp,chk)
 	local eff=e:GetLabel()
@@ -200,25 +203,30 @@ function s.effop2(e,tp,eg,ep,ev,re,r,rp)
 		sc:RegisterEffect(e2,true)
 		Duel.SpecialSummonComplete()
 	elseif eff==1 then
-		Duel.SendtoGrave(sc,REASON_EFFECT)
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-		local tg=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,2,nil)
-		if #tg>0 then
-			Duel.SendtoHand(tg,nil,REASON_EFFECT)
-			Duel.ConfirmCards(1-tp,tg)
+		local ct=0
+		if Duel.SendtoGrave(c,REASON_EFFECT)~=0 and c:IsLocation(LOCATION_GRAVE) then ct=ct+1 end
+		if Duel.SendtoGrave(sc,REASON_EFFECT)~=0 and sc:IsLocation(LOCATION_GRAVE) then ct=ct+1 end
+		if ct>0 then
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+			local tg=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,ct,nil)
+			if #tg>0 then
+				Duel.SendtoHand(tg,nil,REASON_EFFECT)
+				Duel.ConfirmCards(1-tp,tg)
+			end
 		end
 	elseif eff==2 then
 		Duel.Remove(sc,POS_FACEUP,REASON_EFFECT)
 	end
 	if eff~=1 then
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-		local tg=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
-		if #tg>0 then
-			Duel.SendtoHand(tg,nil,REASON_EFFECT)
-			Duel.ConfirmCards(1-tp,tg)
+		if Duel.SendtoGrave(c,REASON_EFFECT)~=0 and c:IsLocation(LOCATION_GRAVE) then
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+			local tg=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
+			if #tg>0 then
+				Duel.SendtoHand(tg,nil,REASON_EFFECT)
+				Duel.ConfirmCards(1-tp,tg)
+			end
 		end
 	end
-	Duel.SendtoGrave(c,REASON_EFFECT)
 	if Duel.GetFlagEffect(tp,id)~=0 then
 		if Duel.GetFieldGroupCount(tp,LOCATION_HAND,0)>Duel.GetFieldGroupCount(tp,0,LOCATION_HAND) then
 			Duel.Draw(1-tp,1,REASON_EFFECT)
@@ -295,12 +303,13 @@ function s.effop3(e,tp,eg,ep,ev,re,r,rp)
 		sc:RegisterEffect(e2,true)
 		Duel.SpecialSummonComplete()
 	elseif eff==1 then
-		Duel.SendtoGrave(sc,REASON_EFFECT)
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-		local tg=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
-		if #tg>0 then
-			Duel.SendtoHand(tg,nil,REASON_EFFECT)
-			Duel.ConfirmCards(1-tp,tg)
+		if Duel.SendtoGrave(sc,REASON_EFFECT)~=0 and sc:IsLocation(LOCATION_GRAVE) then
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+			local tg=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
+			if #tg>0 then
+				Duel.SendtoHand(tg,nil,REASON_EFFECT)
+				Duel.ConfirmCards(1-tp,tg)
+			end
 		end
 	elseif eff==2 then
 		Duel.Remove(sc,POS_FACEUP,REASON_EFFECT)

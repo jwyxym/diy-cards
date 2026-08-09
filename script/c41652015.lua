@@ -9,7 +9,7 @@ function s.initial_effect(c)
 	e0:SetType(EFFECT_TYPE_QUICK_O)
 	e0:SetCode(EVENT_FREE_CHAIN)
 	e0:SetRange(LOCATION_HAND)
-	e0:SetCountLimit(2,id+EFFECT_COUNT_CODE_CHAIN)
+	e0:SetCountLimit(2,id)
 	e0:SetCost(s.effcost)
 	e0:SetTarget(s.efftg)
 	e0:SetOperation(s.effop)
@@ -37,7 +37,7 @@ function s.effcost(e,tp,eg,ep,ev,re,r,rp,chk)
 		local cg=Duel.GetDecktopGroup(1-tp,1)
 		g:Merge(cg)
 	end
-	if chk==0 then return g:GetCount()>0 end
+	if chk==0 then return g:GetCount()>0 and Duel.GetFlagEffect(tp,id+1000)==0 end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
 	local tc=g:Select(tp,1,1,c):GetFirst()
 	local cg=Group.CreateGroup()
@@ -67,6 +67,7 @@ function s.effcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	tc:CreateEffectRelation(e)
 	e:SetLabelObject(tc)
 	Duel.ShuffleHand(tp)
+	Duel.RegisterFlagEffect(tp,id+1000,RESET_CHAIN,0,1)
 end
 function s.efftg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local eff=e:GetLabel()
@@ -219,7 +220,7 @@ function s.effcost2(e,tp,eg,ep,ev,re,r,rp,chk)
 		local cg=Duel.GetDecktopGroup(1-tp,1)
 		g:Merge(cg)
 	end
-	if chk==0 then return g:GetCount()>0 end
+	if chk==0 then return g:GetCount()>0 and Duel.GetFlagEffect(tp,id+1000)==0 end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
 	local tc=g:Select(tp,1,1,c):GetFirst()
 	local cg=Group.CreateGroup()
@@ -249,6 +250,7 @@ function s.effcost2(e,tp,eg,ep,ev,re,r,rp,chk)
 	end
 	tc:CreateEffectRelation(e)
 	e:SetLabelObject(tc)
+	Duel.RegisterFlagEffect(tp,id+1000,RESET_CHAIN,0,1)
 end
 function s.efftg2(e,tp,eg,ep,ev,re,r,rp,chk)
 	local eff=e:GetLabel()

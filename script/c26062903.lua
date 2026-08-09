@@ -1,7 +1,7 @@
 -- 温暖的时间 长崎爽世
 -- ID: 26062903
 -- 记述「春日影」(26062911)
--- 「丰川祥子」字段 0x951
+-- 「丰川祥子」字段 0xb10
 local s,id=GetID()
 function s.initial_effect(c)
     aux.AddCodeList(c,26062911)
@@ -73,7 +73,7 @@ function s.op1(e,tp,eg,ep,ev,re,r,rp)
     e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
     c:RegisterEffect(e1)
     -- 墓地有「丰川祥子」怪兽时可选变协调
-    if Duel.IsExistingMatchingCard(aux.FilterBoolFunction(Card.IsSetCard,0x951),tp,LOCATION_GRAVE,0,1,nil)
+    if Duel.IsExistingMatchingCard(aux.FilterBoolFunction(Card.IsSetCard,0xb10),tp,LOCATION_GRAVE,0,1,nil)
         and Duel.SelectYesNo(tp,aux.Stringid(id,4)) then
         local e2=Effect.CreateEffect(c)
         e2:SetType(EFFECT_TYPE_SINGLE)

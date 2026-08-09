@@ -81,4 +81,18 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
             Duel.SendtoGrave(sg,REASON_EFFECT)
         end
     end
+    
+    local e1=Effect.CreateEffect(e:GetHandler())
+    e1:SetType(EFFECT_TYPE_FIELD)
+    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+    e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+    e1:SetTargetRange(1,0)
+    e1:SetTarget(s.limfilter)
+    e1:SetReset(RESET_PHASE+PHASE_END)
+    Duel.RegisterEffect(e1,tp)
+end
+
+function s.limfilter(e,c,sump,sumtype,sumpos,targetp,se)
+    if sumtype~=SUMMON_TYPE_LINK then return false end
+    return c:IsType(TYPE_LINK) and c:IsLinkAbove(4)
 end

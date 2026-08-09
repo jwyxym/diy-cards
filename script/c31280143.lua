@@ -1,126 +1,89 @@
 --不朽机骸 机械锯残酷使者
-local s,id,o=GetID()
-function s.initial_effect(c)
+function c31280143.initial_effect(c)
 	--种族视为机械族
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_SINGLE)
-	e0:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-	e0:SetCode(EFFECT_CHANGE_RACE)
-	e0:SetRange(LOCATION_MZONE+LOCATION_GRAVE+LOCATION_HAND)
-    e0:SetCondition(s.racecon)
-	e0:SetValue(RACE_MACHINE)
-	c:RegisterEffect(e0)
-	--攻击力上升
-    local e1=Effect.CreateEffect(c)
-	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetType(EFFECT_TYPE_IGNITION)
-	e1:SetRange(LOCATION_MZONE)
-	e1:SetCountLimit(1)
-    e1:SetCost(s.atkcost)
-    e1:SetTarget(s.atktg)
-	e1:SetOperation(s.atkop)
-	c:RegisterEffect(e1)	
-	--送去墓地    
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e1:SetCode(EFFECT_ADD_RACE)
+	e1:SetRange(LOCATION_MZONE+LOCATION_GRAVE+LOCATION_HAND)
+	e1:SetValue(RACE_MACHINE)
+	c:RegisterEffect(e1)
+	--破坏怪兽并升攻
     local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetCategory(CATEGORY_TOGRAVE)
-	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-	e2:SetProperty(EFFECT_FLAG_DELAY)
-	e2:SetCode(EVENT_TO_GRAVE)
-	e2:SetCountLimit(1,id)
-	e2:SetCondition(s.tgcon)
-	e2:SetTarget(s.tgtg)
-	e2:SetOperation(s.tgop)
-	c:RegisterEffect(e2)
-    s.machine_zombie_be_tograve_effect=e2
+	e2:SetDescription(aux.Stringid(31280143,0))
+	e2:SetCategory(CATEGORY_DESTROY+CATEGORY_ATKCHANGE)
+	e2:SetType(EFFECT_TYPE_QUICK_O)
+	e2:SetCode(EVENT_FREE_CHAIN)
+	e2:SetRange(LOCATION_MZONE)
+    e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e2:SetHintTiming(TIMING_BATTLE_START+TIMING_BATTLE_END)
+	e2:SetCountLimit(1,31280143)
+	e2:SetCondition(c31280143.condition)
+	e2:SetTarget(c31280143.target)
+	e2:SetOperation(c31280143.operation)
+	c:RegisterEffect(e2) 
+	--怪兽除外  
+    local e3=Effect.CreateEffect(c)
+	e3:SetCategory(CATEGORY_REMOVE)
+	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e3:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
+	e3:SetCode(EVENT_BE_MATERIAL)
+	e3:SetCountLimit(1,31380143)
+	e3:SetCondition(c31280143.condition1)
+	e3:SetTarget(c31280143.target1)
+	e3:SetOperation(c31280143.operation1)
+	c:RegisterEffect(e3)    
 end
-function s.racecon(e)
-    if e:GetHandler():IsHasEffect(EFFECT_NECRO_VALLEY) then return false end
-	return true
+function c31280143.confilter(c)
+	return c:IsFaceup() and c:IsSetCard(0xca2)
 end
-function s.costfilter(c,res)
-	local b1=res and c:IsLocation(LOCATION_DECK) and not c:IsCode(31280120) and c:IsType(TYPE_MONSTER)
-    local b2=c:IsLocation(LOCATION_HAND+LOCATION_ONFIELD) and (c:IsFaceup() or c:IsLocation(LOCATION_HAND))
-	return c:IsSetCard(0x9caa) and c:IsAbleToGraveAsCost() and (b1 or b2)
+function c31280143.condition(e,tp,eg,ep,ev,re,r,rp)
+	local ph=Duel.GetCurrentPhase()
+	return ph>=PHASE_BATTLE_START and ph<=PHASE_BATTLE 
+    	and Duel.IsExistingMatchingCard(c31280143.confilter,tp,LOCATION_MZONE,0,1,e:GetHandler())
 end
-function s.excostfilter(c,tp)
-	return c:IsFaceup() and c:IsHasEffect(31280120,tp)
-end
-function s.atkcost(e,tp,eg,ep,ev,re,r,rp,chk)
+function c31280143.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local c=e:GetHandler()
-    local fg=Duel.GetMatchingGroup(s.excostfilter,tp,LOCATION_MZONE,0,nil,tp)
-	local res=fg:GetCount()>0 and c:IsSetCard(0x9caa)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_DECK,0,1,c,res) end    
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-    local g=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_DECK,0,1,1,c,res)
-    if g:GetFirst():IsLocation(LOCATION_DECK) then
-    	Duel.Hint(HINT_CARD,0,31280120)
-    	local sg=fg
-        if fg:GetCount()>1 then
-        	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
-            sg=fg:Select(tp,1,1,nil)
-        end
-        Duel.HintSelection(sg)
-        local tc=sg:GetFirst()
-        local te=tc:IsHasEffect(31280120,tp)
-        if te then
-        	te:UseCountLimit(tp)
-			tc:RegisterFlagEffect(0,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,EFFECT_FLAG_CLIENT_HINT,1,0,aux.Stringid(31280120,1))
-        end
-    end
-	Duel.SendtoGrave(g,REASON_COST)
-    if g:GetFirst():IsType(TYPE_MONSTER) then
-    	e:SetLabel(g:GetFirst():GetAttack())
-    end
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc~=c end
+	if chk==0 then return Duel.IsExistingTarget(aux.TRUE,tp,LOCATION_MZONE,LOCATION_MZONE,1,c) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+	local g=Duel.SelectTarget(tp,aux.TRUE,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,c)
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
 end
-function s.desfilter(c,atk)
-	return c:IsFaceup() and c:GetAttack()<atk
-end    
-function s.atktg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local atk=e:GetLabel()
-	if chk==0 then return true end
-    local g=Duel.GetMatchingGroup(s.desfilter,tp,0,LOCATION_MZONE,nil,atk)
-	if atk>0 then
-		e:SetCategory(CATEGORY_ATKCHANGE+CATEGORY_DESTROY)
-        Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,g:GetCount(),0,0)
-	else
-		e:SetCategory(CATEGORY_ATKCHANGE)
-	end
-end
-function s.atkop(e,tp,eg,ep,ev,re,r,rp)
+function c31280143.operation(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-    local atk=e:GetLabel()
-    local res=false
-    if c:IsRelateToEffect(e) and c:IsFaceup() then
-    	local e1=Effect.CreateEffect(c)
+	local tc=Duel.GetFirstTarget()
+	if tc and tc:IsRelateToEffect(e) and Duel.Destroy(tc,REASON_EFFECT)>0
+		and c:IsRelateToEffect(e) and c:IsFaceup() then		
+		local e1=Effect.CreateEffect(c)
+		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
 		e1:SetType(EFFECT_TYPE_SINGLE)
 		e1:SetCode(EFFECT_UPDATE_ATTACK)
-		e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_DISABLE)
-		e1:SetValue(2000)
+		e1:SetValue(2100)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
 		c:RegisterEffect(e1)
-        res=true
-    end
-    local g=Duel.GetMatchingGroup(s.desfilter,tp,0,LOCATION_MZONE,nil,atk)
-    if res and atk>0 and g:GetCount()>0 then
-    	Duel.BreakEffect()
-        Duel.Destroy(g,REASON_EFFECT)
-    end
-end
-function s.tgcon(e,tp,eg,ep,ev,re,r,rp)
-	return not e:GetHandler():IsPreviousLocation(LOCATION_MZONE)
-end
-function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsFaceup,tp,0,LOCATION_MZONE,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,1-tp,LOCATION_MZONE)
-end
-function s.tgop(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,0,LOCATION_MZONE,nil)
-    local tg=g:GetMaxGroup(Card.GetAttack)
-    local sg=tg
-    if tg:GetCount()>1 then
-		Duel.Hint(HINT_SELECTMSG,1-tp,HINTMSG_TOGRAVE)
-		sg=tg:Select(1-tp,1,1,nil)		
 	end
-    Duel.HintSelection(sg)
-    Duel.SendtoGrave(sg,REASON_RULE,1-tp)
+end
+function c31280143.ssfilter(c)
+	return c:IsRace(RACE_MACHINE) and c:IsFaceup()
+end
+function c31280143.condition1(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():IsLocation(LOCATION_GRAVE) and r==REASON_FUSION 
+    	and Duel.IsExistingMatchingCard(c31280143.ssfilter,tp,LOCATION_MZONE,0,1,nil)
+end
+function c31280143.filter(c)
+	return c:IsPosition(POS_FACEUP_ATTACK) and c:IsAbleToRemove()
+end
+function c31280143.target1(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) and c31280143.filter(chkc) end
+	if chk==0 then return Duel.IsExistingTarget(c31280143.filter,tp,0,LOCATION_MZONE,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+	local g=Duel.SelectTarget(tp,c31280143.filter,tp,0,LOCATION_MZONE,1,1,nil)
+	Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,1,0,0)
+end
+function c31280143.operation1(e,tp,eg,ep,ev,re,r,rp)
+	local tc=Duel.GetFirstTarget()
+	if tc:IsRelateToEffect(e) then
+		Duel.Remove(tc,POS_FACEUP,REASON_EFFECT)
+	end
 end

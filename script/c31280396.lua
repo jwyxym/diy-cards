@@ -58,6 +58,7 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 		aux.FCheckAdditional=nil
 		return res
 	end
+    Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,tp,LOCATION_GRAVE+LOCATION_REMOVED)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 end
 function s.spop(e,tp,eg,ep,ev,re,r,rp)

@@ -26,7 +26,7 @@ function c16820030.initial_effect(c)
 	c:RegisterEffect(e2)
 	c16820030.discard_effect=e1
 end
-function c16820030.matfilter(c)
+function c16820030.xyzfilter(c)
 	return c:IsFaceup() and c:IsType(TYPE_XYZ) and c:IsRank(1)
 end
 function c16820030.ovfilter(c)
@@ -38,20 +38,21 @@ function c16820030.ovtg(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 function c16820030.ovop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if not Duel.IsExistingMatchingCard(c16820030.matfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil)
+	if not Duel.IsExistingMatchingCard(c16820030.xyzfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil)
 		or not Duel.IsExistingMatchingCard(c16820030.ovfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) then
 		return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
-	local g=Duel.SelectMatchingCard(tp,c16820030.matfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,c16820030.xyzfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEDOWN)
 	local sg=Duel.SelectMatchingCard(tp,c16820030.ovfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
+	local xc=g:GetFirst()
 	local tc=sg:GetFirst()
-	if tc then
+	if xc and tc then
 		local og=tc:GetOverlayGroup()
 		if og:GetCount()>0 then
 			Duel.SendtoGrave(og,REASON_RULE)
 		end
-		Duel.Overlay(c,Group.FromCards(tc))
+		Duel.Overlay(xc,Group.FromCards(tc))
 	end
 end
 function c16820030.con(e,tp,eg,ep,ev,re,r,rp)

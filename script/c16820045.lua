@@ -16,21 +16,20 @@ function c16820045.initial_effect(c)
 	c16820045.discard_effect=e1
 end
 function c16820045.mfilter(c,xyzc)
-	return (c:IsLevel(1) or c:IsRace(1)) and c:IsSetCard(0xdf28)
+	return (c:IsLevel(1) or c:IsRank(1)) and c:IsSetCard(0xdf28)
 end
 function c16820045.spfilter(c,e,tp)
 	return (c:IsLevel(1) or c:IsRace(1) or c:IsLink(1)) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function c16820045.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and Duel.IsExistingMatchingCard(c16820045.spfilter,tp,0x10,0,1,c,e,tp) end
+		and Duel.IsExistingMatchingCard(c16820045.spfilter,tp,0x10,0,1,nil,e,tp) end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,0x10)
 end
 function c16820045.spop(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(c16820045.spfilter),tp,0x10,0,1,1,c,e,tp)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(c16820045.spfilter),tp,0x10,0,1,1,nil,e,tp)
 	if g:GetCount()>0 then
 		Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
 	end

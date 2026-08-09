@@ -1,7 +1,7 @@
 -- 优雅的呐喊 速攻魔法
 -- ID: 26062910
 -- 记述「春日影」(26062911)
--- 此卡自身不持有“丰川祥子”(0x951)字段
+-- 此卡自身不持有“丰川祥子”(0xb10)字段
 local s,id=GetID()
 function s.initial_effect(c)
 	aux.AddCodeList(c,26062911)  -- 声明记述「春日影」
@@ -80,7 +80,7 @@ function s.filter1(c,e,tp)
 		and (c:IsAbleToHand() or (Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and c:IsCanBeSpecialSummoned(e,0,tp,false,false)))
 end
 
--- 效果2对象：自己场上的“丰川祥子”怪兽 (0x951)
+-- 效果2对象：自己场上的“丰川祥子”怪兽 (0xb10)
 function s.filter2(c)
-	return c:IsSetCard(0x951) and c:IsFaceup()
+	return c:IsSetCard(0xb10) and c:IsFaceup()
 end

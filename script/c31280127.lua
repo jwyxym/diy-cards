@@ -1,163 +1,159 @@
 --瞬逝的幸福
-function c31280127.initial_effect(c)
+local s,id,o=GetID()
+function s.initial_effect(c)
 	aux.AddCodeList(c,31280120)
 	--发动
 	local e1=Effect.CreateEffect(c)
-	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_FUSION_SUMMON)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_FUSION_SUMMON+CATEGORY_REMOVE)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
-	e1:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_MAIN_END)
-	e1:SetCountLimit(1,31280127)
-	e1:SetCondition(c31280127.condition)
-	e1:SetTarget(c31280127.target)
-	e1:SetOperation(c31280127.activate)
+	e1:SetTarget(s.fsptg)
+	e1:SetOperation(s.fspop)
 	c:RegisterEffect(e1)
-	--墓地或除外特召    
+	--盖放    
     local e2=Effect.CreateEffect(c)
-	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
-	e2:SetType(EFFECT_TYPE_IGNITION)
-	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e2:SetRange(LOCATION_GRAVE)
-	e2:SetCountLimit(1,31380127)
-	e2:SetCondition(aux.exccon)
-	e2:SetCost(aux.bfgcost)
-	e2:SetTarget(c31280127.target2)
-	e2:SetOperation(c31280127.operation2)
+	e2:SetDescription(aux.Stringid(id,1))
+	e2:SetCategory(CATEGORY_SSET)
+	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e2:SetCode(EVENT_TO_GRAVE)
+	e2:SetProperty(EFFECT_FLAG_DELAY)
+    e2:SetCountLimit(1,id)
+	e2:SetCondition(s.setcon)
+	e2:SetTarget(s.settg)
+	e2:SetOperation(s.setop)
 	c:RegisterEffect(e2)
-end    
-function c31280127.condition(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsMainPhase()
 end
-function c31280127.filter(c,e,tp,m,f,chkf)
-	return c:IsType(TYPE_FUSION) and (not f or f(c))
+function s.filter1(c,e)
+	return c:IsType(TYPE_MONSTER) and c:IsAbleToRemove() and c:IsCanBeFusionMaterial() and not c:IsImmuneToEffect(e)
+end
+function s.filter2(c,e)
+	return not c:IsImmuneToEffect(e)
+end
+function s.spfilter(c,e,tp,m,f,chkf)
+	return (not f or f(c)) and c:IsRace(RACE_MACHINE)
 		and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_FUSION,tp,false,false) and c:CheckFusionMaterial(m,nil,chkf)
 end
-function c31280127.check(tp,g,fc)
-	return g:IsExists(Card.IsSetCard,1,nil,0xca2)
+function s.chkfilter(c,tp)
+	return c:IsControler(tp) and c:IsCode(31280120)
 end
-function c31280127.target(e,tp,eg,ep,ev,re,r,rp,chk)
+function s.exfilter(c,tp)
+	return c:IsControler(tp) and c:IsLocation(LOCATION_GRAVE)
+end
+function s.fcheck(tp,sg,fc)
+	if sg:IsExists(s.chkfilter,1,nil,tp) then
+		return sg:IsExists(Card.IsSetCard,1,nil,0x9caa)
+	else
+		return sg:IsExists(Card.IsSetCard,1,nil,0x9caa) and not sg:IsExists(s.exfilter,1,nil,tp)
+	end
+end
+function s.fsptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then
 		local chkf=tp
-		local mg1=Duel.GetFusionMaterial(tp):Filter(aux.NOT(Card.IsImmuneToEffect),nil,e)
-		aux.FCheckAdditional=c31280127.check
-		local res=Duel.IsExistingMatchingCard(c31280127.filter,tp,LOCATION_EXTRA,0,1,nil,e,tp,mg1,nil,chkf)
+		local mg1=Duel.GetFusionMaterial(tp):Filter(s.filter2,nil,e)
+		local mg2=Duel.GetMatchingGroup(s.filter1,tp,LOCATION_GRAVE,0,nil,e)
+		if mg1:IsExists(s.chkfilter,1,nil,tp) and mg2:GetCount()>0 or mg2:IsExists(s.chkfilter,1,nil,tp) then
+			mg1:Merge(mg2)
+		end
+		aux.FCheckAdditional=s.fcheck
+		local res=Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp,mg1,nil,chkf)
 		if not res then
 			local ce=Duel.GetChainMaterial(tp)
 			if ce~=nil then
 				local fgroup=ce:GetTarget()
-				local mg2=fgroup(ce,e,tp)
+				local mg3=fgroup(ce,e,tp)
 				local mf=ce:GetValue()
-				res=Duel.IsExistingMatchingCard(c31280127.filter,tp,LOCATION_EXTRA,0,1,nil,e,tp,mg2,mf,chkf)
+				res=Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp,mg3,mf,chkf)
 			end
 		end
 		aux.FCheckAdditional=nil
 		return res
 	end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
+	Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,0,tp,LOCATION_GRAVE)
 end
-function c31280127.activate(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
+function s.fspop(e,tp,eg,ep,ev,re,r,rp)
 	local chkf=tp
-	local mg1=Duel.GetFusionMaterial(tp):Filter(aux.NOT(Card.IsImmuneToEffect),nil,e)
-	aux.FCheckAdditional=c31280127.check
-	local sg1=Duel.GetMatchingGroup(c31280127.filter,tp,LOCATION_EXTRA,0,nil,e,tp,mg1,nil,chkf)
-	local mg2,sg2=nil,nil
+	local mg1=Duel.GetFusionMaterial(tp):Filter(s.filter2,nil,e)
+	local mg2=Duel.GetMatchingGroup(s.filter1,tp,LOCATION_GRAVE,0,nil,e)
+	if mg1:IsExists(s.chkfilter,1,nil,tp) and mg2:GetCount()>0 or mg2:IsExists(s.chkfilter,1,nil,tp) then
+		mg1:Merge(mg2)
+	end
+	aux.FCheckAdditional=s.fcheck
+	local sg1=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_EXTRA,0,nil,e,tp,mg1,nil,chkf)
+	local mg3=nil
+	local sg2=nil
 	local ce=Duel.GetChainMaterial(tp)
 	if ce~=nil then
 		local fgroup=ce:GetTarget()
-		mg2=fgroup(ce,e,tp)
+		mg3=fgroup(ce,e,tp)
 		local mf=ce:GetValue()
-		sg2=Duel.GetMatchingGroup(c31280127.filter,tp,LOCATION_EXTRA,0,nil,e,tp,mg2,mf,chkf)
+		sg2=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_EXTRA,0,nil,e,tp,mg3,mf,chkf)
 	end
-	if #sg1>0 or (sg2~=nil and #sg2>0) then
+	if sg1:GetCount()>0 or (sg2~=nil and sg2:GetCount()>0) then
 		local sg=sg1:Clone()
 		if sg2 then sg:Merge(sg2) end
-		::cancel::
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-		local tc=sg:Select(tp,1,1,nil):GetFirst()
-		if sg1:IsContains(tc) and (sg2==nil or not sg2:IsContains(tc) or ce and not Duel.SelectYesNo(tp,ce:GetDescription())) then
-			local mat=Duel.SelectFusionMaterial(tp,tc,mg1,nil,chkf)
-			if #mat==0 then goto cancel end
-			tc:SetMaterial(mat)
-			Duel.SendtoGrave(mat,REASON_EFFECT+REASON_MATERIAL+REASON_FUSION)
+		local tg=sg:Select(tp,1,1,nil)
+		local tc=tg:GetFirst()
+		if sg1:IsContains(tc) and (sg2==nil or not sg2:IsContains(tc) or not Duel.SelectYesNo(tp,ce:GetDescription())) then
+			local mat1=Duel.SelectFusionMaterial(tp,tc,mg1,nil,chkf)
+			tc:SetMaterial(mat1)
+			local mat2=mat1:Filter(Card.IsLocation,nil,LOCATION_GRAVE)
+			mat1:Sub(mat2)
+			Duel.SendtoGrave(mat1,REASON_EFFECT+REASON_MATERIAL+REASON_FUSION)
+			Duel.Remove(mat2,POS_FACEUP,REASON_EFFECT+REASON_MATERIAL+REASON_FUSION)
 			Duel.BreakEffect()
 			Duel.SpecialSummon(tc,SUMMON_TYPE_FUSION,tp,tp,false,false,POS_FACEUP)
-		elseif ce then
-			local mat=Duel.SelectFusionMaterial(tp,tc,mg2,nil,chkf)
-			if #mat==0 then goto cancel end
+		else
+			local mat2=Duel.SelectFusionMaterial(tp,tc,mg3,nil,chkf)
 			local fop=ce:GetOperation()
-			fop(ce,e,tp,tc,mat)
+			fop(ce,e,tp,tc,mat2)
 		end
 		tc:CompleteProcedure()
-		if tc:IsFaceup() and (tc:IsRace(RACE_MACHINE) and tc:GetOriginalRace()==RACE_ZOMBIE) then
-			Duel.BreakEffect()
-			local e1=Effect.CreateEffect(tc)
-			e1:SetType(EFFECT_TYPE_SINGLE)
-			e1:SetCode(EFFECT_IMMUNE_EFFECT)
-			e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-			e1:SetRange(LOCATION_MZONE)
-			e1:SetValue(c31280127.efilter)
-            e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-			tc:RegisterEffect(e1)
-            local e2=Effect.CreateEffect(tc)
-			e2:SetDescription(aux.Stringid(31280127,0))
-			e2:SetCategory(CATEGORY_TODECK)
-			e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_F)
-			e2:SetCode(EVENT_PHASE+PHASE_END)
-			e2:SetRange(LOCATION_MZONE)
-			e2:SetCountLimit(1)
-			e2:SetCondition(c31280127.condition1)
-			e2:SetTarget(c31280127.target1)
-			e2:SetOperation(c31280127.operation1)
-            e2:SetReset(RESET_EVENT+RESETS_STANDARD)
-			tc:RegisterEffect(e2)
-            if not tc:IsType(TYPE_EFFECT) then
-				local e3=Effect.CreateEffect(c)
-				e3:SetType(EFFECT_TYPE_SINGLE)
-				e3:SetCode(EFFECT_ADD_TYPE)
-				e3:SetValue(TYPE_EFFECT)
-				e3:SetReset(RESET_EVENT+RESETS_STANDARD)
-				tc:RegisterEffect(e3,true)
-            end    
-		end
+        local c=e:GetHandler()
+        local e1=Effect.CreateEffect(c)
+        e1:SetDescription(aux.Stringid(id,2))
+		e1:SetType(EFFECT_TYPE_SINGLE)
+        e1:SetProperty(EFFECT_FLAG_CLIENT_HINT)
+		e1:SetCode(EFFECT_AVOID_BATTLE_DAMAGE)
+		e1:SetValue(1)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+		tc:RegisterEffect(e1,true)
+        tc:RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,0,2)
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		e1:SetCode(EVENT_PHASE+PHASE_END)
+		e1:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+		e1:SetCondition(s.descon)
+		e1:SetOperation(s.desop)
+		e1:SetReset(RESET_PHASE+PHASE_END,2)
+		e1:SetCountLimit(1)
+		e1:SetLabel(Duel.GetTurnCount())
+		e1:SetLabelObject(tc)
+		Duel.RegisterEffect(e1,tp)
 	end
 	aux.FCheckAdditional=nil
 end
-function c31280127.efilter(e,re)
-	return e:GetHandlerPlayer()~=re:GetOwnerPlayer() and re:IsActivated() 
-    	and re:IsActiveType(TYPE_MONSTER)
+function s.descon(e,tp,eg,ep,ev,re,r,rp)
+	local tc=e:GetLabelObject()
+	return Duel.GetTurnCount()~=e:GetLabel() and tc:GetFlagEffect(id)~=0
 end
-function c31280127.condition1(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetTurnPlayer()==1-tp
+function s.desop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_CARD,0,id)
+	local tc=e:GetLabelObject()
+	Duel.Destroy(tc,REASON_EFFECT)
 end
-function c31280127.target1(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return true end
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,e:GetHandler(),1,0,0)
+function s.setcon(e,tp,eg,ep,ev,re,r,rp)
+	return not e:GetHandler():IsPreviousLocation(LOCATION_ONFIELD)
 end
-function c31280127.operation1(e,tp,eg,ep,ev,re,r,rp)
-	if e:GetHandler():IsRelateToEffect(e) then
-		Duel.SendtoDeck(e:GetHandler(),nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
-	end
+function s.settg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return e:GetHandler():IsSSetable() end
+	Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,e:GetHandler(),1,0,0)
 end
-function c31280127.spfilter(c,e,tp,check)
-	return c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-		and ((check and c:IsSetCard(0xca2)) or (c:IsCode(31280120) or aux.IsCodeListed(c,31280120)))
-end
-function c31280127.checkfilter(c)
-	return (c:IsCode(31280120) or aux.IsCodeListed(c,31280120)) and c:IsType(TYPE_MONSTER) and c:IsFaceup()
-end
-function c31280127.target2(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	local check=Duel.IsExistingMatchingCard(c31280127.checkfilter,tp,LOCATION_MZONE,0,1,nil)
-	if chkc then return chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and chkc:IsControler(tp) and c31280127.spfilter(chkc,e,tp,check) end
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and Duel.IsExistingTarget(c31280127.spfilter,tp,LOCATION_GRAVE,0,1,nil,e,tp,check) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-	local g=Duel.SelectTarget(tp,c31280127.spfilter,tp,LOCATION_GRAVE,0,1,1,nil,e,tp,check)
-	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,g,1,0,0)
-end
-function c31280127.operation2(e,tp,eg,ep,ev,re,r,rp)
-	local tc=Duel.GetFirstTarget()
-	if tc:IsRelateToEffect(e) then
-		Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
+function s.setop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsRelateToEffect(e) then
+		Duel.SSet(tp,c)
 	end
 end

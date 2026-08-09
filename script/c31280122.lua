@@ -1,22 +1,23 @@
 --圆滚滚2号
-function c31280122.initial_effect(c)
+local s,id,o=GetID()
+function s.initial_effect(c)
 	aux.AddCodeList(c,31280120)
 	--融合召唤
-	aux.AddFusionProcFun2(c,aux.FilterBoolFunction(Card.IsRace,RACE_ZOMBIE),c31280122.matfilter,true)
-	c:EnableReviveLimit()
-	--加入手卡    
+	aux.AddFusionProcFun2(c,aux.FilterBoolFunction(Card.IsRace,RACE_ZOMBIE),aux.FilterBoolFunction(Card.IsRace,RACE_MACHINE),true)
+    c:EnableReviveLimit()
+	--特殊召唤    
     local e1=Effect.CreateEffect(c)
-    e1:SetDescription(aux.Stringid(31280122,0))
-	e1:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e1:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
 	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e1:SetProperty(EFFECT_FLAG_DELAY)
-	e1:SetCountLimit(1,31280122)
-	e1:SetCondition(c31280122.condition)
-	e1:SetTarget(c31280122.target)
-	e1:SetOperation(c31280122.operation)
+	e1:SetCountLimit(1,id)
+    e1:SetCondition(s.spcon)
+	e1:SetTarget(s.sptg)
+	e1:SetOperation(s.spop)
 	c:RegisterEffect(e1)
-	--效破抗性    
+	--效破耐性    
     local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_SINGLE)
 	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
@@ -25,62 +26,62 @@ function c31280122.initial_effect(c)
 	e2:SetValue(1)
 	c:RegisterEffect(e2)
 	--攻击限制    
-	local e3=Effect.CreateEffect(c)
+    local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_FIELD)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetTargetRange(0,LOCATION_MZONE)
 	e3:SetCode(EFFECT_CANNOT_SELECT_BATTLE_TARGET)
-	e3:SetValue(c31280122.atlimit)
+	e3:SetValue(s.atlimit)
 	c:RegisterEffect(e3)
-	--伤害并回复
+	--给与伤害    
     local e4=Effect.CreateEffect(c)
-	e4:SetDescription(aux.Stringid(31280122,1))
-	e4:SetCategory(CATEGORY_DAMAGE+CATEGORY_RECOVER)
-	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_F)
+	e4:SetDescription(aux.Stringid(id,1))
+    e4:SetCategory(CATEGORY_DAMAGE+CATEGORY_RECOVER)
+	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e4:SetCode(EVENT_PHASE+PHASE_END)
+    e4:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 	e4:SetRange(LOCATION_MZONE)
 	e4:SetCountLimit(1)
-    e4:SetCondition(c31280122.condition1)
-	e4:SetTarget(c31280122.target1)
-	e4:SetOperation(c31280122.operation1)
+	e4:SetTarget(s.damtg)
+	e4:SetOperation(s.damop)
 	c:RegisterEffect(e4)
-end
-function c31280122.matfilter(c)
-	return c:IsRace(RACE_MACHINE)
-end
-function c31280122.condition(e,tp,eg,ep,ev,re,r,rp)
+end    
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonLocation(LOCATION_EXTRA)
 end
-function c31280122.thfilter(c)
-	return (c:IsCode(31280120) or aux.IsCodeListed(c,31280120)) and c:IsAbleToHand() and not c:IsType(TYPE_FUSION)
+function s.spfilter(c,e,tp)
+	return aux.IsCodeListed(c,31280120) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) and (c:IsFaceup() or c:IsLocation(LOCATION_GRAVE))
 end
-function c31280122.target(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c31280122.thfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and chkc:IsControler(tp) and s.spfilter(chkc,e,tp) end
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and Duel.IsExistingTarget(s.spfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,e,tp) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local g=Duel.SelectTarget(tp,s.spfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,e,tp)
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,g,1,0,0)
+    Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
 end
-function c31280122.operation(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=Duel.SelectMatchingCard(tp,c31280122.thfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
-	if g:GetCount()>0 then
-		Duel.SendtoHand(g,nil,REASON_EFFECT)
-		Duel.ConfirmCards(1-tp,g)
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
+	local tc=Duel.GetFirstTarget()
+	if tc:IsRelateToEffect(e) then
+		Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
 	end
 end
-function c31280122.atlimit(e,c)
+function s.atlimit(e,c)
 	return c~=e:GetHandler()
 end
-function c31280122.confilter(c)
+function s.confilter(c)
 	return c:IsFaceup() and c:IsRace(RACE_ZOMBIE+RACE_MACHINE)
+end    
+function s.damtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.confilter,tp,LOCATION_MZONE,0,1,e:GetHandler()) end
+	Duel.SetTargetParam(800)
+	Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,800)
+    Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,tp,800)
 end
-function c31280122.condition1(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(c31280122.confilter,tp,LOCATION_MZONE,0,1,e:GetHandler())
-end
-function c31280122.target1(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return true end
-    Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,800)
-	Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,tp,800)
-end
-function c31280122.operation1(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Damage(1-tp,800,REASON_EFFECT)
-    Duel.Recover(tp,800,REASON_EFFECT)
+function s.damop(e,tp,eg,ep,ev,re,r,rp)
+	local d=Duel.GetChainInfo(0,CHAININFO_TARGET_PARAM)
+	if Duel.Damage(1-tp,d,REASON_EFFECT)~=0 then
+    	Duel.Recover(tp,d,REASON_EFFECT)
+    end
 end

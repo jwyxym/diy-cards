@@ -1,109 +1,108 @@
 --械鳞龙魄 机关美人鱼
-function c31280137.initial_effect(c)
+local s,id,o=GetID()
+function s.initial_effect(c)
 	aux.EnablePendulumAttribute(c)
-	--攻击上升    
+    --种族视为机械族
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_SINGLE)
+	e0:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e0:SetCode(EFFECT_CHANGE_RACE)
+	e0:SetRange(LOCATION_MZONE+LOCATION_EXTRA+LOCATION_HAND)
+	e0:SetValue(RACE_MACHINE)
+	c:RegisterEffect(e0)
+	--放置    
     local e1=Effect.CreateEffect(c)
-    e1:SetCategory(CATEGORY_ATKCHANGE+CATEGORY_DESTROY)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_DESTROY)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_PZONE)
-	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e1:SetCountLimit(1,31280137)
-	e1:SetTarget(c31280137.target)
-	e1:SetOperation(c31280137.operation)
+	e1:SetCountLimit(1,id)
+	e1:SetTarget(s.pentg)
+	e1:SetOperation(s.penop)
 	c:RegisterEffect(e1)
-    --种族视为机械族
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_SINGLE)
-	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-	e2:SetCode(EFFECT_ADD_RACE)
-	e2:SetRange(LOCATION_MZONE+LOCATION_HAND+LOCATION_EXTRA)
-	e2:SetValue(RACE_MACHINE)
+	--特殊召唤    
+    local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,1))
+	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e2:SetType(EFFECT_TYPE_IGNITION)
+	e2:SetRange(LOCATION_HAND)
+	e2:SetCountLimit(1,id+o*10000)
+	e2:SetCondition(s.spcon)
+	e2:SetTarget(s.sptg)
+	e2:SetOperation(s.spop)
 	c:RegisterEffect(e2)
-	--手卡特召 
+	--直接攻击        
     local e3=Effect.CreateEffect(c)
-    e3:SetDescription(aux.Stringid(31280137,0))
-	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
-	e3:SetType(EFFECT_TYPE_IGNITION)
-	e3:SetRange(LOCATION_HAND)
-	e3:SetCountLimit(1,31380137)
-	e3:SetCondition(c31280137.condition1)
-	e3:SetTarget(c31280137.target1)
-	e3:SetOperation(c31280137.operation1)
+	e3:SetType(EFFECT_TYPE_FIELD)
+	e3:SetCode(EFFECT_DIRECT_ATTACK)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetTargetRange(LOCATION_MZONE,0)
+    e3:SetCondition(s.atkcon)
+	e3:SetTarget(aux.TargetBoolFunction(Card.IsSetCard,0x5caa))
 	c:RegisterEffect(e3)
-	--直接攻击    
-    local e4=Effect.CreateEffect(c)
-	e4:SetType(EFFECT_TYPE_SINGLE)
-	e4:SetCode(EFFECT_DIRECT_ATTACK)
-	e4:SetCondition(c31280137.condition2)
-	c:RegisterEffect(e4)
 end
-function c31280137.filter(c)
-	return c:IsFaceup() and c:IsSetCard(0xca4)
+function s.penfilter(c,tp)
+	return c:IsSetCard(0x5caa) and c:IsType(TYPE_PENDULUM) and not c:IsCode(id) and not c:IsForbidden()
+    	and c:CheckUniqueOnField(tp)
 end
-function c31280137.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and c31280137.filter(chkc) end
-	if chk==0 then return Duel.IsExistingTarget(c31280137.filter,tp,LOCATION_MZONE,0,1,nil) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
-	Duel.SelectTarget(tp,c31280137.filter,tp,LOCATION_MZONE,0,1,1,nil)
+function s.pentg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return e:GetHandler():IsDestructable() 
+    	and Duel.IsExistingMatchingCard(s.penfilter,tp,LOCATION_DECK+LOCATION_HAND,0,1,nil,tp) end
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,e:GetHandler(),1,0,0)
 end
-function c31280137.operation(e,tp,eg,ep,ev,re,r,rp)
+function s.penop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	local tc=Duel.GetFirstTarget()
-	if tc:IsFaceup() and tc:IsRelateToEffect(e) then
-		local e1=Effect.CreateEffect(e:GetHandler())
-		e1:SetType(EFFECT_TYPE_SINGLE)
-		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-		e1:SetCode(EFFECT_UPDATE_ATTACK)
-		e1:SetValue(1000)
-		e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
-		tc:RegisterEffect(e1)
-        if c:IsRelateToEffect(e) then
-        	Duel.BreakEffect()
-			Duel.Destroy(c,REASON_EFFECT)
-		end            
+	if c:IsRelateToEffect(e) and Duel.Destroy(c,REASON_EFFECT)~=0 then
+    	Duel.BreakEffect()
+    	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOFIELD)
+		local tc=Duel.SelectMatchingCard(tp,s.penfilter,tp,LOCATION_DECK+LOCATION_HAND,0,1,1,nil,tp):GetFirst()
+		if tc then
+			Duel.MoveToField(tc,tp,tp,LOCATION_PZONE,POS_FACEUP,true)
+		end    	
 	end
 end
-function c31280137.cfilter(c)
-	return c:IsSetCard(0xca4) and c:IsFaceup()
+function s.confilter(c)
+	return c:IsSetCard(0x5caa) and c:IsFaceup()
 end
-function c31280137.condition1(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(c31280137.cfilter,tp,LOCATION_MZONE,0,1,nil)
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.IsExistingMatchingCard(s.confilter,tp,LOCATION_MZONE,0,1,nil)
 end
-function c31280137.target1(e,tp,eg,ep,ev,re,r,rp,chk)
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 		and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
-function c31280137.operation1(e,tp,eg,ep,ev,re,r,rp)
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-    if c:IsRelateToEffect(e) then
-		Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
+	if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)~=0 then
     	local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,nil)
-		local tg=g:GetMaxGroup(Card.GetAttack)
-    	if tg:IsExists(Card.IsControler,1,nil,tp) then    
-        	Duel.BreakEffect() 	
-       		local e1=Effect.CreateEffect(c)
+        if g:GetCount()==0 then return end
+        local tg=g:GetMaxGroup(Card.GetAttack)
+        if tg:IsExists(Card.IsControler,1,nil,tp) and c:IsFaceup() then
+        	Duel.BreakEffect()
+            local e1=Effect.CreateEffect(c)
+            e1:SetDescription(aux.Stringid(id,2))
 			e1:SetType(EFFECT_TYPE_FIELD)
-			e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+			e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CLIENT_HINT)
 			e1:SetCode(EFFECT_CANNOT_ACTIVATE)
 			e1:SetRange(LOCATION_MZONE)
 			e1:SetTargetRange(0,1)
-			e1:SetValue(c31280137.value)
-			e1:SetCondition(c31280137.condition)
-        	e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+            e1:SetCondition(s.actcon)
+			e1:SetValue(s.aclimit)
+            e1:SetReset(RESET_EVENT+RESETS_STANDARD)
 			c:RegisterEffect(e1)
-		end              
+        end
 	end
 end
-function c31280137.value(e,re,tp)
+function s.actcon(e)
+	return Duel.GetAttacker()==e:GetHandler()
+end
+function s.aclimit(e,re,tp)
 	return re:IsHasType(EFFECT_TYPE_ACTIVATE)
 end
-function c31280137.condition(e)
-	return Duel.GetAttacker()==e:GetHandler() 
+function s.cfilter(c)
+	return c:IsRace(RACE_MACHINE) and c:IsFaceup()
 end
-function c31280137.cfilter1(c)
-	return c:IsFaceup() and c:IsRace(RACE_MACHINE) and c:IsType(TYPE_MONSTER)
-end
-function c31280137.condition2(e)
-	return Duel.IsExistingMatchingCard(c31280137.cfilter1,e:GetHandlerPlayer(),LOCATION_ONFIELD,0,1,e:GetHandler())
+function s.atkcon(e)
+	return Duel.IsExistingMatchingCard(s.cfilter,e:GetHandlerPlayer(),LOCATION_MZONE,0,1,e:GetHandler())
 end

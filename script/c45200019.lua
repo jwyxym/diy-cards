@@ -1,7 +1,7 @@
---永续陷阱怪兽
+--莱万汀
 local s,id=GetID()
 function s.initial_effect(c)
-	--Activate 可以随时翻开
+	--Activate
 	local e0=Effect.CreateEffect(c)
 	e0:SetType(EFFECT_TYPE_ACTIVATE)
 	e0:SetCode(EVENT_FREE_CHAIN)
@@ -43,6 +43,7 @@ end
 
 function s.desfilter(c,tp)
 	return c:IsPreviousControler(tp) and c:IsPreviousLocation(LOCATION_MZONE)
+		and c:GetReasonPlayer()==1-tp
 		and (c:IsReason(REASON_BATTLE) or c:IsReason(REASON_EFFECT))
 end
 

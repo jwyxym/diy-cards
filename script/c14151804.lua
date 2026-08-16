@@ -13,7 +13,7 @@ function s.initial_effect(c)
     e1:SetOperation(s.activate)
     c:RegisterEffect(e1)
     
-    --②效果：从墓地发动，无效并破坏
+    --②效果：从墓地发动，效果无效并破坏
     local e2=Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id,1))
     e2:SetCategory(CATEGORY_DISABLE+CATEGORY_DESTROY)
@@ -100,7 +100,7 @@ function s.disop(e,tp,eg,ep,ev,re,r,rp)
         e3:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_STANDBY+RESET_SELF_TURN,3)
         c:RegisterEffect(e3)
         c:RegisterFlagEffect(1082946,RESET_PHASE+PHASE_STANDBY+RESET_SELF_TURN,0,3)
-        if Duel.NegateActivation(ev) then
+        if Duel.NegateEffect(ev) then
             Duel.Destroy(eg,REASON_EFFECT)
         end
     end

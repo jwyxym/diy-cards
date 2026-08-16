@@ -46,7 +46,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	if g:GetCount()>0 then
 		Duel.SendtoHand(g,nil,REASON_EFFECT)
 		Duel.ConfirmCards(1-tp,g)
-	end	
+	end
 	local e1=Effect.CreateEffect(c)
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CLIENT_HINT)
@@ -66,7 +66,7 @@ function s.rectg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,tp,rec)
 end
 function s.recop(e,tp,eg,ep,ev,re,r,rp)
-	local rec=Duel.GetMatchingGroupCount(s.filter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)*200
+	local rec=Duel.GetMatchingGroupCount(s.filter1,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)*400
 	local p=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER)
 	Duel.Recover(p,rec,REASON_EFFECT)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)

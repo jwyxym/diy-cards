@@ -43,14 +43,36 @@ function s.initial_effect(c)
 end
 
 function s.eqfilter(c,tp)
-	return c:IsType(TYPE_MONSTER) and (c:IsSetCard(0x1FC6) or (c:IsType(TYPE_FLIP) and c:IsLevelBelow(2)))
-		and (c:IsLocation(LOCATION_DECK) and c:IsSetCard(0x1FC6) or c:IsLocation(LOCATION_GRAVE))
+	if not c:IsType(TYPE_MONSTER) then return false end
+	local ok=false
+	if c:IsSetCard(0x1FC6) then ok=true end
+	if c:IsType(TYPE_FLIP) and c:IsLevelBelow(2) then ok=true end
+	if not ok then return false end
+	if c:IsLocation(LOCATION_DECK) then
+		return c:IsSetCard(0x1FC6)
+	end
+	if c:IsLocation(LOCATION_GRAVE) then
+		return true
+	end
+	return false
 end
 
 function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.eqfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil,tp)
 		and Duel.GetLocationCount(tp,LOCATION_SZONE)>0 end
 	Duel.SetOperationInfo(0,CATEGORY_EQUIP,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
+end
+
+function s.eqlimit(e,c)
+	return e:GetLabelObject()==c
+end
+
+function s.sumlimit(e,c)
+	return c:IsLocation(LOCATION_HAND)
+end
+
+function s.splimit(e,c)
+	return c:IsLocation(LOCATION_HAND)
 end
 
 function s.eqop(e,tp,eg,ep,ev,re,r,rp)
@@ -84,17 +106,19 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 			e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 			e2:SetCode(EFFECT_CANNOT_SUMMON)
 			e2:SetTargetRange(0,1)
+			e2:SetValue(s.sumlimit)
 			e2:SetReset(RESET_PHASE+PHASE_END,2)
 			Duel.RegisterEffect(e2,tp)
-			local e3=e2:Clone()
+			local e3=Effect.CreateEffect(c)
+			e3:SetType(EFFECT_TYPE_FIELD)
+			e3:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 			e3:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+			e3:SetTargetRange(0,1)
+			e3:SetTarget(s.splimit)
+			e3:SetReset(RESET_PHASE+PHASE_END,2)
 			Duel.RegisterEffect(e3,tp)
 		end
 	end
-end
-
-function s.eqlimit(e,c)
-	return e:GetLabelObject()==c
 end
 
 function s.tg2(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -125,11 +149,12 @@ function s.negop(e,tp,eg,ep,ev,re,r,rp)
 	if #eqg==0 then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 	local tc=eqg:Select(tp,1,1,nil):GetFirst()
-	if tc then
+	if tc and tc:IsCanBeSpecialSummoned(e,0,tp,false,false) then
 		Duel.SpecialSummonStep(tc,0,tp,tp,false,false,POS_FACEDOWN_DEFENSE)
 		Duel.SpecialSummonComplete()
-		if Duel.NegateActivation(ev) then
-			Duel.Destroy(eg,REASON_EFFECT)
+		local rc=re:GetHandler()
+		if Duel.NegateEffect(ev) and rc:IsRelateToEffect(re) then
+			Duel.Destroy(rc,REASON_EFFECT)
 		end
 	end
 end

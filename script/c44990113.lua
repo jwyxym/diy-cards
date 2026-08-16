@@ -4,8 +4,15 @@ function s.initial_effect(c)
 	aux.AddCodeList(c,44990100)
 
 	-- 特殊召唤手续
-	c:EnableReviveLimit()
+	c:SetSPSummonOnce(id)
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_SINGLE)
+	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0:SetCode(EFFECT_SPSUMMON_CONDITION)
+	c:RegisterEffect(e0)
+
 	local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetCode(EFFECT_SPSUMMON_PROC)
 	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
@@ -25,19 +32,16 @@ function s.initial_effect(c)
 	e2:SetValue(44990100)
 	c:RegisterEffect(e2)
 
-	-- ② 堆墓 + 全回合风属性自肃
+	-- ② 堆墓 + 发动后风属性自肃
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
 	e3:SetCategory(CATEGORY_DECKDES)
 	e3:SetType(EFFECT_TYPE_IGNITION)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetCountLimit(1,id+200)
-	e3:SetCondition(s.tgcon)
 	e3:SetTarget(s.tgtg)
 	e3:SetOperation(s.tgop)
 	c:RegisterEffect(e3)
-
-	Duel.AddCustomActivityCounter(id+200,ACTIVITY_SPSUMMON,s.counterfilter)
 
 	-- ③ 作为超量素材赋予「伊瑟拉」战破耐性
 	local e4=Effect.CreateEffect(c)
@@ -50,22 +54,20 @@ function s.initial_effect(c)
 	c:RegisterEffect(e4)
 end
 
--- 自肃计数器过滤
-function s.counterfilter(c)
-	return c:IsAttribute(ATTRIBUTE_WIND)
+-- 特殊召唤手续用素材过滤
+function s.spfilter(c,tp)
+	return c:IsFaceupEx() and aux.IsCodeListed(c,44990100) and not c:IsCode(id)
+		and (c:IsAbleToDeckAsCost() or c:IsAbleToExtraAsCost())
 end
 
--- 素材条件（区分卡组和其他区域）
-function s.tgfilter(c)
-	if c:IsLocation(LOCATION_DECK) then
-		return aux.IsCodeListed(c,44990100) and not c:IsCode(id) and c:IsAbleToGrave()
-	else
-		return c:IsFaceupEx() and aux.IsCodeListed(c,44990100) and not c:IsCode(id)
-			and (c:IsAbleToDeckAsCost() or c:IsAbleToExtraAsCost())
-	end
+function s.spcon(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return false end
+	local g=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,nil)
+	return g:CheckSubGroup(s.scheck,2,2)
 end
 
--- 素材子组检查：2张且不能全是额外怪兽
 function s.scheck(sg)
 	if #sg~=2 then return false end
 	local tc1=sg:GetFirst()
@@ -73,16 +75,8 @@ function s.scheck(sg)
 	return not (tc1:IsType(TYPE_EXTRA) and tc2:IsType(TYPE_EXTRA))
 end
 
-function s.spcon(e,c)
-	if c==nil then return true end
-	local tp=c:GetControler()
-	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return false end
-	local g=Duel.GetMatchingGroup(s.tgfilter,tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,nil)
-	return g:CheckSubGroup(s.scheck,2,2)
-end
-
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
-	local g=Duel.GetMatchingGroup(s.tgfilter,tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,nil)
+	local g=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,nil)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
 	local sg=g:SelectSubGroup(tp,s.scheck,true,2,2)
 	if sg then
@@ -116,35 +110,40 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
 	g:DeleteGroup()
 end
 
--- ② 条件：互斥检查
-function s.tgcon(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.GetCustomActivityCount(id+200,tp,ACTIVITY_SPSUMMON)>0 then return false end
-	return true
+-- ②效果专用：卡组堆墓过滤（不要求表侧）
+function s.deckfilter(c)
+	return aux.IsCodeListed(c,44990100) and not c:IsCode(id) and c:IsAbleToGrave()
 end
 
--- ② 目标：注册全回合自肃 + 检查卡组
+-- ② 目标：仅检查卡组是否有可堆的卡
 function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.tgfilter,tp,LOCATION_DECK,0,1,nil) end
+	if chk==0 then return Duel.IsExistingMatchingCard(s.deckfilter,tp,LOCATION_DECK,0,1,nil) end
+end
+
+-- ② 操作：注册自肃并堆墓
+function s.tgop(e,tp,eg,ep,ev,re,r,rp)
 	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
 	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetReset(RESET_PHASE+PHASE_END)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 	e1:SetTargetRange(1,0)
-	e1:SetTarget(function(e,c) return not c:IsAttribute(ATTRIBUTE_WIND) end)
+	e1:SetTarget(s.splimit)
+	e1:SetReset(RESET_PHASE+PHASE_END)
 	Duel.RegisterEffect(e1,tp)
-end
 
--- ② 操作：堆墓
-function s.tgop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-	local g=Duel.SelectMatchingCard(tp,s.tgfilter,tp,LOCATION_DECK,0,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,s.deckfilter,tp,LOCATION_DECK,0,1,1,nil)
 	if #g>0 then
 		Duel.SendtoGrave(g,REASON_EFFECT)
 	end
 end
 
--- ③ 素材赋予战破耐性
+-- 自肃限制函数
+function s.splimit(e,c,sump,sumtype,sumpos,targetp,se)
+	return not c:IsAttribute(ATTRIBUTE_WIND)
+end
+
+-- ③效果
 function s.effcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	local rc=c:GetReasonCard()

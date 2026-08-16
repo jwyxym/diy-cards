@@ -2,6 +2,7 @@
 local s,id=GetID()
 function s.initial_effect(c)
 	c:EnableReviveLimit()
+	c:SetSPSummonOnce(id)
 	aux.AddCodeList(c,80485722)
 	
 	--不能通常召唤
@@ -26,7 +27,7 @@ function s.initial_effect(c)
 	e0c:SetValue(s.splimit)
 	c:RegisterEffect(e0c)
 	
-	--墓地有3只以上吸血鬼才能从手卡·墓地特殊召唤
+	--墓地有3只以上吸血鬼怪兽才能从手卡·墓地特殊召唤
 	local e00=Effect.CreateEffect(c)
 	e00:SetType(EFFECT_TYPE_FIELD)
 	e00:SetCode(EFFECT_SPSUMMON_PROC)
@@ -75,7 +76,8 @@ end
 function s.spcon(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.GetMatchingGroupCount(Card.IsSetCard,tp,LOCATION_GRAVE,0,nil,0x8e)>=3
+	return Duel.GetMatchingGroupCount(function(mc) return mc:IsSetCard(0x8e) and mc:IsType(TYPE_MONSTER) end,tp,LOCATION_GRAVE,0,nil)>=3
+		and Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 end
 
 function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)

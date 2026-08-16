@@ -4,7 +4,7 @@
 local s,id=GetID()
 
 function s.initial_effect(c)
-    -- 关联「山铜结界」
+    aux.AddCodeList(c, 45205526)
     aux.AddCodeList(c, 48179391)
     
     -- 不能通常召唤
@@ -21,7 +21,7 @@ function s.initial_effect(c)
     e0_2:SetCode(EFFECT_CANNOT_MSET)
     c:RegisterEffect(e0_2)
     
-    -- 只能用仪式召唤特殊召唤（不能用其他效果特殊召唤）
+    -- 只能用仪式召唤特殊召唤
     local e_limit=Effect.CreateEffect(c)
     e_limit:SetType(EFFECT_TYPE_SINGLE)
     e_limit:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
@@ -48,7 +48,7 @@ function s.initial_effect(c)
     e_atk:SetValue(s.atkval)
     c:RegisterEffect(e_atk)
     
-    --②效果-1：保护对象（通常怪兽 或 有「山铜结界」记述的怪兽）
+    --②效果-1：保护对象
     local e3=Effect.CreateEffect(c)
     e3:SetType(EFFECT_TYPE_FIELD)
     e3:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
@@ -69,7 +69,6 @@ function s.initial_effect(c)
     c:RegisterEffect(e4)
 end
 
--- 只能用仪式召唤
 function s.splimit(e,se,sp,st)
     return bit.band(st,SUMMON_TYPE_RITUAL)==SUMMON_TYPE_RITUAL
 end
@@ -79,7 +78,6 @@ function s.atkval(e,c)
     return ct*300
 end
 
---①效果：衍生物生成
 function s.tktg(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then
         return Duel.GetLocationCount(tp,LOCATION_MZONE)>0

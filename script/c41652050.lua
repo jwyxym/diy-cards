@@ -16,7 +16,6 @@ function s.initial_effect(c)
 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e2:SetCode(EVENT_CHAIN_SOLVING)
 	e2:SetRange(LOCATION_FZONE)
-	e2:SetCountLimit(1)
 	e2:SetCondition(s.chcon)
 	e2:SetOperation(s.chop)
 	c:RegisterEffect(e2)
@@ -70,7 +69,7 @@ function s.chop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function s.chpop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Draw(1-tp,2,REASON_EFFECT)
+	Duel.Draw(tp,2,REASON_EFFECT)
 end
 function s.repfilter(c)
 	return (c:IsLocation(LOCATION_FZONE) or c:IsRace(RACE_SPELLCASTER)) and c:IsReason(REASON_EFFECT) and not c:IsReason(REASON_REPLACE)

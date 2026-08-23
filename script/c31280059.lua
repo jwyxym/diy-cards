@@ -32,8 +32,8 @@ function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsAbleToDeck,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil) end	
 	Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,tp,LOCATION_GRAVE+LOCATION_REMOVED)
     local ch=Duel.GetCurrentChain()
-    local te,tep=Duel.GetChainInfo(ch-1,CHAININFO_TRIGGERING_EFFECT,CHAININFO_TRIGGERING_PLAYER)
-	if ch>1 and tep==1-tp and te:IsActiveType(TYPE_SPELL+TYPE_TRAP) then
+    local te=Duel.GetChainInfo(ch-1,CHAININFO_TRIGGERING_EFFECT)
+	if ch>1 and te:IsActiveType(TYPE_SPELL+TYPE_TRAP) and e:IsHasType(EFFECT_TYPE_ACTIVATE) then
 		e:SetCategory(CATEGORY_TODECK+CATEGORY_DISABLE)
     else
     	e:SetCategory(CATEGORY_TODECK)    
@@ -54,9 +54,9 @@ function s.tdop(e,tp,eg,ep,ev,re,r,rp)
             if g:GetClassCount(Card.GetCode)==g:GetCount() then
             	res=false
         		local ch=Duel.GetCurrentChain()
-        		local te,tep=Duel.GetChainInfo(ch-1,CHAININFO_TRIGGERING_EFFECT,CHAININFO_TRIGGERING_PLAYER)
-        		local con=ch>1 and tep==1-tp and te:IsActiveType(TYPE_SPELL+TYPE_TRAP) 
-        			and Duel.IsChainDisablable(ch-1)
+        		local te=Duel.GetChainInfo(ch-1,CHAININFO_TRIGGERING_EFFECT)
+        		local con=ch>1 and te:IsActiveType(TYPE_SPELL+TYPE_TRAP) 
+                	and e:IsHasType(EFFECT_TYPE_ACTIVATE) and Duel.IsChainDisablable(ch-1)
                 local op=aux.SelectFromOptions(tp,
 					{true,aux.Stringid(id,4),1},
 					{con,aux.Stringid(id,5),2})

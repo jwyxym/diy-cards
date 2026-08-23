@@ -134,7 +134,7 @@ function s.drop(e,tp,eg,ep,ev,re,r,rp)
     			local ct=Duel.GetOperatedGroup():GetCount()
                 local dt=Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)
                 if ct>dt then ct=dt end
-    			if Duel.Draw(tp,dt,REASON_EFFECT)~=0 then 
+    			if Duel.Draw(tp,ct,REASON_EFFECT)~=0 then 
                 	Duel.ShuffleHand(tp)                    
                 	if Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)==0 then
             			local WIN_REASON_DISASTER_LEO=0xacaa

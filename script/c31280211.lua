@@ -1,55 +1,80 @@
---泰拉饭 萨米特色驱邪角兽肉串
-function c31280211.initial_effect(c)
-	--Activate
+--老牧师手法
+local s,id,o=GetID()
+function s.initial_effect(c)
+	--发动
 	local e1=Effect.CreateEffect(c)
+    e1:SetDescription(aux.Stringid(id,0))
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
+	e1:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
+	e1:SetTarget(s.eftg)
+	e1:SetOperation(s.efop)
 	c:RegisterEffect(e1)
-	--change cost
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_SINGLE)
-	e1:SetCode(31280208)
-	e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-	e1:SetRange(LOCATION_SZONE)
-	e1:SetCountLimit(1,31280211)
-	c:RegisterEffect(e1)
-	--atk 
-	local e2=Effect.CreateEffect(c) 
-	e2:SetCategory(CATEGORY_DESTROY)
-	e2:SetType(EFFECT_TYPE_IGNITION) 
-	e2:SetRange(LOCATION_SZONE)
-	e2:SetProperty(EFFECT_FLAG_DELAY)
-	e2:SetCountLimit(1,11280211)  
-	e2:SetTarget(c31280211.xxtg)
-	e2:SetOperation(c31280211.xxop)
-	c:RegisterEffect(e2)
 end
-c31280211.SetCard_TnT_TLmeal=true 
-function c31280211.xtgfil(c) 
-	return c:IsFaceup() and (c:IsAttribute(ATTRIBUTE_DARK) or c:IsSetCard(0xca0)) 
-end 
-function c31280211.xxtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingTarget(c31280211.xtgfil,tp,LOCATION_MZONE,0,1,nil) and e:GetHandler():IsAbleToDeck() and Duel.IsPlayerCanDraw(tp) and Duel.GetLocationCount(tp,LOCATION_MZONE,PLAYER_NONE,0)>0 end 
-	Duel.SelectTarget(tp,c31280211.xtgfil,tp,LOCATION_MZONE,0,1,1,nil)
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,e:GetHandler(),1,0,0)  
+function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.GetFlagEffect(tp,id)==0 end
+end    
+function s.efop(e,tp,eg,ep,ev,re,r,rp)
+	if Duel.GetFlagEffect(tp,id)>0 then return end
+	Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
+    local c=e:GetHandler()    
+	--骰子    
+    local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e1:SetCode(EVENT_TOSS_DICE_NEGATE)
+	e1:SetOperation(s.dcop)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+	--硬币    
+    local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e2:SetCode(EVENT_TOSS_COIN_NEGATE)
+	e2:SetOperation(s.coop)
+	e2:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e2,tp)    
 end
-function c31280211.xxop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler() 
-	if not (c:IsRelateToEffect(e) and Duel.SendtoDeck(c,nil,2,REASON_EFFECT)~=0) then return end 
-	local tc=Duel.GetFirstTarget() 
-	if tc:IsRelateToEffect(e) and Duel.GetLocationCount(tp,LOCATION_MZONE,PLAYER_NONE,0)>0 then   
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOZONE)
-		local s=Duel.SelectDisableField(tp,1,LOCATION_MZONE,0,0)
-		local nseq=math.log(s,2)
-		Duel.MoveSequence(tc,nseq)   
-		if c:GetSequence()==seq then
-			local g=c:GetColumnGroup():Filter(Card.IsLocation,nil,LOCATION_MZONE)
-			if g:GetCount()>0 and Duel.SelectYesNo(tp,aux.Stringid(31280211,0)) then
-				local sg=g:Select(tp,1,1,nil)
-				Duel.BreakEffect()
-				Duel.Destroy(sg,REASON_EFFECT)
+function s.dcop(e,tp,eg,ep,ev,re,r,rp)
+	if Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
+		Duel.Hint(HINT_CARD,0,id)
+		local dc={Duel.GetDiceResult()}
+		local ac=1
+		local ct=(ev&0xff)+(ev>>16&0xff)
+        for i=1,ct do
+        	if i>1 then 
+            	if not Duel.SelectYesNo(tp,aux.Stringid(id,5)) then break
+				else Duel.BreakEffect() end
 			end
-		end
-	end 
-end 
-
+			if ct>1 then			
+				Duel.Hint(HINT_SELECTMSG,tp,aux.Stringid(id,2))
+				local val,idx=Duel.AnnounceNumber(tp,table.unpack(aux.idx_table,1,ct))
+				ac=idx+1
+			end
+			Duel.Hint(HINT_SELECTMSG,tp,aux.Stringid(id,4))
+			local newval=Duel.AnnounceNumber(tp,1,2,3,4,5,6)
+			dc[ac]=newval
+			Duel.SetDiceResult(table.unpack(dc))
+       	end     
+	end
+end
+function s.coop(e,tp,eg,ep,ev,re,r,rp)	
+	if Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
+		Duel.Hint(HINT_CARD,0,id)
+		local co={Duel.GetCoinResult()}
+		local ac=1
+    	local ct=(ev&0xff)+(ev>>16&0xff)
+		for i=1,ct do
+    		if i>1 then 
+            	if not Duel.SelectYesNo(tp,aux.Stringid(id,6)) then break
+				else Duel.BreakEffect() end
+			end
+        	if ct>1 then			
+				Duel.Hint(HINT_SELECTMSG,tp,aux.Stringid(id,3))
+				local val,idx=Duel.AnnounceNumber(tp,table.unpack(aux.idx_table,1,ct))
+				ac=idx+1
+			end
+        	local newval=aux.SelectFromOptions(tp,{true,60,1},{true,61,0})
+			co[ac]=newval
+			Duel.SetCoinResult(table.unpack(co))
+ 		end           
+	end            
+end

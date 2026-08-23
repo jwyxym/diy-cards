@@ -17,7 +17,7 @@ function s.initial_effect(c)
 	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e2:SetRange(LOCATION_HAND)
+	e2:SetRange(LOCATION_HAND+LOCATION_GRAVE)
 	e2:SetCode(EVENT_PAY_LPCOST)
 	e2:SetCountLimit(1,id+1)
 	e2:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL)
@@ -62,6 +62,9 @@ function s.ctop(e,tp,eg,ep,ev,re,r,rp)
 			Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
 		end
 	end
+end
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+	return bit.band(r,REASON_BATTLE+REASON_EFFECT)~=0
 end
 function s.spfilter(c,e,tp)
 	return c:IsSetCard(0xe92) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)

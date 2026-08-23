@@ -72,7 +72,7 @@ function s.splimit(e,c)
 	return not c:IsAttribute(ATTRIBUTE_WATER)
 end
 function s.spfilter(c,e,tp)
-	return c:IsSetCard(0x2f) and not c:IsType(TYPE_SYNCHRO) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_DEFENSE)
+	return c:IsSetCard(0x2f) and c:IsType(TYPE_MONSTER) and not c:IsType(TYPE_SYNCHRO) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP_DEFENSE)
 end
 function s.sptg1(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(LOCATION_GRAVE) and chkc:IsControler(tp) and s.filter(chkc,e,tp) end

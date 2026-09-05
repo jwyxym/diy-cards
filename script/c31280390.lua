@@ -56,8 +56,8 @@ end
 function s.tgop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
 	local tc=Duel.SelectMatchingCard(tp,s.tgfilter,tp,LOCATION_DECK+LOCATION_EXTRA,0,1,1,nil):GetFirst()
-	if tc and Duel.SendtoGrave(tc,REASON_EFFECT)~=0 and tc:IsLocation(LOCATION_GRAVE) 
-    	and Duel.GetFlagEffect(tp,id)>=7 then
+	if tc and Duel.SendtoGrave(tc,REASON_EFFECT)~=0 and tc:IsLocation(LOCATION_GRAVE) and Duel.GetFlagEffect(tp,id)>=7
+    	and Duel.IsExistingMatchingCard(Card.IsFaceup,tp,0,LOCATION_MZONE,1,nil) then
         Duel.BreakEffect()
    		local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,0,LOCATION_MZONE,nil)
         for tc in aux.Next(g) do
@@ -70,23 +70,7 @@ function s.tgop(e,tp,eg,ep,ev,re,r,rp)
 			tc:RegisterEffect(e1)
 		end             
 	end
-    local e1=Effect.CreateEffect(e:GetHandler())
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_CANNOT_BE_FUSION_MATERIAL)
-	e1:SetProperty(EFFECT_FLAG_SET_AVAILABLE+EFFECT_FLAG_IGNORE_IMMUNE)
-	e1:SetTargetRange(0xff,0xff)
-	e1:SetTarget(s.limittg)
-	e1:SetValue(s.fuslimit)
-	e1:SetReset(RESET_PHASE+PHASE_END)
-	Duel.RegisterEffect(e1,tp)
 end
-function s.limittg(e,c)
-	return not c:IsRace(RACE_FIEND)
-end
-function s.fuslimit(e,c,sumtype)
-	if not c then return false end
-	return c:IsControler(e:GetHandlerPlayer())
-end    
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	return c:IsReason(REASON_EFFECT) and not c:IsReason(REASON_FUSION)
@@ -106,14 +90,10 @@ function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	return c:IsLocation(LOCATION_GRAVE) and r==REASON_FUSION and c:IsReason(REASON_EFFECT)
 end
-function s.confilter(c)
-	return c:IsFaceup() and not c:IsSetCard(0x5ca1)
-end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
     local b1=c:IsAbleToHand()
     local b2=Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-    	and not Duel.IsExistingMatchingCard(s.confilter,tp,LOCATION_MZONE,0,1,nil) 
 	if chk==0 then return (b1 or b2) and Duel.GetLP(tp)>=400 end
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,c,1,0,0)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)
@@ -125,7 +105,6 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
     	and not aux.NecroValleyNegateCheck(c) then
 		local b1=c:IsAbleToHand()
 		local b2=Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-        	and not Duel.IsExistingMatchingCard(s.confilter,tp,LOCATION_MZONE,0,1,nil)
 		local op=aux.SelectFromOptions(tp,{b1,1190,1},{b2,1152,2})
 		if op==1 then
 			Duel.SendtoHand(c,nil,REASON_EFFECT)			

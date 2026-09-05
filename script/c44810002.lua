@@ -50,7 +50,7 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
 function s.sfilter(c,e,tp)
-	return c:IsFaceup() and not c:IsSetCard(0xf0)
+	return c:IsFaceup() and not c:IsSetCard(0x5ce1)
 end
 function s.eqfilter(c,ec)
 	return c:IsSetCard(0x3ce1) and c:IsType(TYPE_EQUIP) and c:CheckEquipTarget(ec)

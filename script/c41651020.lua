@@ -1,11 +1,12 @@
 -- 白鸟绘卷——化龙志
 local s,id,o=GetID()
 function s.initial_effect(c)
-    --activate
+    --activate（卡名一回合一次）
     local e1=Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_ACTIVATE)
     e1:SetCode(EVENT_FREE_CHAIN)
     e1:SetHintTiming(0,TIMING_END_PHASE)
+    e1:SetCountLimit(1,id)  -- 添加：卡名一回合一次
     e1:SetTarget(s.target)
     e1:SetOperation(s.activate)
     c:RegisterEffect(e1)
@@ -33,14 +34,14 @@ function s.initial_effect(c)
     e3:SetLabelObject(e0)
     c:RegisterEffect(e3)
     --destroy replace
-    local e2=Effect.CreateEffect(c)
-    e2:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_FIELD)
-    e2:SetCode(EFFECT_DESTROY_REPLACE)
-    e2:SetRange(LOCATION_FZONE+LOCATION_GRAVE+LOCATION_HAND)
-    e2:SetTarget(s.reptg)
-    e2:SetValue(s.repval)
-    e2:SetOperation(s.repop)
-    c:RegisterEffect(e2)
+    local e4=Effect.CreateEffect(c)
+    e4:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_FIELD)
+    e4:SetCode(EFFECT_DESTROY_REPLACE)
+    e4:SetRange(LOCATION_FZONE+LOCATION_GRAVE+LOCATION_HAND)
+    e4:SetTarget(s.reptg)
+    e4:SetValue(s.repval)
+    e4:SetOperation(s.repop)
+    c:RegisterEffect(e4)
 end
 function s.setfilter(c)
     return c:IsType(TYPE_PENDULUM) and c:IsSetCard(0xe91) and not c:IsForbidden()
@@ -66,7 +67,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
         e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
         e1:SetTargetRange(1,0)
         e1:SetTarget(s.splimit)
-        e1:SetReset(RESET_PHASE+PHASE_END,1)
+        e1:SetReset(RESET_PHASE+PHASE_END,2)
         Duel.RegisterEffect(e1,tp)
     end
 end

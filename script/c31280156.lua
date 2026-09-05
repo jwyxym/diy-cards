@@ -19,7 +19,7 @@ function s.initial_effect(c)
 	--装备    
     local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
-    e3:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_FUSION_SUMMON+CATEGORY_ATKCHANGE+CATEGORY_EQUIP)
+    e3:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_FUSION_SUMMON+CATEGORY_ATKCHANGE)
 	e3:SetType(EFFECT_TYPE_IGNITION)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetCountLimit(1,id+o*10000)

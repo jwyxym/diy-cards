@@ -41,7 +41,7 @@ function s.atktg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
     Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,PLAYER_ALL,400)
 end
 function s.confilter(c)
-	return c:IsFaceup() and c:IsSetCard(0x5ca1) and c:IsType(TYPE_FUSION)
+	return c:IsFaceup() and (c:IsSetCard(0x5ca1) or (c:IsRace(RACE_FIEND) and c:IsType(TYPE_FUSION)))
 end
 function s.atkop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
@@ -67,33 +67,35 @@ function s.atkop(e,tp,eg,ep,ev,re,r,rp)
 			local e3=Effect.CreateEffect(c)
 			e3:SetType(EFFECT_TYPE_SINGLE)
 			e3:SetCode(EFFECT_DISABLE)
-			e3:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+			e3:SetReset(RESET_EVENT+RESETS_STANDARD)
 			tc:RegisterEffect(e3)
 			local e4=Effect.CreateEffect(c)
 			e4:SetType(EFFECT_TYPE_SINGLE)
 			e4:SetCode(EFFECT_DISABLE_EFFECT)
 			e4:SetValue(RESET_TURN_SET)
-			e4:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+			e4:SetReset(RESET_EVENT+RESETS_STANDARD)
 			tc:RegisterEffect(e4)
         end
     end
 end   
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
- 	local c=e:GetHandler()
-	return not c:IsPreviousLocation(LOCATION_ONFIELD) and c:IsReason(REASON_EFFECT)
+	return e:GetHandler():IsReason(REASON_EFFECT)
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsAbleToGrave,tp,LOCATION_HAND,0,1,nil)
-    	and e:GetHandler():IsAbleToHand() end
+	if chk==0 then return e:GetHandler():IsAbleToHand() end
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,e:GetHandler(),1,0,0)
-    Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_HAND)
-end
+end    
 function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-	local tc=Duel.SelectMatchingCard(tp,Card.IsAbleToGrave,tp,LOCATION_HAND,0,1,1,nil):GetFirst()    
-	if tc and Duel.SendtoGrave(tc,REASON_EFFECT)~=0 and tc:IsLocation(LOCATION_GRAVE)
-    	and c:IsRelateToEffect(e) then
-		Duel.SendtoHand(c,nil,REASON_EFFECT)
+    if c:IsRelateToEffect(e) and Duel.SendtoHand(c,nil,REASON_EFFECT)~=0 
+    	and c:IsLocation(LOCATION_HAND) and Duel.IsExistingMatchingCard(Card.IsAbleToGrave,tp,LOCATION_HAND,0,1,nil)
+        and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
+        Duel.BreakEffect()
+        Duel.ShuffleHand(tp)
+    	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+		local g=Duel.SelectMatchingCard(tp,Card.IsAbleToGrave,tp,LOCATION_HAND,0,1,1,nil) 
+		if g:GetCount()>0 then
+        	Duel.SendtoGrave(g,REASON_EFFECT)
+    	end 
 	end
 end

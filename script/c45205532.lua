@@ -1,4 +1,4 @@
---反击陷阱卡
+--天珠
 local s,id=GetID()
 function s.initial_effect(c)
 	aux.AddCodeList(c,48179391)
@@ -10,7 +10,7 @@ function s.initial_effect(c)
 	e0:SetCondition(s.handcon)
 	c:RegisterEffect(e0)
 	
-	--①效果：自己场上有「山铜结界」（不限区域），对方发动魔陷怪兽效果时，无效并破坏，那之后可以回收5张抽2
+	--①效果：自己场上有「山铜结界」，对方发动魔陷怪兽效果时，无效并破坏，那之后可以回收5张抽2
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_NEGATE+CATEGORY_DESTROY+CATEGORY_TODECK+CATEGORY_DRAW)
@@ -41,7 +41,7 @@ end
 
 -- ①效果
 function s.negcon(e,tp,eg,ep,ev,re,r,rp)
-	return ep==1-tp and Duel.IsExistingMatchingCard(s.orifilter,tp,LOCATION_ONFIELD,0,1,nil)
+	return ep==1-tp and Duel.IsExistingMatchingCard(Card.IsCode,tp,LOCATION_ONFIELD,0,1,nil,48179391)
 end
 
 function s.orifilter(c)

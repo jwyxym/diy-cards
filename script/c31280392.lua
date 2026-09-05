@@ -30,11 +30,11 @@ function s.initial_effect(c)
     e3:SetOperation(s.efop)
 	c:RegisterEffect(e3)
 end
-function s.cfilter(c)
+function s.confilter(c)
 	return c:IsSetCard(0x5ca1) and c:IsFaceup()
 end
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_MZONE,0,1,nil)
+	return Duel.IsExistingMatchingCard(s.confilter,tp,LOCATION_MZONE,0,1,nil)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.GetLP(tp)>=400

@@ -26,6 +26,7 @@ function s.initial_effect(c)
 	e2:SetCondition(s.immcon)
 	c:RegisterEffect(e2)
 	--③ 结束阶段发动。场上的全部怪兽的控制权回归原本持有者。
+	Duel.EnableGlobalFlag(GLOBALFLAG_BRAINWASHING_CHECK)
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
 	e3:SetCategory(CATEGORY_CONTROL)
@@ -33,7 +34,6 @@ function s.initial_effect(c)
 	e3:SetCode(EVENT_PHASE+PHASE_END)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetCountLimit(1,id+100)
-	e3:SetCondition(s.ctrcon)
 	e3:SetTarget(s.ctrtg)
 	e3:SetOperation(s.ctrop)
 	c:RegisterEffect(e3)
@@ -112,20 +112,59 @@ function s.immval(e,re)
 	local g=Duel.GetFieldGroup(tp,LOCATION_ONFIELD,0)
 	return not g:IsExists(function(tc) return re:GetHandler():IsHasCardTarget(tc) end,1,nil)
 end
-function s.ctrcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetTurnPlayer()==tp
+function s.cfilter(c)
+	return c:GetControler()~=c:GetOwner()
 end
 function s.ctrtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return true end
-	local g=Duel.GetFieldGroup(tp,LOCATION_MZONE,LOCATION_MZONE)
-	local tg=g:Filter(function(tc) return tc:GetControler()~=tc:GetOwner() end,nil)
-	Duel.SetOperationInfo(0,CATEGORY_CONTROL,tg,tg:GetCount(),0,0)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) end
 end
 function s.ctrop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetFieldGroup(tp,LOCATION_MZONE,LOCATION_MZONE)
-	for tc in aux.Next(g) do
-		if tc:GetControler()~=tc:GetOwner() then
-			Duel.GetControl(tc,tc:GetOwner())
+	local tg=Group.CreateGroup()
+	local tc=g:GetFirst()
+	while tc do
+		if not tc:IsImmuneToEffect(e) and tc:GetFlagEffect(id)==0 then
+			tc:RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD,0,1)
+			tg:AddCard(tc)
 		end
+		tc=g:GetNext()
+	end
+	tg:KeepAlive()
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_REMOVE_BRAINWASHING)
+	e1:SetProperty(EFFECT_FLAG_SET_AVAILABLE)
+	e1:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
+	e1:SetTarget(aux.TargetEqualFunction(Card.GetFlagEffect,1,id))
+	e1:SetLabelObject(tg)
+	Duel.RegisterEffect(e1,tp)
+	--force adjust
+	local e2=Effect.CreateEffect(e:GetHandler())
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e2:SetCode(EVENT_CHAIN_SOLVED)
+	e2:SetProperty(EFFECT_FLAG_DELAY)
+	e2:SetLabelObject(e1)
+	Duel.RegisterEffect(e2,tp)
+	--reset
+	local e3=Effect.CreateEffect(e:GetHandler())
+	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e3:SetCode(EVENT_CHAIN_SOLVED)
+	e3:SetLabelObject(e2)
+	e3:SetLabel(Duel.GetChainInfo(0,CHAININFO_CHAIN_ID))
+	e3:SetOperation(s.reset)
+	Duel.RegisterEffect(e3,tp)
+end
+function s.reset(e,tp,eg,ep,ev,re,r,rp)
+	if Duel.GetChainInfo(ev,CHAININFO_CHAIN_ID)==e:GetLabel() then
+		local e2=e:GetLabelObject()
+		local e1=e2:GetLabelObject()
+		local tg=e1:GetLabelObject()
+		for tc in aux.Next(tg) do
+			tc:ResetFlagEffect(id)
+		end
+		tg:DeleteGroup()
+		e1:Reset()
+		e2:Reset()
+		e:Reset()
 	end
 end

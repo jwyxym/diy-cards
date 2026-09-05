@@ -15,7 +15,7 @@ function c12263008.initial_effect(c)
 	e2:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
 	e2:SetValue(c12263008.eqlimit)
 	c:RegisterEffect(e2)
-	--①效果：从卡组把1只天水怪兽破坏
+	--①效果：从卡组把1只天水卡破坏
 	local e3=Effect.CreateEffect(c)
 	e3:SetCategory(CATEGORY_DESTROY)
 	e3:SetType(EFFECT_TYPE_IGNITION)
@@ -32,7 +32,7 @@ function c12263008.initial_effect(c)
 	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e4:SetCode(EVENT_TO_GRAVE)
 	e4:SetProperty(EFFECT_FLAG_DELAY)
-	e4:SetCountLimit(1,12263008*10+1)
+	e4:SetCountLimit(1,122630081)
 	e4:SetCondition(c12263008.setcon)
 	e4:SetTarget(c12263008.settg)
 	e4:SetOperation(c12263008.setop)
@@ -58,9 +58,9 @@ function c12263008.operation(e,tp,eg,ep,ev,re,r,rp)
 		Duel.Equip(tp,e:GetHandler(),tc)
 	end
 end
---①效果：从卡组破坏天水怪兽
+--①效果：从卡组破坏天水卡【仅此处修改】
 function c12263008.desfilter(c)
-	return c:IsSetCard(0x5244) and c:IsType(TYPE_MONSTER) and c:IsAbleToGrave()
+	return c:IsSetCard(0x5244) and c:IsAbleToGrave()
 end
 function c12263008.destg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(c12263008.desfilter,tp,LOCATION_DECK,0,1,nil) end

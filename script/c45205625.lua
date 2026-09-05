@@ -50,12 +50,10 @@ function s.spop1(e,tp,eg,ep,ev,re,r,rp)
     local g=Duel.GetMatchingGroup(s.spfilter1,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED,0,nil)
     if #g==0 then return end
     
-    -- 先选一只给自己
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
     local sg1=g:Select(tp,1,1,nil)
     local tc1=sg1:GetFirst()
     
-    -- 另一只给对方
     local code2 = (tc1:IsCode(82791472) and 79582540) or 82791472
     local g2=g:Filter(Card.IsCode,nil,code2)
     if #g2==0 then return end
@@ -86,18 +84,20 @@ function s.sptg2(e,tp,eg,ep,ev,re,r,rp,chk)
         local b1=Duel.IsExistingMatchingCard(s.rmfilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE+LOCATION_ONFIELD,0,1,nil)
         local b2=Duel.IsExistingMatchingCard(s.rmfilter,1-tp,LOCATION_ONFIELD,0,1,nil)
         local b3=Duel.IsExistingMatchingCard(s.spfilter2,tp,LOCATION_EXTRA,0,1,nil,e,tp)
-        return b1 and b2 and b3
+        return b1 and b3
     end
     Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,2,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE+LOCATION_ONFIELD)
     Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 end
 
 function s.spop2(e,tp,eg,ep,ev,re,r,rp)
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-    local g1=Duel.SelectMatchingCard(tp,s.rmfilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE+LOCATION_ONFIELD,0,1,1,nil)
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-    local g2=Duel.SelectMatchingCard(tp,s.rmfilter,1-tp,LOCATION_ONFIELD,0,1,1,nil)
+    local g=Duel.GetMatchingGroup(s.rmfilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE+LOCATION_ONFIELD,0,nil)
+    local g_opp=Duel.GetMatchingGroup(s.rmfilter,tp,0,LOCATION_ONFIELD,nil)
+    g:Merge(g_opp)
+    if #g==0 then return end
     
+    local g1=g:Filter(Card.IsCode,nil,82791472):Select(tp,1,1,nil)
+    local g2=g:Filter(Card.IsCode,nil,79582540):Select(tp,1,1,nil)
     if #g1>0 and #g2>0 then
         g1:Merge(g2)
         if Duel.Remove(g1,POS_FACEUP,REASON_EFFECT)~=0 then

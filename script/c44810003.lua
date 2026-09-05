@@ -113,7 +113,7 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
 function s.sfilter(c)
-	return c:IsFaceup() and not c:IsSetCard(0xf0)
+	return c:IsFaceup() and not c:IsSetCard(0x5ce1)
 end
 function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

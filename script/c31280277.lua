@@ -71,10 +71,8 @@ function s.checkop2(e,tp,eg,ep,ev,re,r,rp)
 		local ct=Duel.GetFlagEffect(re:GetHandlerPlayer(),id) or 0
 		Duel.ResetFlagEffect(re:GetHandlerPlayer(),id)
 		if ct>1 then
-			local ra=0
-			while ra<ct do
+			for i=1,ct-1 do
 				Duel.RegisterFlagEffect(re:GetHandlerPlayer(),id,RESET_PHASE+PHASE_END,0,1)
-				ra=ra+1
 			end
 		end
 	end

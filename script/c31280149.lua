@@ -123,7 +123,6 @@ function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 		{b2,aux.Stringid(id,3),2})
 	e:SetLabel(op)
     if op==1 then
-    	e:SetCategory(CATEGORY_EQUIP)
     	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
 		Duel.SelectTarget(tp,s.tgfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil,tp)
         Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,nil,1,tp,0)

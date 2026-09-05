@@ -98,7 +98,6 @@ function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,sg,1,0,0)
     elseif op==2 then
     	if e:IsCostChecked() then
-        	e:SetCategory(CATEGORY_EQUIP)
 			Duel.RegisterFlagEffect(tp,id+o*10000,RESET_PHASE+PHASE_END,0,1)
 		end    	
     	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)

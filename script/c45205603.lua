@@ -26,7 +26,6 @@ function s.initial_effect(c)
     e1:SetType(EFFECT_TYPE_QUICK_O)
     e1:SetCode(EVENT_FREE_CHAIN)
     e1:SetRange(LOCATION_SZONE)
-    -- ★★★ 加上取对象标签 ★★★
     e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
     e1:SetCountLimit(1,id)
     e1:SetTarget(s.returntg)
@@ -59,7 +58,10 @@ end
 
 function s.returntg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
     if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and s.retfilter(chkc) end
-    if chk==0 then return Duel.IsExistingTarget(s.retfilter,tp,LOCATION_MZONE,0,1,nil) end
+    if chk==0 then
+        return Duel.IsExistingTarget(s.retfilter,tp,LOCATION_MZONE,0,1,nil)
+            and Duel.IsExistingMatchingCard(s.spfilter2,tp,LOCATION_DECK,0,1,nil,e,tp)
+    end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RTOHAND)
     local g=Duel.SelectTarget(tp,s.retfilter,tp,LOCATION_MZONE,0,1,1,nil)
     Duel.SetOperationInfo(0,CATEGORY_TOHAND,g,1,0,0)

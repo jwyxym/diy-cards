@@ -31,62 +31,93 @@ function s.initial_effect(c)
     e3:SetTarget(s.ovtg)
     e3:SetOperation(s.ovop)
     c:RegisterEffect(e3)
+	if not s.global_check then
+		s.global_check=true
+		local ge1=Effect.CreateEffect(c)
+		ge1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		ge1:SetCode(EVENT_DESTROY)
+		ge1:SetOperation(s.checkop)
+		Duel.RegisterEffect(ge1,0)
+	end
 end
-
+function s.chkfilter(c)
+	return c:GetOriginalType()&TYPE_MONSTER>0
+end
+function s.checkop(e,tp,eg,ep,ev,re,r,rp)
+	local g=eg:Filter(s.chkfilter,nil)
+	if #g>0 then
+		Duel.RegisterFlagEffect(tp,id+3,nil,0,1)
+		Duel.RegisterFlagEffect(1-tp,id+3,nil,0,1)
+	end
+end
 function s.refilter(c,tp)
-    return ((c:GetOriginalRace()&RACE_WYRM>0 and not c:IsLocation(LOCATION_MZONE)) or c:IsRace(RACE_WYRM))
-        and (c:IsControler(tp) or c:IsFaceup()) and c:IsAbleToRemoveAsCost()
+	return ((c:GetOriginalRace()&RACE_WYRM>0 and not c:IsLocation(LOCATION_MZONE)) or c:IsRace(RACE_WYRM)) and ((c:IsControler(tp) and c:IsFaceupEx()) or c:IsFaceup()) and c:IsAbleToRemoveAsCost()
 end
 function s.rfilter(c,tp)
-    return ((c:GetOriginalAttribute()&ATTRIBUTE_DARK>0 and not c:IsLocation(LOCATION_MZONE)) or c:IsAttribute(ATTRIBUTE_DARK))
-        and (c:IsControler(tp) or c:IsFaceup()) and c:IsAbleToRemoveAsCost()
+	return ((c:GetOriginalAttribute()&ATTRIBUTE_DARK>0 and not c:IsLocation(LOCATION_MZONE)) or c:IsAttribute(ATTRIBUTE_DARK)) and ((c:IsControler(tp) and c:IsFaceupEx()) or c:IsFaceup()) and c:IsAbleToRemoveAsCost()
 end
 function s.fselect(g,tp)
     return g:IsExists(s.rfilter,1,nil,tp) and Duel.GetMZoneCount(tp,g)>0
 end
 function s.spcon(e,c,tp)
-    if c==nil then return true end
-    local rg=Duel.GetMatchingGroup(s.refilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
-    return rg:CheckSubGroup(s.fselect,2,2,tp)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	if Duel.GetFlagEffect(tp,id+3)>0 then
+		local rg=Duel.GetMatchingGroup(s.refilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+		return rg:CheckSubGroup(s.fselect,2,2,tp)
+	else
+		local rg=Duel.GetMatchingGroup(s.refilter,tp,LOCATION_ONFIELD,0,nil,tp)
+		return rg:CheckSubGroup(s.fselect,2,2,tp)
+	end
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
-    local rg=Duel.GetMatchingGroup(s.refilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-    local sg=rg:SelectSubGroup(tp,s.fselect,true,2,2,tp)
-    if sg then
-        sg:KeepAlive()
-        e:SetLabelObject(sg)
-        return true
-    else return false end
+	if Duel.GetFlagEffect(tp,id+3)>0 then
+		local rg=Duel.GetMatchingGroup(s.refilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil,tp)
+		local sg=rg:SelectSubGroup(tp,s.fselect,true,2,2,tp)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+		if sg then
+			sg:KeepAlive()
+			e:SetLabelObject(sg)
+			return true
+		else return false end
+	else
+		local rg=Duel.GetMatchingGroup(s.refilter,tp,LOCATION_ONFIELD,0,nil,tp)
+		local sg=rg:SelectSubGroup(tp,s.fselect,true,2,2,tp)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+		if sg then
+			sg:KeepAlive()
+			e:SetLabelObject(sg)
+			return true
+		else return false end
+	end
 end
 function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
-    local g=e:GetLabelObject()
-    Duel.Remove(g,POS_FACEUP,REASON_SPSUMMON)
-    local g1=g:Filter(Card.IsPreviousLocation,nil,LOCATION_MZONE)
-    local g2=g:Filter(Card.IsPreviousLocation,nil,LOCATION_SZONE)
-    local atk=g1:GetSum(Card.GetPreviousAttackOnField)+g2:GetSum(Card.GetBaseAttack)
-    local def=g1:GetSum(Card.GetPreviousDefenseOnField)+g2:GetSum(Card.GetBaseDefense)
-    local e1=Effect.CreateEffect(c)
-    e1:SetType(EFFECT_TYPE_SINGLE)
-    e1:SetCode(EFFECT_SET_ATTACK)
-    e1:SetValue(atk)
-    e1:SetReset(RESET_EVENT+RESETS_STANDARD-RESET_TOFIELD)
-    c:RegisterEffect(e1)
+	local g=e:GetLabelObject()
+	Duel.Remove(g,POS_FACEUP,REASON_SPSUMMON)
+	local g1=g:Filter(Card.IsPreviousLocation,nil,LOCATION_MZONE)
+	local g2=g:Filter(Card.IsPreviousLocation,nil,LOCATION_SZONE)
+	local atk=g1:GetSum(Card.GetPreviousAttackOnField)+g2:GetSum(Card.GetBaseAttack)
+  local def=g1:GetSum(Card.GetPreviousDefenseOnField)+g2:GetSum(Card.GetBaseDefense)
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetCode(EFFECT_SET_ATTACK)
+	e1:SetValue(atk)
+	e1:SetReset(RESET_EVENT+RESETS_STANDARD-RESET_TOFIELD)
+	c:RegisterEffect(e1)
     local e2=Effect.CreateEffect(c)
     e2:SetType(EFFECT_TYPE_SINGLE)
     e2:SetCode(EFFECT_SET_DEFENSE)
     e2:SetValue(def)
     e2:SetReset(RESET_EVENT+RESETS_STANDARD-RESET_TOFIELD)
     c:RegisterEffect(e2)
-    g:DeleteGroup()
+	g:DeleteGroup()
 end
-
 function s.ovfilter(c)
     return c:IsCanOverlay()
 end
 function s.ovtg(e,tp,eg,ep,ev,re,r,rp,chk)
     local ct=math.floor(e:GetHandler():GetAttack()/2000)
-    if chk==0 then return ct>0 and Duel.IsExistingMatchingCard(s.ovfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) end
+    if chk==0 then return ct>0 and Duel.IsExistingMatchingCard(s.ovfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,e:GetHandler()) end
     Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,nil,ct,PLAYER_ALL,LOCATION_ONFIELD)
 end
 function s.ovop(e,tp,eg,ep,ev,re,r,rp)
@@ -94,7 +125,7 @@ function s.ovop(e,tp,eg,ep,ev,re,r,rp)
     local ct=math.floor(c:GetAttack()/2000)
     if ct<=0 then return end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
-    local g=Duel.SelectMatchingCard(tp,s.ovfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,ct,ct,nil)
+    local g=Duel.SelectMatchingCard(tp,s.ovfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,ct,ct,c)
     if #g>0 then
         Duel.Overlay(c,g)
     end

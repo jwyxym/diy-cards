@@ -127,7 +127,7 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local tc=Duel.GetFirstTarget()
 	if tc:IsRelateToEffect(e) and Duel.SendtoDeck(tc,nil,2,REASON_EFFECT)~=0 and tc:IsLocation(LOCATION_DECK+LOCATION_EXTRA)
     	and c:IsRelateToEffect(e) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and aux.NecroValleyFilter()(c)
-        and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP) and c:IsFaceup() and Duel.GetFlagEffect(tp,id+o)>0 then
+        and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)~=0 and c:IsFaceup() and Duel.GetFlagEffect(tp,id+o)>0 then
         Duel.BreakEffect()
         local e1=Effect.CreateEffect(c)
 		e1:SetType(EFFECT_TYPE_SINGLE)

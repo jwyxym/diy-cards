@@ -93,16 +93,16 @@ function s.damtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 	local g=Duel.SelectTarget(tp,s.spfilter,tp,LOCATION_GRAVE,0,1,1,nil,e,tp)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,g,1,0,0)
-    if g:GetFirst():GetBaseAttack()>0 then
+    if g:GetFirst():GetTextAttack()>0 then
     	e:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DAMAGE)
-    	Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,g:GetFirst():GetBaseAttack())
+    	Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,g:GetFirst():GetTextAttack())
     end    
 end
 function s.damop(e,tp,eg,ep,ev,re,r,rp)
 	local tc=Duel.GetFirstTarget()
 	if tc:IsRelateToEffect(e) and Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)~=0
-    	and tc:GetBaseAttack()>0 then
+    	and tc:GetTextAttack()>0 then
     	Duel.BreakEffect()
-        Duel.Damage(1-tp,tc:GetBaseAttack(),REASON_EFFECT)
+        Duel.Damage(1-tp,tc:GetTextAttack(),REASON_EFFECT)
 	end
 end

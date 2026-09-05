@@ -56,34 +56,60 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
     end
 end
 
---②效果Cost（与司马仲保持一致，用IsAbleToGraveAsCost）
+--主要怪兽区过滤
+function s.zonefilter(c)
+    return c:GetSequence()<5
+end
+
+--COST过滤
+function s.costfilter(c)
+    return c:IsAbleToGraveAsCost() and c:GetSequence()<5
+end
+
+--②效果Cost
 function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
+    local zone=0x7f
+    local ct=Duel.GetLocationCount(tp,LOCATION_MZONE,tp,LOCATION_REASON_TOFIELD,zone)
     if chk==0 then
-        return Duel.IsExistingMatchingCard(Card.IsAbleToGraveAsCost,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,e:GetHandler())
+        if ct>0 then
+            return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,e:GetHandler())
+        else
+            return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_MZONE,0,1,e:GetHandler())
+        end
     end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-    local g=Duel.SelectMatchingCard(tp,Card.IsAbleToGraveAsCost,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,e:GetHandler())
-    Duel.SendtoGrave(g,REASON_COST)
+    if ct>0 then
+        local g=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,e:GetHandler())
+        Duel.SendtoGrave(g,REASON_COST)
+    else
+        local g=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_MZONE,0,1,1,e:GetHandler())
+        Duel.SendtoGrave(g,REASON_COST)
+    end
 end
 
 --②效果选择
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then
-        return true
-    end
-    local b2 = Duel.IsExistingMatchingCard(Card.IsFaceup,tp,0,LOCATION_MZONE,1,nil)
+    local b1 = Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_HAND+LOCATION_DECK,0,1,nil,e,tp)
+    local b2 = Duel.IsExistingMatchingCard(s.ctrlfilter,tp,0,LOCATION_MZONE,1,nil)
+    if chk==0 then return b1 or b2 end
     local opts = {}
-    table.insert(opts, {true, aux.Stringid(id,2)})
+    local op1, op2
+    if b1 then
+        op1=#opts+1
+        table.insert(opts, {true, aux.Stringid(id,2)})
+    end
     if b2 then
+        op2=#opts+1
         table.insert(opts, {true, aux.Stringid(id,3)})
     end
     local op=aux.SelectFromOptions(tp, table.unpack(opts))
-    e:SetLabel(op)
     
-    if op==1 then
+    if op==op1 then
+        e:SetLabel(1)
         e:SetCategory(CATEGORY_SPECIAL_SUMMON)
         Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_HAND+LOCATION_DECK)
-    else
+    elseif op==op2 then
+        e:SetLabel(2)
         e:SetCategory(CATEGORY_CONTROL)
         Duel.SetOperationInfo(0,CATEGORY_CONTROL,nil,1,0,0)
     end
@@ -102,7 +128,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
             Duel.SpecialSummon(sc,0,tp,tp,false,false,POS_FACEUP)
         end
     else
-        local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,0,LOCATION_MZONE,nil)
+        local g=Duel.GetMatchingGroup(s.ctrlfilter,tp,0,LOCATION_MZONE,nil)
         if #g==0 then return end
         Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONTROL)
         local tc=g:Select(tp,1,1,nil):GetFirst()
@@ -120,4 +146,8 @@ end
 
 function s.spfilter(c,e,tp)
     return c:IsSetCard(0x0137) and c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+end
+
+function s.ctrlfilter(c)
+    return c:IsFaceup() and c:GetSequence()<5
 end

@@ -1,129 +1,91 @@
 --淬铁龙匠 龙人工匠
-function c31280184.initial_effect(c)
+local s,id,o=GetID()
+function s.initial_effect(c)
 	aux.EnablePendulumAttribute(c)
-	--墓地特召    
-    local e1=Effect.CreateEffect(c)
-	e1:SetDescription(aux.Stringid(31280184,0))
-	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
-	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	--破坏
+	local e1=Effect.CreateEffect(c)
+    e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DESTROY)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_PZONE)
-	e1:SetCountLimit(1,31280184)
-	e1:SetTarget(c31280184.target)
-	e1:SetOperation(c31280184.operation)
+	e1:SetCountLimit(1,id)
+	e1:SetTarget(s.destg)
+	e1:SetOperation(s.desop)
 	c:RegisterEffect(e1)
-    --种族视为机械族
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_SINGLE)
-	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-	e2:SetCode(EFFECT_ADD_RACE)
-	e2:SetRange(LOCATION_MZONE+LOCATION_HAND+LOCATION_EXTRA)
-	e2:SetValue(RACE_MACHINE)
-	c:RegisterEffect(e2)
-	--卡组检索
+	--放置
+   	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,1))
+	e2:SetType(EFFECT_TYPE_IGNITION)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetCountLimit(1,id+o*10000)
+    e2:SetCondition(s.pencon)
+	e2:SetTarget(s.pentg)
+	e2:SetOperation(s.penop)
+	c:RegisterEffect(e2)     
+	--放置
     local e3=Effect.CreateEffect(c)
-	e3:SetDescription(aux.Stringid(31280184,1))
-	e3:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
-	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-	e3:SetProperty(EFFECT_FLAG_DELAY)
-	e3:SetCode(EVENT_SUMMON_SUCCESS)
-	e3:SetCountLimit(1,31380184)
-	e3:SetTarget(c31280184.target1)
-	e3:SetOperation(c31280184.operation1)
-	c:RegisterEffect(e3)
-	local e4=e3:Clone()
-	e4:SetCode(EVENT_SPSUMMON_SUCCESS)
-	c:RegisterEffect(e4)
-	--装备    
-    local e5=Effect.CreateEffect(c)
-	e5:SetDescription(aux.Stringid(31280184,2))
-	e5:SetCategory(CATEGORY_EQUIP)
-	e5:SetType(EFFECT_TYPE_IGNITION)
-	e5:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e5:SetRange(LOCATION_EXTRA+LOCATION_MZONE)
-	e5:SetCountLimit(1,31380139)
-    e5:SetCondition(c31280184.condition2)
-	e5:SetTarget(c31280184.target2)
-	e5:SetOperation(c31280184.operation2)
-	c:RegisterEffect(e5)    
+	e3:SetDescription(aux.Stringid(id,2))
+	e3:SetType(EFFECT_TYPE_IGNITION)
+	e3:SetRange(LOCATION_GRAVE)
+	e3:SetCountLimit(1,31290183)
+    e3:SetCondition(s.lgcon)
+	e3:SetTarget(s.lgtg)
+	e3:SetOperation(s.lgop)
+	c:RegisterEffect(e3)    
 end
-function c31280184.spfilter(c,e,tp)
-	return c:IsSetCard(0xca4,0xca6) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+function s.destg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return e:GetHandler():IsDestructable() end
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,e:GetHandler(),1,0,0)
 end
-function c31280184.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_GRAVE) and chkc:IsControler(tp) and c31280184.spfilter(chkc,e,tp) end
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and Duel.IsExistingTarget(c31280184.spfilter,tp,LOCATION_GRAVE,0,1,nil,e,tp) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-	local g=Duel.SelectTarget(tp,c31280184.spfilter,tp,LOCATION_GRAVE,0,1,1,nil,e,tp)
-	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,g,1,0,0)
-end
-function c31280184.operation(e,tp,eg,ep,ev,re,r,rp)
+function s.desop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	local tc=Duel.GetFirstTarget()
-	if tc:IsRelateToEffect(e) then
-		Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
-        if c:IsRelateToEffect(e) then
-        	Duel.BreakEffect()
-			Duel.Destroy(c,REASON_EFFECT)
-        end    
+	if Duel.Destroy(c,REASON_EFFECT)~=0 and c:IsLocation(LOCATION_EXTRA) and c:IsFaceup() 
+    	and c:IsCanBeSpecialSummoned(e,0,tp,false,false) and Duel.GetLocationCountFromEx(tp,tp,nil,c)>0 
+		and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
+        Duel.BreakEffect()
+        if Duel.SpecialSummonStep(c,0,tp,tp,false,false,POS_FACEUP) then
+        	local e1=Effect.CreateEffect(c)
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_UPDATE_ATTACK)
+            e1:SetValue(800)
+			e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_DISABLE)			
+			c:RegisterEffect(e1)
+        end
+        Duel.SpecialSummonComplete()
 	end
 end
-function c31280184.thfilter(c)
-	return c:IsSetCard(0xca4) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand()
-end
-function c31280184.target1(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(c31280184.thfilter,tp,LOCATION_DECK,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
-end
-function c31280184.operation1(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=Duel.SelectMatchingCard(tp,c31280184.thfilter,tp,LOCATION_DECK,0,1,1,nil)
-	if g:GetCount()>0 then
-		Duel.SendtoHand(g,nil,REASON_EFFECT)
-		Duel.ConfirmCards(1-tp,g)
-	end
+function s.pencon(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	return c:GetAttack()>c:GetBaseAttack() or c:GetDefense()>c:GetBaseDefense()
 end    
-function c31280184.condition2(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	return c:IsFaceup()
+function s.penfilter(c)
+	return c:IsType(TYPE_PENDULUM) and c:IsSetCard(0xcca1) and not c:IsForbidden()
+    	and (c:IsFaceup() or c:IsLocation(LOCATION_DECK))
 end
-function c31280184.eqfilter(c)
-	return c:IsFaceup() and c:IsRace(RACE_MACHINE) and c:GetOriginalRace()==RACE_DRAGON
+function s.pentg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return (Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1))
+		and Duel.IsExistingMatchingCard(s.penfilter,tp,LOCATION_DECK+LOCATION_EXTRA,0,1,nil) end
 end
-function c31280184.target2(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and c31280184.eqfilter(chkc) end
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0
-		and Duel.IsExistingTarget(c31280184.eqfilter,tp,LOCATION_MZONE,0,1,nil) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
-	Duel.SelectTarget(tp,c31280184.eqfilter,tp,LOCATION_MZONE,0,1,1,nil)
-	Duel.SetOperationInfo(0,CATEGORY_EQUIP,e:GetHandler(),1,0,0)
-end
-function c31280184.operation2(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	local tc=Duel.GetFirstTarget()
-	if c:IsRelateToEffect(e) and c:IsFaceup() and c:IsControler(tp) then
-		if Duel.GetLocationCount(tp,LOCATION_SZONE)<=0 or tc:IsFacedown() or not tc:IsRelateToEffect(e) or tc:IsControler(1-tp) or not tc:IsLocation(LOCATION_MZONE) then
-			Duel.SendtoGrave(c,REASON_EFFECT)
-			return
-		end
-		if not Duel.Equip(tp,c,tc) then return end
-		local e1=Effect.CreateEffect(c)
-		e1:SetType(EFFECT_TYPE_SINGLE)
-		e1:SetCode(EFFECT_EQUIP_LIMIT)
-		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-		e1:SetLabelObject(tc)
-		e1:SetValue(c31280184.eqlimit)
-		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-		c:RegisterEffect(e1)
-		local e2=Effect.CreateEffect(c)
-		e2:SetType(EFFECT_TYPE_EQUIP)
-		e2:SetCode(EFFECT_UPDATE_ATTACK)
-		e2:SetValue(500)
-		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
-		c:RegisterEffect(e2)
+function s.penop(e,tp,eg,ep,ev,re,r,rp)
+	if not Duel.CheckLocation(tp,LOCATION_PZONE,0) and not Duel.CheckLocation(tp,LOCATION_PZONE,1) then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOFIELD)
+	local tc=Duel.SelectMatchingCard(tp,s.penfilter,tp,LOCATION_DECK+LOCATION_EXTRA,0,1,1,nil):GetFirst()
+	if tc then
+		Duel.MoveToField(tc,tp,tp,LOCATION_PZONE,POS_FACEUP,true)
 	end
 end
-function c31280184.eqlimit(e,c)
-	return c==e:GetLabelObject()
+function s.confilter(c)
+	return c:IsFaceup() and (c:GetOriginalType()&(TYPE_PENDULUM|TYPE_MONSTER)==TYPE_PENDULUM|TYPE_MONSTER or c:IsSetCard(0xcca1))
+end
+function s.lgcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.IsExistingMatchingCard(s.confilter,tp,LOCATION_ONFIELD,0,1,nil)
+end
+function s.lgtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1) end
+	Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,e:GetHandler(),1,0,0)
+end
+function s.lgop(e,tp,eg,ep,ev,re,r,rp)
+	if e:GetHandler():IsRelateToEffect(e) then
+		Duel.MoveToField(e:GetHandler(),tp,tp,LOCATION_PZONE,POS_FACEUP,true)
+	end
 end

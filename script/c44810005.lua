@@ -125,7 +125,7 @@ function s.datg1(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 function s.daop1(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) and Duel.Destroy(c,REASON_EFFECT)>0 then
+	if c:IsRelateToEffect(e) then
 		local tc=c:GetEquipTarget()
 		if tc then
 			Duel.GetControl(tc,tp)

@@ -68,7 +68,7 @@ function s.desop(e,tp,eg,ep,ev,re,r,rp)
 				Duel.ConfirmCards(1-tp,g)
 			end
 		else
-			Duel.Draw(tp,1,REASON_EFFECT)
+			Duel.Draw(tc:GetOwner(),1,REASON_EFFECT)
 		end
 	end
 	-- 自肃

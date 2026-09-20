@@ -14,14 +14,14 @@ function s.initial_effect(c)
 	e1:SetValue(700)
 	c:RegisterEffect(e1)
 	
-	--②效果：对方场上的怪兽被破坏的场合，自己抽2张卡
+	--②效果
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,0))
 	e2:SetCategory(CATEGORY_DRAW)
 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e2:SetCode(EVENT_DESTROYED)
 	e2:SetRange(LOCATION_MZONE)
-	e2:SetProperty(EFFECT_FLAG_DELAY)
+	e2:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL)
 	e2:SetCountLimit(1,id)
 	e2:SetCondition(s.drcon)
 	e2:SetTarget(s.drtg)

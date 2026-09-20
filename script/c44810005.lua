@@ -72,32 +72,32 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
 	local tc=Duel.GetFirstTarget()
 	if c:IsRelateToEffect(e) and tc:IsRelateToEffect(e) and tc:IsFaceup() then Duel.Equip(tp,c,tc) end
 end
-function s.spfilter(c)
+function s.spfilter(c,e,tp)
 	return c:IsSetCard(0x5ce1) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function s.target1(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 		and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_REMOVED,0,1,nil,e,tp) end
-	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,g,1,0,0)
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,0,LOCATION_REMOVED)
 end
 function s.operation1(e,tp,eg,ep,ev,re,r,rp)
-	  local c=e:GetHandler()
+	local c=e:GetHandler()
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 	local tc=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_REMOVED,0,1,1,nil,e,tp):GetFirst()
-		if Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)~=0 and c:IsRelateToEffect(e) and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
-			Duel.Equip(tp,c,tc)
-		end
+	if Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)~=0 and c:IsRelateToEffect(e) and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
+		Duel.Equip(tp,c,tc)
+	end
 end
 function s.eqlim(e,c)
 	return c:IsSetCard(0x5ce1)
 end
 function s.dacon(e,tp,eg,ep,ev,re,r,rp)
 	local tc=e:GetHandler():GetEquipTarget()
-	return tc:GetControler()==tp
+	return tc and tc:GetControler()==tp
 end
 function s.dacon1(e,tp,eg,ep,ev,re,r,rp)
 	local tc=e:GetHandler():GetEquipTarget()
-	return tc:GetControler()==1-tp
+	return tc and tc:GetControler()==1-tp
 end
 function s.dacost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.CheckLPCost(tp,1500) end
@@ -111,15 +111,18 @@ end
 function s.daop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if c:IsRelateToEffect(e) and Duel.Destroy(c,REASON_EFFECT)>0 then
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(Card.IsAbleToRemove),tp,LOCATION_ONFIELD+LOCATION_GRAVE,LOCATION_ONFIELD+LOCATION_GRAVE,1,2,c)
-	if g:GetCount()>0 then
-		Duel.Remove(g,POS_FACEUP,REASON_EFFECT)
-	end
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+		local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(Card.IsAbleToRemove),tp,LOCATION_ONFIELD+LOCATION_GRAVE,LOCATION_ONFIELD+LOCATION_GRAVE,1,2,c)
+		if g:GetCount()>0 then
+			Duel.Remove(g,POS_FACEUP,REASON_EFFECT)
+		end
 	end
 end
 function s.datg1(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return e:GetHandler():GetEquipTarget():IsControlerCanBeChanged() end
+	if chk==0 then
+		local tc=e:GetHandler():GetEquipTarget()
+		return tc and tc:IsControlerCanBeChanged()
+	end
 	Duel.Hint(HINT_OPSELECTED,1-tp,aux.Stringid(id,3))
 	Duel.SetOperationInfo(0,CATEGORY_CONTROL,nil,1,1-tp,LOCATION_MZONE)
 end
@@ -147,3 +150,5 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if c:IsRelateToEffect(e) then Duel.SendtoHand(c,nil,REASON_EFFECT) end
 end
+
+return s

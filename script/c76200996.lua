@@ -1,9 +1,12 @@
 --影之仆 海德琳
 local s,id,o=GetID()
 function s.initial_effect(c)
+	aux.AddCodeList(c,76200681)
 	c:EnableReviveLimit()
 	aux.AddFusionProcCodeFun(c,76200681,s.ffilter,1,true)
 	aux.AddContactFusionProcedure(c,s.cfilter,LOCATION_HAND+LOCATION_MZONE+LOCATION_GRAVE,0,aux.ContactFusionSendToDeck(c))
+	--change name
+	aux.EnableChangeCode(c,76200681,LOCATION_HAND+LOCATION_MZONE) 
 	--
 	local e0=Effect.CreateEffect(c)
 	e0:SetType(EFFECT_TYPE_SINGLE)

@@ -1,4 +1,4 @@
---战华之怒-赵龙
+--战华之怒-赵云
 local s,id=GetID()
 function s.initial_effect(c)
     --spsummon
@@ -15,7 +15,7 @@ function s.initial_effect(c)
     e1:SetOperation(s.spop)
     c:RegisterEffect(e1)
 
-    --②效果：这张卡以外的卡的效果发动的场合，攻击力上升100。战斗阶段不受对方的卡的效果影响
+    --②效果
     local e2=Effect.CreateEffect(c)
     e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
     e2:SetCode(EVENT_CHAINING)
@@ -31,11 +31,11 @@ function s.initial_effect(c)
     e2b:SetValue(s.efilter)
     c:RegisterEffect(e2b)
 
-    --③效果：自己场上有4星以下风属性「战华」怪兽存在，战斗破坏对方怪兽的场合，攻击力上升500，可以继续攻击
+    --③效果
     local e3=Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id,1))
     e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-    e3:SetCode(EVENT_BATTLE_DESTROYING)
+    e3:SetCode(EVENT_DAMAGE_STEP_END)
     e3:SetCondition(s.bdcon)
     e3:SetOperation(s.bdop)
     c:RegisterEffect(e3)
@@ -44,11 +44,12 @@ function s.initial_effect(c)
 end
 
 function s.chainfilter(re,tp,cid)
-    return re:IsActiveType(TYPE_MONSTER) and re:GetHandler():IsControler(1-tp)
+	local loc=Duel.GetChainInfo(cid,CHAININFO_TRIGGERING_LOCATION)
+	return not (re:IsActiveType(TYPE_MONSTER) and loc&(LOCATION_HAND|LOCATION_GRAVE)>0)
 end
 
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
-    return Duel.GetCustomActivityCount(id,1-tp,ACTIVITY_CHAIN)>0 and Duel.IsMainPhase()
+	return Duel.GetCustomActivityCount(id,1-tp,ACTIVITY_CHAIN)>0 and Duel.IsMainPhase()
 end
 
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -87,15 +88,10 @@ function s.efilter(e,te)
     return te:GetOwnerPlayer()~=e:GetHandlerPlayer()
 end
 
-function s.lvfilter(c)
-    return c:IsFaceup() and c:IsSetCard(0x137) and c:IsLevelBelow(4) and c:IsAttribute(ATTRIBUTE_WIND)
-end
-
 function s.bdcon(e,tp,eg,ep,ev,re,r,rp)
     local c=e:GetHandler()
-    local bc=c:GetBattleTarget()
-    return bc and bc:IsStatus(STATUS_BATTLE_DESTROYED) and c:IsRelateToBattle()
-        and Duel.IsExistingMatchingCard(s.lvfilter,tp,LOCATION_MZONE,0,1,nil)
+    return Duel.GetAttacker()==c and c:IsChainAttackable(0)
+        and c:GetBattleTarget() and c:GetBattleTarget():IsStatus(STATUS_BATTLE_DESTROYED)
 end
 
 function s.bdop(e,tp,eg,ep,ev,re,r,rp)
@@ -108,12 +104,7 @@ function s.bdop(e,tp,eg,ep,ev,re,r,rp)
         e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
         e1:SetReset(RESET_EVENT+RESETS_STANDARD)
         c:RegisterEffect(e1)
-        local e2=Effect.CreateEffect(c)
-        e2:SetType(EFFECT_TYPE_SINGLE)
-        e2:SetCode(EFFECT_EXTRA_ATTACK)
-        e2:SetValue(1)
-        e2:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_DAMAGE)
-        c:RegisterEffect(e2)
+        Duel.ChainAttack()
     end
 end
 

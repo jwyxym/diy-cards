@@ -3,7 +3,7 @@ local s,id,o=GetID()
 function s.initial_effect(c)
 	c:SetSPSummonOnce(id)
 	--融合召唤
-	aux.AddFusionProcFunRep(c,s.matfilter,2,false)
+	aux.AddFusionProcFun2(c,s.matfilter,aux.FilterBoolFunction(Card.IsFusionSetCard,0x6ca0),true)
 	c:EnableReviveLimit()
 	aux.AddContactFusionProcedure(c,aux.FilterBoolFunction(Card.IsReleasable,REASON_SPSUMMON),LOCATION_MZONE+LOCATION_HAND,0,Duel.Release,REASON_SPSUMMON+REASON_MATERIAL)
 	--种族视为机械族
@@ -41,8 +41,8 @@ function s.initial_effect(c)
 	e3:SetOperation(s.thop)
 	c:RegisterEffect(e3)       
 end
-function s.matfilter(c,fc,sub,mg,sg)
-	return c:IsFusionSetCard(0x6ca0) and (not sg or not sg:IsExists(Card.IsFusionCode,1,c,c:GetFusionCode()))
+function s.matfilter(c)
+	return c:IsFusionSetCard(0x6ca0) and c:IsLocation(LOCATION_MZONE)
 end
 function s.fusplimit(e,se,sp,st)
 	return not e:GetHandler():IsLocation(LOCATION_EXTRA)
@@ -62,7 +62,7 @@ function s.splimit(e,c,sump,sumtype,sumpos,targetp,se)
 	return not se:GetHandler():IsSetCard(0x6ca0) and not c:IsLocation(LOCATION_EXTRA)
 end
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsMainPhase()
+	return e:GetHandler():IsStatus(STATUS_SPSUMMON_TURN)
 end
 function s.costfilter(c)
 	return c:IsSetCard(0x6ca0) and (c:IsFaceup() or not c:IsOnField()) and c:IsAbleToRemoveAsCost()

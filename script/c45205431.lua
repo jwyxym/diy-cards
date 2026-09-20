@@ -16,7 +16,7 @@ function s.initial_effect(c)
 	e0:SetCost(s.setcost)
 	c:RegisterEffect(e0)
 	
-	--①效果：自己场上的怪兽守备力上升1000。对方召唤·特召时给与100伤害。
+	--①效果
 	local e1=Effect.CreateEffect(c)
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetCode(EFFECT_UPDATE_DEFENSE)
@@ -43,7 +43,7 @@ function s.initial_effect(c)
 	e3:SetOperation(s.damop)
 	c:RegisterEffect(e3)
 	
-	--②效果：墓地发动，解放自己场上1只怪兽，特召成怪兽
+	--②效果
 	local e4=Effect.CreateEffect(c)
 	e4:SetDescription(aux.Stringid(id,1))
 	e4:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DISABLE)
@@ -62,7 +62,13 @@ function s.szcon(e)
 end
 
 function s.relfilter(c)
-	return c:IsReleasable() and c:GetSequence()<5
+	if c:IsReleasable() then
+		if Duel.GetLocationCount(c:GetControler(),LOCATION_MZONE,PLAYER_NONE,LOCATION_REASON_TOFIELD,0x7f)<=0 then
+			return c:GetSequence()<5
+		end
+		return true
+	end
+	return false
 end
 
 function s.setcost(e,tp,eg,ep,ev,re,r,rp,chk)

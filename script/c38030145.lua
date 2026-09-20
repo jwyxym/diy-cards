@@ -45,7 +45,7 @@ function c38030145.activate(e,tp,eg,ep,ev,re,r,rp)
 		Duel.SpecialSummon(sc,SUMMON_TYPE_XYZ,tp,tp,false,false,POS_FACEUP)
 		sc:CompleteProcedure()
 		--
-		local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,0,LOCATION_MZONE,sc):Filter(Card.CanOverlay,nil)
+		local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,0,LOCATION_MZONE,sc):Filter(Card.IsCanOverlay,nil)
 		if #g==0 or not Duel.SelectYesNo(tp,aux.Stringid(38030145,2)) then return end
 		Duel.BreakEffect()
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)

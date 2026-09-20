@@ -46,24 +46,20 @@ end
 function s.matfilter2(c,fc)
 	return c:IsFaceup() and c:IsLocation(LOCATION_MZONE) and c:IsControler(fc:GetControler())
 end
-function s.cfilter1(c,tp)
-	return c:IsControler(tp) and c:IsRace(RACE_MACHINE)
-end    
-function s.cfilter2(c,tp)
-	return c:IsFaceup() and c:IsControler(tp) and c:IsPreviousControler(tp) and c:IsRace(RACE_MACHINE)
-end    
 function s.checkop1(e,tp,eg,ep,ev,re,r,rp)
-	local p=e:GetHandler():GetOwner()
-	local sg=eg:Filter(s.cfilter1,nil,p)
-	for tc in aux.Next(sg) do 
-		Duel.RegisterFlagEffect(tp,id,0,0,0)
+	for tc in aux.Next(eg) do
+    	local p=tc:GetControler()
+    	if tc:IsRace(RACE_MACHINE) then
+			Duel.RegisterFlagEffect(p,id,0,0,0)
+        end
 	end
 end
 function s.checkop2(e,tp,eg,ep,ev,re,r,rp)
-	local p=e:GetHandler():GetOwner()
-	local sg=eg:Filter(s.cfilter2,nil,p)
-	for tc in aux.Next(sg) do 
-		Duel.RegisterFlagEffect(tp,id,0,0,0)
+	for tc in aux.Next(eg) do 
+    	local p=tc:GetControler()
+        if tc:IsFaceup() and tc:IsPreviousControler(p) and tc:IsRace(RACE_MACHINE) then
+			Duel.RegisterFlagEffect(p,id,0,0,0)
+        end
 	end
 end
 function s.tgcon(e,tp,eg,ep,ev,re,r,rp)

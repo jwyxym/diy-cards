@@ -26,7 +26,7 @@ function s.initial_effect(c)
 end
 function s.filter_sefi(c,e,tp)
 	return c:IsCode(57310001)
-		and c:IsCanBeSpecialSummoned(e,0,tp,false,false) or (c:IsLocation(LOCATION_GRAVE+LOCATION_DECK) and c:IsAbleToHand())
+		and (c:IsCanBeSpecialSummoned(e,0,tp,false,false) or (c:IsLocation(LOCATION_GRAVE+LOCATION_DECK) and c:IsAbleToHand()))
 end
 function s.derivative_filter(c)
 	return c:IsType(TYPE_TOKEN) and c:IsCode(57310005)

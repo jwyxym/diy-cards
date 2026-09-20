@@ -61,7 +61,13 @@ function s.posfilter(e,c)
 end
 
 function s.relfilter(c)
-	return c:IsReleasable() and c:GetSequence()<5
+	if c:IsReleasable() then
+		if Duel.GetLocationCount(c:GetControler(),LOCATION_MZONE,PLAYER_NONE,LOCATION_REASON_TOFIELD,0x7f)<=0 then
+			return c:GetSequence()<5
+		end
+		return true
+	end
+	return false
 end
 
 function s.setcost(e,tp,eg,ep,ev,re,r,rp,chk)

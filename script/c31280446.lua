@@ -4,6 +4,7 @@ function s.initial_effect(c)
 	--选择效果发动
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
+    e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DESTROY+CATEGORY_SSET+CATEGORY_TOGRAVE+CATEGORY_TOHAND+CATEGORY_TODECK)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_HAND)
 	e1:SetTarget(s.eftg)

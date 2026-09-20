@@ -1,6 +1,8 @@
 --吸血鬼陷阱卡
 local s,id=GetID()
 function s.initial_effect(c)
+	aux.AddCodeList(c,80485722)
+	
 	--手卡发动条件：自己场上有「吸血鬼贵公子 阿鲁卡多」
 	local e0=Effect.CreateEffect(c)
 	e0:SetType(EFFECT_TYPE_SINGLE)
@@ -8,7 +10,7 @@ function s.initial_effect(c)
 	e0:SetCondition(s.handcon)
 	c:RegisterEffect(e0)
 	
-	--①效果：以对方场上1张卡为对象，返回卡组，从卡组·墓地把1只「吸血鬼杀手」特召，自肃（额外除外）
+	--①效果
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_TODECK+CATEGORY_SPECIAL_SUMMON)

@@ -4,6 +4,7 @@ function s.initial_effect(c)
 	--发动
 	local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))
+    e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_FUSION_SUMMON+CATEGORY_ATKCHANGE+CATEGORY_DEFCHANGE)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetTarget(s.eftg)
@@ -22,7 +23,7 @@ function s.spfilter(c,e,tp)
     	and c:IsCanBeFusionMaterial()
 end
 function s.fusfilter(c,e,tp,mg)
-	return c:IsType(TYPE_FUSION) and c:IsRace(RACE_FIEND) and c:IsLevelBelow(6)
+	return c:IsType(TYPE_FUSION) and c:IsRace(RACE_FIEND) and c:IsLevelBelow(6) and Duel.GetLocationCountFromEx(tp,tp,mg,c)>0
 		and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_FUSION,tp,false,false) and c:CheckFusionMaterial(mg)
 end
 function s.fselect(g,e,tp)
@@ -70,6 +71,9 @@ function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk)
         loc=LOCATION_GRAVE+LOCATION_EXTRA
   	end      
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,loc)
+end
+function s.ogfilter(c,e)
+	return not c:IsImmuneToEffect(e) and c:IsLocation(LOCATION_MZONE) and c:IsCanBeFusionMaterial()
 end
 function s.efop(e,tp,eg,ep,ev,re,r,rp)
 	local op=e:GetLabel()
@@ -138,12 +142,13 @@ function s.efop(e,tp,eg,ep,ev,re,r,rp)
                 Duel.SpecialSummonComplete()
                 local og=Duel.GetOperatedGroup()
 				Duel.AdjustAll()
-                if og:FilterCount(Card.IsLocation,nil,LOCATION_MZONE)<2 then return end
+                local mg=og:Filter(s.ogfilter,nil,e)
+                if mg:GetCount()<2 then return end
                 Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-				local sc=Duel.SelectMatchingCard(tp,s.fusfilter,tp,LOCATION_EXTRA,0,1,1,nil,e,tp,og):GetFirst()
+				local sc=Duel.SelectMatchingCard(tp,s.fusfilter,tp,LOCATION_EXTRA,0,1,1,nil,e,tp,mg):GetFirst()
                 if not sc then return end
-                sc:SetMaterial(og)
-                Duel.SendtoGrave(og,REASON_EFFECT+REASON_MATERIAL+REASON_FUSION)
+                sc:SetMaterial(mg)
+                Duel.SendtoGrave(mg,REASON_EFFECT+REASON_MATERIAL+REASON_FUSION)
 				Duel.BreakEffect()
 				Duel.SpecialSummon(sc,SUMMON_TYPE_FUSION,tp,tp,false,false,POS_FACEUP)
 				local fid=sc:GetFieldID()

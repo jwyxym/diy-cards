@@ -1,4 +1,4 @@
---天水：九浊
+local s,id,o=GetID()
 function c12263006.initial_effect(c)
     --等级属性种族（老引擎兼容）
     local e0=Effect.CreateEffect(c)
@@ -25,12 +25,12 @@ function c12263006.initial_effect(c)
 
     --① 特殊召唤/破坏送墓 → 最多装备2只天水
     local e1=Effect.CreateEffect(c)
-    e1:SetDescription(aux.Stringid(12263006,0))
+    e1:SetDescription(aux.Stringid(id,0))
     e1:SetCategory(CATEGORY_EQUIP)
     e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
     e1:SetCode(EVENT_SPSUMMON_SUCCESS)
     e1:SetProperty(EFFECT_FLAG_CARD_TARGET+EFFECT_FLAG_DELAY)
-    e1:SetCountLimit(1,12263006)
+    e1:SetCountLimit(1,id)
     e1:SetTarget(c12263006.eqtg)
     e1:SetOperation(c12263006.eqop)
     c:RegisterEffect(e1)
@@ -41,13 +41,13 @@ function c12263006.initial_effect(c)
 
     --② 手卡·墓地 链接/仪式特召 → 装备1只
     local e2=Effect.CreateEffect(c)
-    e2:SetDescription(aux.Stringid(12263006,1))
+    e2:SetDescription(aux.Stringid(id,1))
     e2:SetCategory(CATEGORY_EQUIP)
     e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
     e2:SetCode(EVENT_SPSUMMON_SUCCESS)
     e2:SetRange(LOCATION_HAND+LOCATION_GRAVE)
     e2:SetProperty(EFFECT_FLAG_CARD_TARGET+EFFECT_FLAG_DELAY)
-    e2:SetCountLimit(1,122630061)
+    e2:SetCountLimit(1,id+100)
     e2:SetCondition(c12263006.econ2)
     e2:SetTarget(c12263006.eqtg2)
     e2:SetOperation(c12263006.eqop2)
@@ -55,13 +55,13 @@ function c12263006.initial_effect(c)
 
     --③ 自己·对方回合发动：对象为自己场上1只链接·仪式怪兽或天水卡（怪兽/魔陷均可），破坏；之后可最多2张双方墓地回卡组
     local e3=Effect.CreateEffect(c)
-    e3:SetDescription(aux.Stringid(12263006,2))
+    e3:SetDescription(aux.Stringid(id,2))
     e3:SetCategory(CATEGORY_DESTROY+CATEGORY_TODECK)
     e3:SetType(EFFECT_TYPE_QUICK_O)
     e3:SetCode(EVENT_FREE_CHAIN)
     e3:SetRange(LOCATION_MZONE)
     e3:SetHintTiming(0,TIMINGS_CHECK_MONSTER_E)
-    e3:SetCountLimit(1,122630062)
+    e3:SetCountLimit(1,id+200)
     e3:SetTarget(c12263006.lktg)
     e3:SetOperation(c12263006.lkop)
     c:RegisterEffect(e3)
@@ -139,22 +139,18 @@ function c12263006.eqop2(e,tp,eg,ep,ev,re,r,rp)
     end
 end
 
---==============================
---③效果 修改tarfilter：天水卡包含怪兽+魔法+陷阱
---==============================
---③对象筛选：自己场上的链接·仪式怪兽 或者 任意天水卡（怪兽/魔法/陷阱）
-function c12263006.tarfilter(c)
-    return c:IsControler(tp)
-        and ((c:IsType(TYPE_LINK+TYPE_RITUAL)) or c:IsSetCard(0x5244))
-end
-
+--③ Target
 function c12263006.lktg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-    if chkc then return chkc:IsControler(tp) and c12263006.tarfilter(chkc) end
+    local function tarfilter(c)
+        return c:IsControler(tp)
+        and (c:IsType(TYPE_LINK+TYPE_RITUAL) or c:IsSetCard(0x5244))
+    end
+    if chkc then return tarfilter(chkc) end
     if chk==0 then
-        return Duel.IsExistingTarget(c12263006.tarfilter,tp,LOCATION_ONFIELD,0,1,1,nil)
+        return Duel.IsExistingTarget(tarfilter,tp,LOCATION_ONFIELD,0,1,1,nil)
     end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
-    local g=Duel.SelectTarget(tp,c12263006.tarfilter,tp,LOCATION_ONFIELD,0,1,1,nil)
+    local g=Duel.SelectTarget(tp,tarfilter,tp,LOCATION_ONFIELD,0,1,1,nil)
     Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
 end
 
@@ -164,7 +160,7 @@ function c12263006.lkop(e,tp,eg,ep,ev,re,r,rp)
     if Duel.Destroy(tc,REASON_EFFECT)==0 then return end
     --那之后，可以从自己·对方墓地最多2张返回卡组
     local btg=Duel.GetMatchingGroup(Card.IsAbleToDeck,tp,LOCATION_GRAVE,LOCATION_GRAVE,nil)
-    if #btg>0 and Duel.SelectYesNo(tp,aux.Stringid(12263006,4)) then
+    if #btg>0 and Duel.SelectYesNo(tp,aux.Stringid(id,4)) then
         Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
         local sg=btg:Select(tp,0,2,nil)
         if #sg>0 then

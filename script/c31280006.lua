@@ -2,7 +2,7 @@
 local s,id,o=GetID()
 function s.initial_effect(c)
 	--融合召唤
-	aux.AddFusionProcFunRep(c,s.matfilter,2,false)
+	aux.AddFusionProcFun2(c,s.matfilter,aux.FilterBoolFunction(Card.IsFusionSetCard,0x6ca0),true)
 	c:EnableReviveLimit()
 	aux.AddContactFusionProcedure(c,aux.FilterBoolFunction(Card.IsReleasable,REASON_SPSUMMON),LOCATION_MZONE,0,Duel.Release,REASON_SPSUMMON+REASON_MATERIAL)
 	--种族视为机械族
@@ -52,8 +52,8 @@ function s.initial_effect(c)
 		Duel.RegisterEffect(ge1,0)
 	end
 end
-function s.matfilter(c,fc,sub,mg,sg)
-	return c:IsFusionSetCard(0x6ca0) and (not sg or not sg:IsExists(Card.IsFusionCode,1,c,c:GetFusionCode()))
+function s.matfilter(c)
+	return c:IsFusionSetCard(0x6ca0) and c:IsFusionType(TYPE_FUSION)
 end
 function s.checkop(e,tp,eg,ep,ev,re,r,rp)
 	local rc=re:GetHandler()
@@ -144,7 +144,7 @@ function s.setcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.Remove(g,POS_FACEUP,REASON_COST)
 end
 function s.setfilter(c)
-	return c:IsSetCard(0x6ca0) and (c:IsFaceup() or c:IsLocation(LOCATION_DECK)) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsSSetable()
+	return c:IsSetCard(0x6ca0) and (c:IsFaceup() or c:IsLocation(LOCATION_DECK)) and c:IsType(TYPE_SPELL) and c:IsSSetable()
 end
 function s.settg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.setfilter,tp,LOCATION_DECK+LOCATION_REMOVED,0,1,nil) end

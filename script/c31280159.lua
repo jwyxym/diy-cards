@@ -28,6 +28,7 @@ function s.initial_effect(c)
 	--选择效果发动
     local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
+    e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e3:SetType(EFFECT_TYPE_QUICK_O)
 	e3:SetCode(EVENT_FREE_CHAIN)
 	e3:SetRange(LOCATION_SZONE)
@@ -98,6 +99,7 @@ function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,sg,1,0,0)
     elseif op==2 then
     	if e:IsCostChecked() then
+        	e:SetCategory(0)
 			Duel.RegisterFlagEffect(tp,id+o*10000,RESET_PHASE+PHASE_END,0,1)
 		end    	
     	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)

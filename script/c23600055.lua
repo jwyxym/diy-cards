@@ -1,75 +1,143 @@
---遗世之离 苍忘百合
+-- 莫扎特·阿马德乌斯 (ID: 23600054)
 local s,id,o=GetID()
 function s.initial_effect(c)
-	--activate
+	-- 同调召唤手续：风属性调整＋调整以外的魔法师族·风属性同调怪兽1只
+	aux.AddSynchroProcedure(c,aux.FilterBoolFunction(Card.IsAttribute,ATTRIBUTE_WIND),s.matfilter,1,1)
+	c:EnableReviveLimit()
+
+	-- 苏生限制：这张卡不用同调召唤不能特殊召唤
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_SINGLE)
+	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0:SetCode(EFFECT_SPSUMMON_CONDITION)
+	e0:SetValue(aux.synlimit)
+	c:RegisterEffect(e0)
+
+	-- ①：自己场上的风属性怪兽攻击力·守备力上升400
 	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_ACTIVATE)
-	e1:SetCode(EVENT_FREE_CHAIN)
-	c:RegisterEffect(e1)
-	--extra summon
-	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,0))
-	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetRange(LOCATION_SZONE)
-	e2:SetTargetRange(LOCATION_HAND+LOCATION_MZONE,0)
-	e2:SetCode(EFFECT_EXTRA_SUMMON_COUNT)
-	e2:SetTarget(s.smtg)
-	c:RegisterEffect(e2)
-	--to hand
-	local e3=Effect.CreateEffect(c)
-	e3:SetDescription(aux.Stringid(id,1))
-	e3:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND+CATEGORY_TODECK)
-	e3:SetType(EFFECT_TYPE_IGNITION)
-	e3:SetRange(LOCATION_SZONE)
-	e3:SetCountLimit(1,id)
-	e3:SetCost(s.cost)
-	e3:SetTarget(s.thtg)
-	e3:SetOperation(s.thop)
-	c:RegisterEffect(e3)
-end
-function s.smtg(e,c)
-	return c:IsLevel(5) and c:IsAttribute(ATTRIBUTE_DARK)
-end
-function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0 end
-	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
-	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetTargetRange(1,0)
-	e1:SetTarget(s.splimit1)
-	e1:SetReset(RESET_PHASE+PHASE_END)
-	Duel.RegisterEffect(e1,tp)
+	e1:SetCode(EFFECT_UPDATE_ATTACK)
+	e1:SetRange(LOCATION_MZONE)
+	e1:SetTargetRange(LOCATION_MZONE,0)
+	e1:SetTarget(aux.TargetBoolFunction(Card.IsAttribute,ATTRIBUTE_WIND))
+	e1:SetValue(400)
+	c:RegisterEffect(e1)
+	local e1_2=e1:Clone()
+	e1_2:SetCode(EFFECT_UPDATE_DEFENSE)
+	c:RegisterEffect(e1_2)
+
+	-- ①：自己场上的风属性怪兽不会被战斗破坏
 	local e2=e1:Clone()
-	e2:SetCode(EFFECT_CANNOT_SUMMON)
-	Duel.RegisterEffect(e2,tp)
+	e2:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
+	e2:SetValue(1)
+	c:RegisterEffect(e2)
+
+	-- ①：自己场上的风属性怪兽不能用对方的效果除外
+	local e3=e1:Clone()
+	e3:SetCode(EFFECT_CANNOT_REMOVE)
+	e3:SetValue(s.rmval)
+	c:RegisterEffect(e3)
+
+	-- ②：自己·对方回合，选墓地·除外状态最多4只魔法师·风属性怪兽（相同等级最多1只）回到卡组，之后选最多该数量的场上的卡回到卡组
+	local e4=Effect.CreateEffect(c)
+	e4:SetDescription(aux.Stringid(id,0))
+	e4:SetCategory(CATEGORY_TODECK)
+	e4:SetType(EFFECT_TYPE_QUICK_O)
+	e4:SetCode(EVENT_FREE_CHAIN)
+	e4:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e4:SetRange(LOCATION_MZONE)
+	e4:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_MAIN_END)
+	e4:SetCountLimit(1,id+o*100) -- HOPT 防冲突限制码
+	e4:SetTarget(s.tdtg)
+	e4:SetOperation(s.tdop)
+	c:RegisterEffect(e4)
+
+	-- ③：自己主要阶段，墓地·除外的这张卡回到卡组，选墓地·除外的1只魔法师·风属性怪兽加入手卡
+	local e5=Effect.CreateEffect(c)
+	e5:SetDescription(aux.Stringid(id,1))
+	e5:SetCategory(CATEGORY_TODECK+CATEGORY_TOHAND)
+	e5:SetType(EFFECT_TYPE_IGNITION)
+	e5:SetRange(LOCATION_GRAVE+LOCATION_REMOVED)
+	e5:SetCountLimit(1,id+o*200) -- HOPT 防冲突限制码
+	e5:SetTarget(s.thtg)
+	e5:SetOperation(s.thop)
+	c:RegisterEffect(e5)
 end
-function s.splimit1(e,c)
-	return not c:IsAttribute(ATTRIBUTE_DARK)
+
+-- 非调整素材过滤：魔法师族·风属性·同调怪兽
+function s.matfilter(c,syncard)
+	return c:IsRace(RACE_SPELLCASTER) and c:IsAttribute(ATTRIBUTE_WIND) and c:IsType(TYPE_SYNCHRO)
 end
-function s.thfilter(c)
-	return c:IsAttribute(ATTRIBUTE_DARK) and c:IsLevel(5) and (c:IsAttack(0) or c:IsDefense(0)) and c:IsAbleToHand() and (not c:IsLocation(LOCATION_REMOVED) or c:IsFaceup())
+
+-- ① 效果：不能用对方效果除外
+function s.rmval(e,re,rp)
+	return rp==1-e:GetHandlerPlayer() and re:IsActivated()
 end
-function s.dfilter(c)
-	return c:IsAttribute(ATTRIBUTE_DARK) and c:IsAbleToDeck()
+
+-- ==================== ② 效果：回收墓地/除外并弹场 ====================
+function s.tdfilter(c)
+	return c:IsFaceupEx() and c:IsRace(RACE_SPELLCASTER) and c:IsAttribute(ATTRIBUTE_WIND)
+		and c:IsType(TYPE_MONSTER) and c:HasLevel() and c:IsAbleToDeck()
 end
-function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED)
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,tp,LOCATION_HAND)
+
+-- 校验子集等级互不相同（官方标准不同等级校验）
+function s.dlvcheck(g)
+	return g:GetClassCount(Card.GetLevel)==#g
 end
-function s.thop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.thfilter),tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil)
-	if g:GetCount()>0 and Duel.SendtoHand(g,nil,REASON_EFFECT)>0 and g:GetFirst():IsLocation(LOCATION_HAND) then
-		Duel.ConfirmCards(1-tp,g)
-		Duel.ShuffleDeck(tp)
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
-		local sg=Duel.SelectMatchingCard(tp,s.dfilter,tp,LOCATION_HAND,0,1,1,nil)
-		if sg:GetCount()>0 then
+
+function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return false end
+	local g=Duel.GetMatchingGroup(s.tdfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,nil)
+	if chk==0 then
+		return g:CheckSubGroup(s.dlvcheck,1,4)
+	end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
+	local tg=g:SelectSubGroup(tp,s.dlvcheck,false,1,4)
+	Duel.SetTargetCard(tg)
+	Duel.SetOperationInfo(0,CATEGORY_TODECK,tg,#tg,0,0)
+end
+
+function s.tdop(e,tp,eg,ep,ev,re,r,rp)
+	local tg=Duel.GetTargetCards(e)
+	if #tg==0 then return end
+	local ct=Duel.SendtoDeck(tg,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+	if ct>0 then
+		local g=Duel.GetMatchingGroup(Card.IsAbleToDeck,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
+		if #g>0 and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
 			Duel.BreakEffect()
-			Duel.ShuffleHand(tp)
-			Duel.SendtoDeck(sg,nil,SEQ_DECKBOTTOM,REASON_EFFECT)
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
+			local sg=g:Select(tp,1,ct,nil)
+			Duel.HintSelection(sg)
+			Duel.SendtoDeck(sg,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+		end
+	end
+end
+
+-- ==================== ③ 效果：自身洗回卡组并检索 ====================
+function s.thfilter(c)
+	return c:IsFaceupEx() and c:IsRace(RACE_SPELLCASTER) and c:IsAttribute(ATTRIBUTE_WIND)
+		and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
+end
+
+function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then
+		return c:IsAbleToDeck()
+			and Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,c)
+	end
+	Duel.SetOperationInfo(0,CATEGORY_TODECK,c,1,0,0)
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_GRAVE+LOCATION_REMOVED)
+end
+
+function s.thop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsRelateToEffect(e) and Duel.SendtoDeck(c,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)>0
+		and c:IsLocation(LOCATION_DECK+LOCATION_EXTRA) then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+		local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil)
+		if #g>0 then
+			Duel.SendtoHand(g,nil,REASON_EFFECT)
+			Duel.ConfirmCards(1-tp,g)
 		end
 	end
 end

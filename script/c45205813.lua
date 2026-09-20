@@ -2,7 +2,7 @@
 local s,id=GetID()
 function s.initial_effect(c)
 	c:EnableReviveLimit()
-	--特殊召唤手续：把自己场上1只里侧守备的反转怪兽解放，从额外卡组特召
+	--特殊召唤手续：把自己场上1只「圣诞」怪兽解放，从额外卡组特召
 	local e0=Effect.CreateEffect(c)
 	e0:SetType(EFFECT_TYPE_FIELD)
 	e0:SetCode(EFFECT_SPSUMMON_PROC)
@@ -27,7 +27,7 @@ end
 
 -- 特殊召唤条件
 function s.matfilter(c,tp)
-	return c:IsFacedown() and c:IsType(TYPE_FLIP) and c:IsControler(tp) and c:IsReleasableByEffect()
+	return c:IsSetCard(0x1FC6) and c:IsControler(tp) and c:IsReleasableByEffect()
 end
 
 function s.spcon0(e,c)

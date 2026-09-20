@@ -28,15 +28,12 @@ function s.initial_effect(c)
 		Duel.RegisterEffect(ge1,0)
 	end        
 end
-function s.checkfilter(c,tp)
-	return c:IsFaceup() and c:IsControler(tp) and c:IsPreviousControler(tp) 
-    	and c:IsSetCard(0x6ca0) and c:IsType(TYPE_MONSTER)
-end    
 function s.checkop(e,tp,eg,ep,ev,re,r,rp)
-	local p=e:GetHandler():GetOwner()
-	local sg=eg:Filter(s.checkfilter,nil,p)
-	for tc in aux.Next(sg) do 
-		Duel.RegisterFlagEffect(p,id,0,0,0)
+	for tc in aux.Next(eg) do 
+    	local p=tc:GetControler()
+        if tc:IsFaceup() and tc:IsPreviousControler(p) and tc:IsSetCard(0x6ca0) and tc:IsType(TYPE_MONSTER) then
+			Duel.RegisterFlagEffect(p,id,0,0,0)
+        end
 	end
 end
 function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)

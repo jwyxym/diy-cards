@@ -1,9 +1,8 @@
---风来剑（装备魔法卡）
+--风来剑
 local s,id=GetID()
 function s.initial_effect(c)
 	aux.AddCodeList(c,45205409)
 	
-	--Activate
 	local e1=Effect.CreateEffect(c)
 	e1:SetCategory(CATEGORY_EQUIP)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
@@ -13,7 +12,6 @@ function s.initial_effect(c)
 	e1:SetOperation(s.eqop)
 	c:RegisterEffect(e1)
 	
-	--equip limit
 	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_SINGLE)
 	e2:SetCode(EFFECT_EQUIP_LIMIT)
@@ -21,14 +19,12 @@ function s.initial_effect(c)
 	e2:SetValue(s.eqlimit)
 	c:RegisterEffect(e2)
 	
-	--攻击力上升
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_EQUIP)
 	e3:SetCode(EFFECT_UPDATE_ATTACK)
 	e3:SetValue(s.atkval)
 	c:RegisterEffect(e3)
 	
-	--淑女装备时：免疫魔陷
 	local e4=Effect.CreateEffect(c)
 	e4:SetType(EFFECT_TYPE_EQUIP)
 	e4:SetCode(EFFECT_IMMUNE_EFFECT)
@@ -36,7 +32,6 @@ function s.initial_effect(c)
 	e4:SetValue(s.efilter)
 	c:RegisterEffect(e4)
 	
-	--淑女装备时：装备怪兽不会被效果破坏
 	local e5=Effect.CreateEffect(c)
 	e5:SetType(EFFECT_TYPE_EQUIP)
 	e5:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
@@ -44,24 +39,12 @@ function s.initial_effect(c)
 	e5:SetValue(1)
 	c:RegisterEffect(e5)
 	
-	--淑女装备时：这张卡自身不会被效果破坏
-	local e8=Effect.CreateEffect(c)
-	e8:SetType(EFFECT_TYPE_SINGLE)
-	e8:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
-	e8:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-	e8:SetRange(LOCATION_SZONE)
-	e8:SetCondition(s.selfcon)
-	e8:SetValue(1)
-	c:RegisterEffect(e8)
-	
-	--淑女装备时：直接攻击
 	local e6=Effect.CreateEffect(c)
 	e6:SetType(EFFECT_TYPE_EQUIP)
 	e6:SetCode(EFFECT_DIRECT_ATTACK)
 	e6:SetCondition(s.eqcon)
 	c:RegisterEffect(e6)
 	
-	--②效果：检索淑女记述的魔陷
 	local e7=Effect.CreateEffect(c)
 	e7:SetDescription(aux.Stringid(id,0))
 	e7:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
@@ -91,33 +74,27 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	local tc=Duel.GetFirstTarget()
 	if c:IsRelateToEffect(e) and tc:IsRelateToEffect(e) and tc:IsFaceup() then
 		Duel.Equip(tp,c,tc)
+		if tc:IsCode(45205409) then
+			c:RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD,0,1)
+		end
 	end
 end
 
 function s.atkval(e,c)
-	if c:IsCode(45205409) then return 800 end
+	if e:GetHandler():GetFlagEffect(id)~=0 then return 800 end
 	return 500
 end
 
 function s.eqcon(e)
-	local c=e:GetHandler()
-	local tc=c:GetEquipTarget()
-	return tc and tc:IsCode(45205409)
+	return e:GetHandler():GetFlagEffect(id)~=0
 end
 
 function s.efilter(e,te)
 	return te:GetOwnerPlayer()~=e:GetHandlerPlayer() and (te:IsActiveType(TYPE_SPELL) or te:IsActiveType(TYPE_TRAP))
 end
 
-function s.selfcon(e)
-	local tc=e:GetHandler():GetEquipTarget()
-	return tc and tc:IsCode(45205409)
-end
-
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	local tc=c:GetEquipTarget()
-	return tc and tc:IsCode(45205409)
+	return e:GetHandler():GetFlagEffect(id)~=0
 end
 
 function s.thfilter(c)

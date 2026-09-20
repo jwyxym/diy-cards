@@ -1,7 +1,7 @@
 --战华之医-华元
 local s,id=GetID()
 function s.initial_effect(c)
-    --①效果：自己场上有7星以上或者攻击力2500以上的怪兽存在的场合，从手卡·墓地特殊召唤
+    --①效果
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))
     e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -13,7 +13,7 @@ function s.initial_effect(c)
     e1:SetOperation(s.spop)
     c:RegisterEffect(e1)
 
-    --②效果：双方回合，把自己手卡·场上1张卡送去墓地，从墓地把1只「战华」怪兽特召
+    --②效果
     local e2=Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id,1))
     e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -26,7 +26,7 @@ function s.initial_effect(c)
     e2:SetOperation(s.spop2)
     c:RegisterEffect(e2)
 
-    --③效果：自己场上的「战华」怪兽不会被战斗·效果破坏
+    --③效果
     local e3=Effect.CreateEffect(c)
     e3:SetType(EFFECT_TYPE_FIELD)
     e3:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
@@ -39,7 +39,6 @@ function s.initial_effect(c)
     e3b:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
     c:RegisterEffect(e3b)
     
-    --③效果续：自己场上的怪兽从场上离开的场合，恢复自己500基本分
     local e4=Effect.CreateEffect(c)
     e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
     e4:SetCode(EVENT_LEAVE_FIELD)
@@ -49,7 +48,6 @@ function s.initial_effect(c)
     c:RegisterEffect(e4)
 end
 
--- ①效果
 function s.spfilter1(c)
     return c:IsFaceup() and (c:IsLevelAbove(7) or c:IsAttackAbove(2500))
 end
@@ -72,9 +70,12 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
     end
 end
 
--- ②效果
 function s.cfilter2(c,tp)
-    return c:IsAbleToGraveAsCost() and (c:IsLocation(LOCATION_HAND) or (c:IsLocation(LOCATION_ONFIELD) and c:IsControler(tp)))
+	if not c:IsAbleToGraveAsCost() then return false end
+	if Duel.GetLocationCount(tp,LOCATION_MZONE,PLAYER_NONE,LOCATION_REASON_TOFIELD,0x7f)<=0 then
+		return c:IsLocation(LOCATION_MZONE) and c:IsControler(tp) and c:GetSequence()<5
+	end
+	return c:IsLocation(LOCATION_HAND) or (c:IsLocation(LOCATION_ONFIELD) and c:IsControler(tp))
 end
 
 function s.spcost2(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -89,8 +90,7 @@ function s.spfilter2(c,e,tp)
 end
 
 function s.sptg2(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-        and Duel.IsExistingMatchingCard(s.spfilter2,tp,LOCATION_GRAVE,0,1,nil,e,tp) end
+    if chk==0 then return Duel.IsExistingMatchingCard(s.spfilter2,tp,LOCATION_GRAVE,0,1,nil,e,tp) end
     Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_GRAVE)
 end
 
@@ -103,7 +103,6 @@ function s.spop2(e,tp,eg,ep,ev,re,r,rp)
     end
 end
 
--- ③效果续：恢复
 function s.recovfilter(c,tp)
     return c:IsPreviousControler(tp) and c:IsPreviousLocation(LOCATION_MZONE)
 end

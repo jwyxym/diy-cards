@@ -1,86 +1,159 @@
---绝对的影之仆
+--冰华之影-审判
 local s,id,o=GetID()
 function s.initial_effect(c)
-	--act in set turn
-	local e0=Effect.CreateEffect(c)
-	e0:SetDescription(aux.Stringid(id,0))
-	e0:SetType(EFFECT_TYPE_SINGLE)
-	e0:SetValue(id)
-	e0:SetCode(EFFECT_TRAP_ACT_IN_SET_TURN)
-	e0:SetProperty(EFFECT_FLAG_SET_AVAILABLE+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e0:SetCondition(s.condition)
-	e0:SetCost(s.cost)
-	c:RegisterEffect(e0)
-	--Activate
+	aux.AddCodeList(c,76200681)
+	--fusion material
+	c:EnableReviveLimit()
+	aux.AddFusionProcCodeFun(c,76200681,aux.FilterBoolFunction(Card.IsFusionType,TYPE_FUSION+TYPE_XYZ),1,true,true)
+	--position
 	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_ACTIVATE)
-	e1:SetCode(EVENT_FREE_CHAIN)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_POSITION)
+	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e1:SetProperty(EFFECT_FLAG_DELAY)
+	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
+	e1:SetCountLimit(1,id)
+	e1:SetCondition(s.poscon)
+	e1:SetTarget(s.postg)
+	e1:SetOperation(s.posop)
 	c:RegisterEffect(e1)
-	--negate damage
+	--atk up
 	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_QUICK_O)
-	e2:SetCode(EVENT_PRE_DAMAGE_CALCULATE)
-	e2:SetRange(LOCATION_GRAVE+LOCATION_SZONE)
-	e2:SetCountLimit(1,id)
-	e2:SetCondition(s.damcon)
-	e2:SetCost(aux.bfgcost)
-	e2:SetOperation(s.damop)
+	e2:SetDescription(aux.Stringid(id,1))
+	e2:SetCategory(CATEGORY_ATKCHANGE+CATEGORY_DISABLE)
+	e2:SetType(EFFECT_TYPE_IGNITION)
+	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetCountLimit(1,id+o)
+	e2:SetTarget(s.atktg)
+	e2:SetOperation(s.atkop)
 	c:RegisterEffect(e2)
-	--change effect target
-	local e3=Effect.CreateEffect(c)
-	e3:SetDescription(aux.Stringid(id,1))
-	e3:SetType(EFFECT_TYPE_QUICK_O)
-	e3:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e3:SetCode(EVENT_CHAINING)
-	e3:SetRange(LOCATION_SZONE)
-	e3:SetCountLimit(1,id+o)
-	e3:SetCondition(s.cecon)
-	e3:SetTarget(s.cetg)
-	e3:SetOperation(s.ceop)
-	c:RegisterEffect(e3)
+	--destroy
+	local e4=Effect.CreateEffect(c)
+	e4:SetDescription(aux.Stringid(id,2))
+	e4:SetCategory(CATEGORY_DESTROY)
+	e4:SetType(EFFECT_TYPE_QUICK_O)
+	e4:SetCode(EVENT_CHAINING)
+	e4:SetRange(LOCATION_MZONE)
+	e4:SetCondition(s.descon)
+	e4:SetCost(s.rmcost)
+	e4:SetTarget(s.destg)
+	e4:SetOperation(s.desop)
+	c:RegisterEffect(e4)
 end
-function s.condition(e)
-	return e:GetHandler():IsStatus(STATUS_SET_TURN) and e:GetHandler():IsLocation(LOCATION_ONFIELD)
+function s.poscon(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():IsSummonType(SUMMON_TYPE_FUSION)
 end
-function s.costfilter(c)
-	return (c:IsType(TYPE_PENDULUM) or (c:IsAttribute(ATTRIBUTE_DARK) and c:IsLevel(6))) and not c:IsPublic()
+function s.postg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsCanChangePosition,tp,0,LOCATION_MZONE,1,nil) end
+	local g=Duel.GetMatchingGroup(Card.IsCanChangePosition,tp,0,LOCATION_MZONE,nil)
+	Duel.SetOperationInfo(0,CATEGORY_POSITION,g,g:GetCount(),0,0)
 end
-function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_HAND,0,1,nil) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
-	local g=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_HAND,0,1,1,nil)
-	Duel.ConfirmCards(1-tp,g)
-	Duel.ShuffleHand(tp)
-end
-function s.damcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetBattleDamage(tp)>0
-end
-function s.damop(e,tp,eg,ep,ev,re,r,rp)
-	local e1=Effect.CreateEffect(e:GetHandler())
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_AVOID_BATTLE_DAMAGE)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e1:SetTargetRange(1,0)
-	e1:SetReset(RESET_PHASE+PHASE_DAMAGE)
-	Duel.RegisterEffect(e1,tp)
-end
-function s.cecon(e,tp,eg,ep,ev,re,r,rp)
-	if e==re or not re:IsHasProperty(EFFECT_FLAG_CARD_TARGET) then return false end
-	local g=Duel.GetChainInfo(ev,CHAININFO_TARGET_CARDS)
-	return g and g:GetCount()==1 and g:GetFirst()==e:GetHandler()
-end
-function s.cefilter(c,ct)
-	return Duel.CheckChainTarget(ct,c)
-end
-function s.cetg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsOnField() and s.cefilter(chkc,ev) and chkc~=e:GetHandler() end
-	if chk==0 then return Duel.IsExistingTarget(s.cefilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,e:GetHandler(),ev) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
-	Duel.SelectTarget(tp,s.cefilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,e:GetHandler(),ev)
-end
-function s.ceop(e,tp,eg,ep,ev,re,r,rp)
-	local tc=Duel.GetFirstTarget()
-	if tc:IsRelateToEffect(e) then
-		Duel.ChangeTargetCard(ev,Group.FromCards(tc))
+function s.posop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tg=Duel.GetMatchingGroup(Card.IsCanChangePosition,tp,0,LOCATION_MZONE,nil)
+	local tc=tg:GetFirst()
+	while tc do
+		if Duel.ChangePosition(tc,POS_FACEUP_DEFENSE,POS_FACEDOWN_DEFENSE,POS_FACEUP_ATTACK,POS_FACEUP_ATTACK)~=0 then
+			local e1=Effect.CreateEffect(c)
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_SET_ATTACK_FINAL)
+			e1:SetValue(0)
+			e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+			tc:RegisterEffect(e1)
+			local e2=Effect.CreateEffect(c)
+			e2:SetType(EFFECT_TYPE_SINGLE)
+			e2:SetCode(EFFECT_SET_DEFENSE_FINAL)
+			e2:SetValue(0)
+			e2:SetReset(RESET_EVENT+RESETS_STANDARD)
+			tc:RegisterEffect(e2)
+		end
+		tc=tg:GetNext()
 	end
+end
+function s.filter(c)
+	return c:IsFaceup() and c:IsType(TYPE_FUSION+TYPE_XYZ)
+end
+function s.negfilter(c)
+	return aux.NegateEffectMonsterFilter(c) and (c:GetBaseAttack()>0 or c:GetBaseDefense()>0)
+end
+function s.atktg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return false end
+	if chk==0 then return Duel.IsExistingTarget(s.filter,tp,LOCATION_MZONE,0,1,nil)
+		and Duel.IsExistingTarget(s.negfilter,tp,0,LOCATION_MZONE,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
+	local g1=Duel.SelectTarget(tp,s.filter,tp,LOCATION_MZONE,0,1,1,nil)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DISABLE)
+	local g2=Duel.SelectTarget(tp,s.negfilter,tp,0,LOCATION_MZONE,1,1,nil)
+	e:SetLabelObject(g2:GetFirst())
+	Duel.SetOperationInfo(0,CATEGORY_DISABLE,g2,1,0,0)
+end
+function s.atkop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tc=e:GetLabelObject()
+	local tg=Duel.GetChainInfo(0,CHAININFO_TARGET_CARDS)
+	local lc=tg:GetFirst()
+	if #tg~=2 then return end
+	if lc==tc then lc=tg:GetNext() end
+	if tc:IsFaceup() and tc:IsRelateToEffect(e) and tc:IsControler(1-tp) and tc:IsCanBeDisabledByEffect(e) then
+		local upatk=tc:GetBaseAttack()
+		if tc:GetBaseAttack()<tc:GetBaseDefense() then
+			upatk=tc:GetBaseDefense()
+		end
+		Duel.NegateRelatedChain(tc,RESET_TURN_SET)
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetCode(EFFECT_DISABLE)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+		tc:RegisterEffect(e1)
+		local e2=Effect.CreateEffect(c)
+		e2:SetType(EFFECT_TYPE_SINGLE)
+		e2:SetCode(EFFECT_DISABLE_EFFECT)
+		e2:SetValue(RESET_TURN_SET)
+		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
+		tc:RegisterEffect(e2)
+		if lc:IsRelateToEffect(e) and lc:IsControler(tp)
+			and lc:IsFaceup() then
+			local e1=Effect.CreateEffect(c)
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_UPDATE_ATTACK)
+			e1:SetValue(upatk/2)
+			e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+			lc:RegisterEffect(e1)
+		end
+	end
+end
+function s.descon(e,tp,eg,ep,ev,re,r,rp)
+	return re:IsActiveType(TYPE_SPELL+TYPE_TRAP)
+end
+function s.rmcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return c:IsAbleToRemoveAsCost() end
+	if Duel.Remove(c,0,REASON_COST+REASON_TEMPORARY)~=0 and c:GetOriginalCode()==id then
+		c:RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,EFFECT_FLAG_CLIENT_HINT,1,0,aux.Stringid(id,3))
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		e1:SetCode(EVENT_PHASE+PHASE_END)
+		e1:SetReset(RESET_PHASE+PHASE_END)
+		e1:SetLabelObject(c)
+		e1:SetCountLimit(1)
+		e1:SetOperation(s.retop)
+		Duel.RegisterEffect(e1,tp)
+	end
+end
+function s.destg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local g=Duel.GetMatchingGroup(aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
+	if chk==0 then return #g>0 end
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
+end
+function s.desop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+	local g=Duel.SelectMatchingCard(tp,aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
+	if #g>0 then
+		Duel.HintSelection(g)
+		Duel.Destroy(g,REASON_EFFECT)
+	end
+end
+function s.retop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.ReturnToField(e:GetLabelObject())
 end

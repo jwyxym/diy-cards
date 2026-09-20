@@ -1,17 +1,12 @@
--- 《圣夜骑士团·辉光使徒》
--- 卡号：56653525
--- 属性：光 种族：天使族 阶级：4 攻击：2500 守备：0
--- 素材：4星怪兽×2
--- 字段：圣夜骑士 (0x159)
 local s,id=GetID()
 local SET_HOLY_NIGHT=0x159
 
 function s.initial_effect(c)
-    -- ★ 超量召唤手续（完全照抄希望皇霍普）
-    aux.AddXyzProcedure(c,nil,4,2)
+    -- 超量召唤手续：4星怪兽×2
     c:EnableReviveLimit()
+    aux.AddXyzProcedure(c,nil,4,2)
 
-    -- ① 特殊召唤时，从卡组·墓地·除外状态特召圣夜骑士或光属性龙族7星
+    -- ① 特殊召唤成功时，从卡组·墓地·除外状态特召圣夜骑士或光属性龙族7星
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))
     e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -23,7 +18,7 @@ function s.initial_effect(c)
     e1:SetOperation(s.spop)
     c:RegisterEffect(e1)
 
-    -- ② 双方主要阶段，拔素材炸卡，暗属性则吸为素材
+    -- ② 双方主要阶段，拔素材破坏对方场上1张表侧卡，暗属性怪兽则吸收为素材
     local e2=Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id,1))
     e2:SetCategory(CATEGORY_DESTROY)
@@ -39,7 +34,7 @@ function s.initial_effect(c)
     c:RegisterEffect(e2)
 end
 
--- ① Target
+-- ① 过滤：圣夜骑士或光属性龙族7星
 function s.spfilter(c,e,tp)
     return (c:IsSetCard(SET_HOLY_NIGHT) or (c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsRace(RACE_DRAGON) and c:IsLevel(7)))
         and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
@@ -60,13 +55,11 @@ end
 function s.descon(e,tp)
     return Duel.IsMainPhase()
 end
-
--- ② Cost：取除1个超量素材（完全照抄霍普的cost写法）
+-- ② Cost：取除1个超量素材
 function s.descost(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,1,REASON_COST) end
     e:GetHandler():RemoveOverlayCard(tp,1,1,REASON_COST)
 end
-
 -- ② Target：以对方场上1张表侧卡为对象
 function s.destg(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return Duel.IsExistingMatchingCard(Card.IsFaceup,tp,0,LOCATION_ONFIELD,1,nil) end
@@ -74,7 +67,6 @@ function s.destg(e,tp,eg,ep,ev,re,r,rp,chk)
     local g=Duel.SelectTarget(tp,Card.IsFaceup,tp,0,LOCATION_ONFIELD,1,1,nil)
     Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
 end
-
 -- ② Operation：破坏，暗属性且进了墓地则吸为素材
 function s.desop(e,tp)
     local c=e:GetHandler()
@@ -85,4 +77,4 @@ function s.desop(e,tp)
     if is_dark and tc:IsLocation(LOCATION_GRAVE) then
         Duel.Overlay(c,tc)
     end
-end
+end<

@@ -51,7 +51,8 @@ jobs:
 
     - name: Push to Server
       run: |
-        scp xiao.ypk ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PATH }}/expansions/
+        scp xiao.ypk ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PATH }}/
+        scp dialogues.toml ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }}:${{ secrets.SSH_PATH }}/
 
     - name: Create release-latest
       run: |

@@ -2,9 +2,6 @@
 local cm,m,o=GetID()
 Duel.LoadScript("c666Hyakkiyakou.lua")
 function cm.initial_effect(c)
-	--summonlines
-	local str="自古以来，人们就对妖怪心存畏惧。而走在众妖之前，领导百鬼夜行的男人，人们称其为妖怪总帅。\n亦或是如此称呼，魑魅魍魉之主，滑头鬼……"
-	xiaoye.SummonLines(c,str)
 	--only one card on filed
 	c:SetUniqueOnField(1,0,m)
 	--pendulum summon

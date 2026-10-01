@@ -1,12 +1,13 @@
---山水-炊烟
+--山水-炊烟  id=12260005
 local s,id=GetID()
 function s.initial_effect(c)
 	c:EnableReviveLimit()
 	aux.AddFusionProcFun2(c,aux.FilterBoolFunction(Card.IsFusionSetCard,0x63a0),aux.FilterBoolFunction(Card.IsFusionType,TYPE_MONSTER),true)
 	local e0=Effect.CreateEffect(c)
 	e0:SetType(EFFECT_TYPE_SINGLE)
-	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0:SetProperty(EFFECT_FLAG_SINGLE_RANGE+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
 	e0:SetCode(EFFECT_SPSUMMON_CONDITION)
+	e0:SetRange(LOCATION_EXTRA)
 	e0:SetValue(aux.fuslimit)
 	c:RegisterEffect(e0)
 	local e1=Effect.CreateEffect(c)
@@ -40,6 +41,9 @@ function s.initial_effect(c)
 	e3:SetTarget(s.sptg)
 	e3:SetOperation(s.spop)
 	c:RegisterEffect(e3)
+	local e4=e3:Clone()
+	e4:SetCode(EVENT_BE_MATERIAL)
+	c:RegisterEffect(e4)
 end
 
 function s.gcheck(g)
@@ -69,6 +73,12 @@ function s.hspop(e,tp,eg,ep,ev,re,r,rp,c)
 		Duel.SendtoGrave(g,REASON_COST)
 		g:DeleteGroup()
 	end
+	--解决手写proc出场不能苏生，对标接触融合的标记
+	local e_reg=Effect.CreateEffect(c)
+	e_reg:SetType(EFFECT_TYPE_SINGLE)
+	e_reg:SetCode(EFFECT_FUSION_SUMMONED)
+	e_reg:SetReset(RESET_EVENT+RESETS_STANDARD-RESET_TOFIELD)
+	c:RegisterEffect(e_reg)
 end
 
 function s.thfilter(c)
@@ -103,12 +113,15 @@ end
 
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	return c:IsPreviousPosition(POS_FACEDOWN) and c:IsPreviousLocation(LOCATION_ONFIELD)
+	return c:IsPreviousPosition(POS_FACEDOWN) and c:IsPreviousLocation(LOCATION_ONFIELD) and c:IsLocation(LOCATION_GRAVE)
 end
 
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetFieldGroupCount(1-tp,LOCATION_HAND,0)>0 end
-	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,0,tp,LOCATION_HAND)
+	if chk==0 then
+		return Duel.GetFieldGroupCount(1-tp,LOCATION_HAND,0)>0
+			and Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+	end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,0,1-tp,LOCATION_HAND)
 end
 
 function s.spop(e,tp,eg,ep,ev,re,r,rp)

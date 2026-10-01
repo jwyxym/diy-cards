@@ -3,7 +3,7 @@ local s,id,o=GetID()
 function s.initial_effect(c)
 	c:SetSPSummonOnce(id)
 	--融合召唤	
-	aux.AddFusionProcMixRep(c,false,true,aux.FilterBoolFunction(Card.IsRace,RACE_MACHINE),1,127,s.matfilter1,s.matfilter2)
+	aux.AddFusionProcMixRep(c,true,true,aux.FilterBoolFunction(Card.IsRace,RACE_MACHINE),1,127,s.matfilter1,s.matfilter2)
 	c:EnableReviveLimit()
 	--送去墓地
 	local e1=Effect.CreateEffect(c)
@@ -41,7 +41,7 @@ function s.initial_effect(c)
     end
 end
 function s.matfilter1(c)
-	return c:IsType(TYPE_FUSION) and c:IsRace(RACE_MACHINE) and c:IsLevelAbove(8)
+	return c:IsFusionType(TYPE_FUSION) and c:IsRace(RACE_MACHINE) and c:IsLevelAbove(8)
 end
 function s.matfilter2(c,fc)
 	return c:IsFaceup() and c:IsLocation(LOCATION_MZONE) and c:IsControler(fc:GetControler())

@@ -3,118 +3,132 @@ local s,id,o=GetID()
 function s.initial_effect(c)
 	--pendulum summon
 	aux.EnablePendulumAttribute(c,false)
-	--fusion material
+	--fusion material（正规融合：通常怪兽2只）
 	c:EnableReviveLimit()
-	aux.AddFusionProcFunRep(c,s.matfilter,3,true)
-	aux.AddContactFusionProcedure(c,aux.FilterBoolFunction(Card.IsReleasable,REASON_SPSUMMON),LOCATION_MZONE,0,Duel.Release,REASON_SPSUMMON+REASON_MATERIAL)
-	--move
-	local e1=Effect.CreateEffect(c)
-	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e1:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
-	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e1:SetRange(LOCATION_PZONE)
-	e1:SetCountLimit(1,id)
-	e1:SetCondition(s.tgcon)
-	e1:SetTarget(s.tgtg)
-	e1:SetOperation(s.tgop)
-	c:RegisterEffect(e1)
-	s.jinxue_effect=e1
-	--splimit
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e2:SetRange(LOCATION_PZONE)
-	e2:SetTargetRange(1,0)
-	e2:SetTarget(s.splimit)
-	c:RegisterEffect(e2)
-	--to deck
+	aux.AddFusionProcFunRep(c,s.fusmatfilter,2,false)
+	--联系融合：解放自己场上2张「烬雪」怪兽卡·通常怪兽卡（一回合一次）
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_FIELD)
+	e0:SetCode(EFFECT_SPSUMMON_PROC)
+	e0:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_CANNOT_DISABLE)
+	e0:SetRange(LOCATION_EXTRA)
+	e0:SetCountLimit(1,id)
+	e0:SetCondition(s.contactcon)
+	e0:SetTarget(s.contacttg)
+	e0:SetOperation(s.contactop)
+	c:RegisterEffect(e0)
+	--怪兽①
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,10))
-	e3:SetCategory(CATEGORY_TODECK)
+	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e3:SetType(EFFECT_TYPE_QUICK_O)
-	e3:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e3:SetCode(EVENT_FREE_CHAIN)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetCountLimit(1)
 	e3:SetTarget(s.tdtg)
 	e3:SetOperation(s.tdop)
 	c:RegisterEffect(e3)
+	--怪兽②
+	local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e4:SetProperty(EFFECT_FLAG_DELAY)
+	e4:SetCode(EVENT_DESTROYED)
+	e4:SetCountLimit(1,id+2)
+	e4:SetCondition(s.pencon)
+	e4:SetTarget(s.pentg)
+	e4:SetOperation(s.penop)
+	c:RegisterEffect(e4)
 end
-function s.matfilter(c)
-	return c:IsFusionSetCard(0xe93) or c:IsFusionType(TYPE_NORMAL)
+
+-- 正规融合素材：通常怪兽
+function s.fusmatfilter(c)
+	return c:IsType(TYPE_NORMAL)
 end
-function s.tgcfilter(c,tp)
-	return c:GetSequence()==0 or c:GetSequence()==4 and c:IsControler(1-tp)
-end
-function s.tgcon(e,tp,eg,ep,ev,re,r,rp)
-	return eg:IsExists(s.tgcfilter,1,nil,tp)
-end
-function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chk==0 then return Duel.GetFieldGroupCount(tp,0,LOCATION_MZONE)>1 end
-	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,2,0,LOCATION_MZONE)
-end
-function s.tgop(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetMatchingGroup(nil,1-tp,LOCATION_MZONE,0,nil)
-	if g:GetCount()>0 then
-		Duel.Hint(HINT_SELECTMSG,1-tp,HINTMSG_TOGRAVE)
-		local sg=g:Select(1-tp,2,2,nil)
-		Duel.HintSelection(sg)
-		Duel.SendtoGrave(sg,REASON_RULE,1-tp)
+
+-- 联系融合素材：烬雪怪兽卡 或 通常怪兽卡（含后场）
+function s.contactmatfilter(c,tp)
+	if not c:IsControler(tp) or not c:IsReleasable() then return false end
+	if c:IsLocation(LOCATION_MZONE) then
+		return c:IsSetCard(0xe93) or c:IsType(TYPE_NORMAL)
+	else
+		return c:IsSetCard(0xe93) or (c:GetOriginalType()&TYPE_NORMAL>0)
 	end
 end
-function s.splimit(e,c,tp,sumtp,sumpos)
-	return not c:IsSetCard(0xe93) and bit.band(sumtp,SUMMON_TYPE_PENDULUM)==SUMMON_TYPE_PENDULUM
+function s.contactcon(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and Duel.IsExistingMatchingCard(s.contactmatfilter,tp,LOCATION_ONFIELD,0,2,nil,tp)
 end
+function s.contacttg(e,tp,eg,ep,ev,re,r,rp,chk,c)
+	if chk==0 then return true end
+	local g=Duel.GetMatchingGroup(s.contactmatfilter,tp,LOCATION_ONFIELD,0,nil,tp)
+	if g:GetCount()<2 then return false end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
+	local sg=g:Select(tp,2,2,nil)
+	if #sg<2 then return false end
+	sg:KeepAlive()
+	e:SetLabelObject(sg)
+	return true
+end
+function s.contactop(e,tp,eg,ep,ev,re,r,rp,c)
+	local g=e:GetLabelObject()
+	Duel.Release(g,REASON_SPSUMMON+REASON_MATERIAL)
+	g:DeleteGroup()
+end
+
+-- 怪兽①：从额外卡组（表侧）特召1只烬雪怪兽
 function s.spfilter(c,e,tp)
-	return c:IsSetCard(0xe93) and c:IsFaceup() and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsSetCard(0xe93) and c:IsFaceup() and c:IsType(TYPE_MONSTER)
+		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
-function s.tffilter(c)
-	return c:IsSetCard(0xe93) and c:IsFaceup() and c:IsType(TYPE_PENDULUM) and not c:IsForbidden()
-end
-function s.tdfilter2(c)
-	return c:IsSetCard(0xe93) and c:IsAbleToDeck()
+-- 从自己场上选烬雪灵摆怪兽贴P
+function s.pfilter(c)
+	return c:IsSetCard(0xe93) and c:IsType(TYPE_PENDULUM) and c:IsFaceup()
 end
 function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	local b1=Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp) and Duel.IsExistingMatchingCard(s.tdfilter2,tp,LOCATION_HAND,0,1,nil)
-	local b2=Duel.IsExistingMatchingCard(s.tffilter,tp,LOCATION_EXTRA,0,1,nil) and Duel.IsExistingMatchingCard(s.tdfilter2,tp,LOCATION_HAND,0,1,nil)
-	if chk==0 then return b1 or b2 end
-	local op=aux.SelectFromOptions(tp,
-		{b1,aux.Stringid(id,1)},
-		{b2,aux.Stringid(id,2)})
-	e:SetLabel(op)
-	if op==1 then
-		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
-		Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,0,0)
-	else
-		Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,0,0)
+	if chk==0 then
+		return Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp)
+			and Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 	end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 end
 function s.tdop(e,tp,eg,ep,ev,re,r,rp)
-	local op=e:GetLabel()
-	if op==1 then
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
-		local g=Duel.SelectMatchingCard(tp,s.tdfilter2,tp,LOCATION_HAND,0,1,1,nil)
-		Duel.ConfirmCards(1-tp,g)
-		Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
-		if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-		local sg=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_EXTRA,0,1,1,nil,e,tp)
-		local tc=sg:GetFirst()
-		if tc then
-			Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
-		end
-	elseif op==2 then
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
-		local g=Duel.SelectMatchingCard(tp,s.tdfilter2,tp,LOCATION_HAND,0,1,1,nil)
-		Duel.ConfirmCards(1-tp,g)
-		Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
-		if not Duel.CheckLocation(tp,LOCATION_PZONE,0) and not Duel.CheckLocation(tp,LOCATION_PZONE,1) then return end
+	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local sg=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_EXTRA,0,1,1,nil,e,tp)
+	local tc=sg:GetFirst()
+	if tc then
+		Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
+	end
+	if not Duel.CheckLocation(tp,LOCATION_PZONE,0) and not Duel.CheckLocation(tp,LOCATION_PZONE,1) then return end
+	local pg=Duel.GetMatchingGroup(s.pfilter,tp,LOCATION_ONFIELD,0,nil)
+	if pg:GetCount()>0 then
+		Duel.BreakEffect()
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOFIELD)
-		local tg=Duel.SelectMatchingCard(tp,s.tffilter,tp,LOCATION_EXTRA,0,1,1,nil)
-		if tg:GetCount()>0 then
-			Duel.MoveToField(g:GetFirst(),tp,tp,LOCATION_PZONE,POS_FACEUP,true)
+		local pgsel=pg:Select(tp,1,1,nil)
+		if pgsel:GetCount()>0 then
+			local tc1=pgsel:GetFirst()
+			Duel.MoveToField(tc1,tp,tp,LOCATION_PZONE,POS_FACEUP,false)
+			tc1:SetStatus(STATUS_EFFECT_ENABLED,true)
 		end
 	end
+end
+
+-- 怪兽②：被破坏时在P区放置
+function s.pencon(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	return c:IsPreviousLocation(LOCATION_MZONE) and c:IsLocation(LOCATION_GRAVE)
+end
+function s.pentg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then
+		return Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1)
+	end
+end
+function s.penop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if not c:IsRelateToEffect(e) or not c:IsLocation(LOCATION_GRAVE) then return end
+	if not Duel.CheckLocation(tp,LOCATION_PZONE,0) and not Duel.CheckLocation(tp,LOCATION_PZONE,1) then return end
+	Duel.MoveToField(c,tp,tp,LOCATION_PZONE,POS_FACEUP,false)
+	c:SetStatus(STATUS_EFFECT_ENABLED,true)
 end

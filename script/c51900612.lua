@@ -61,7 +61,7 @@ function this.filter(c,att)
 	return c:IsAttribute(att) and c:IsFaceupEx() and c:IsAbleToHand()
 end
 function this.con(e,tp,eg,ep,ev,re,r,rp)
-	return rp==1-tp
+	return e:GetHandler():GetFlagEffectLabel(id+1) and e:GetHandler():GetFlagEffectLabel(id+1)>0 and ep==1-tp
 end
 function this.tg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local att=0
@@ -70,7 +70,7 @@ function this.tg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 		att=att|tc:GetAttribute()
 	end
 	if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED) and this.filter(chkc,att) end
-	if chk==0 then return Duel.IsExistingTarget(this.filter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,att) end-- and c:GetFlagEffect(id)<c:GetFlagEffectLabel(id+1) end
+	if chk==0 then return Duel.IsExistingTarget(this.filter,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,att) and c:GetFlagEffect(id)<c:GetFlagEffectLabel(id+1) end
 	c:RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,0,1)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
 	local tc=Duel.SelectTarget(tp,aux.NecroValleyFilter(this.filter),tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,att)

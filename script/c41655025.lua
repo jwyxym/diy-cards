@@ -1,12 +1,10 @@
 -- 烬雪的臂膀·格洛克
 local s,id,o=GetID()
 function s.initial_effect(c)
-	--pendulum summon
 	aux.EnablePendulumAttribute(c)
-	--tohand
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetCategory(CATEGORY_DESTROY)
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TOHAND+CATEGORY_SEARCH)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_PZONE)
 	e1:SetCountLimit(1,id)
@@ -15,9 +13,11 @@ function s.initial_effect(c)
 	e1:SetOperation(s.operation)
 	c:RegisterEffect(e1)
 	s.jinxue_effect=e1
-	local e2=e1:Clone()
+	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetCategory(CATEGORY_DESTROY+CATEGORY_TOHAND+CATEGORY_SEARCH)
+	e2:SetCategory(CATEGORY_TODECK+CATEGORY_DESTROY)
+	e2:SetType(EFFECT_TYPE_IGNITION)
+	e2:SetRange(LOCATION_PZONE)
 	e2:SetCountLimit(1,id+1)
 	e2:SetTarget(s.target2)
 	e2:SetOperation(s.operation2)
@@ -29,52 +29,92 @@ function s.initial_effect(c)
 	s.jinxue_effect=e9
 end
 function s.cfilter(c)
-	return c:IsAttackAbove(3000) and c:IsFaceup()
+	return c:IsAttackAbove(2500) and c:IsFaceup()
 end
 function s.condition(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil)
 end
-function s.pcfilter(c,tp)
-	return c:IsSetCard(0xe93) and c:IsType(TYPE_PENDULUM) and not c:IsForbidden() and c:CheckUniqueOnField(tp,LOCATION_SZONE)
-end
 function s.thfilter(c)
 	return c:IsCode(41655000) and c:IsAbleToHand()
 end
+function s.spfilter(c,e,tp)
+	return c:IsFaceup() and c:IsSetCard(0xe93) and c:IsType(TYPE_PENDULUM)
+		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+end
+function s.tdfilter(c)
+	return c:IsSetCard(0xe93) and c:IsAbleToDeck()
+end
+function s.desfilter(c)
+	return c:IsType(TYPE_MONSTER) and c:IsDestructable()
+end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.pcfilter,tp,LOCATION_EXTRA,0,1,nil,tp) end
+	if chk==0 then
+		return Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_PZONE,0,1,nil,e,tp)
+			and Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+			and Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil)
+	end
+	local ct=Duel.GetLocationCount(tp,LOCATION_MZONE)
+	if Duel.IsPlayerAffectedByEffect(tp,59822133) then ct=1 end
+	local gct=Duel.GetMatchingGroupCount(s.spfilter,tp,LOCATION_PZONE,0,nil,e,tp)
+	if ct>gct then
+		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,gct,tp,LOCATION_PZONE)
+	else
+		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,ct,tp,LOCATION_PZONE)
+	end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
 end
 function s.operation(e,tp,eg,ep,ev,re,r,rp)
-	if not Duel.CheckLocation(tp,LOCATION_PZONE,0) and not Duel.CheckLocation(tp,LOCATION_PZONE,1) then
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-		local dg=Duel.SelectMatchingCard(tp,nil,tp,LOCATION_PZONE,0,1,1,nil)
-		Duel.Destroy(dg,REASON_EFFECT)
+	local ct=Duel.GetLocationCount(tp,LOCATION_MZONE)
+	if ct<=0 then return end
+	if Duel.IsPlayerAffectedByEffect(tp,59822133) then ct=1 end
+	local g=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_PZONE,0,nil,e,tp)
+	local gc=g:GetCount()
+	if gc==0 then return end
+	local sg
+	if gc<=ct then
+		sg=g
 	else
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-		local dg=Duel.SelectMatchingCard(tp,nil,tp,LOCATION_ONFIELD,0,1,1,nil)
-		Duel.Destroy(dg,REASON_EFFECT)
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+		sg=g:Select(tp,1,ct,nil)
 	end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOFIELD)
-	local g=Duel.SelectMatchingCard(tp,s.pcfilter,tp,LOCATION_EXTRA,0,1,1,nil,tp)
-	if g:GetCount()>0 then
-		Duel.MoveToField(g:GetFirst(),tp,tp,LOCATION_PZONE,POS_FACEUP,true)
+	if #sg==0 then return end
+	if Duel.SpecialSummon(sg,0,tp,tp,false,false,POS_FACEUP)>0 then
+		for tc in aux.Next(sg) do
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_UPDATE_ATTACK)
+			e1:SetValue(1500)
+			e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+			tc:RegisterEffect(e1)
+		end
+	end
+	if Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil) then
+		Duel.BreakEffect()
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+		local g2=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
+		Duel.SendtoHand(g2,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,g2)
 	end
 end
 function s.target2(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(nil,tp,0,LOCATION_MZONE,1,nil) and Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_DESTROY,nil,nil,tp,LOCATION_MZONE)
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
+	if chk==0 then
+		return Duel.IsExistingMatchingCard(s.tdfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,3,nil)
+			and Duel.IsExistingMatchingCard(s.desfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,3,nil)
+	end
+	Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,3,tp,LOCATION_HAND+LOCATION_ONFIELD)
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,nil,3,PLAYER_ALL,LOCATION_ONFIELD)
 end
 function s.operation2(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-	local g=Duel.SelectMatchingCard(tp,nil,tp,0,LOCATION_MZONE,1,2,nil)
-	if g:GetCount()>0 then
-		Duel.Destroy(g,REASON_EFFECT)
-		if Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil) then
-			Duel.BreakEffect()
-			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-			local g2=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
-			Duel.SendtoHand(g2,nil,REASON_EFFECT)
-			Duel.ConfirmCards(1-tp,g2)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
+	local g=Duel.SelectMatchingCard(tp,s.tdfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,3,3,nil)
+	if g:GetCount()<3 then return end
+	Duel.SendtoDeck(g,nil,2,REASON_EFFECT)
+	if Duel.IsExistingMatchingCard(s.desfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,3,nil) then
+		Duel.BreakEffect()
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+		local dg=Duel.SelectMatchingCard(tp,s.desfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,3,3,nil)
+		if dg:GetCount()>0 then
+			Duel.Destroy(dg,REASON_EFFECT)
 		end
 	end
 end

@@ -16,6 +16,7 @@ function s.initial_effect(c)
 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e2:SetCode(EVENT_CHAIN_SOLVING)
 	e2:SetRange(LOCATION_FZONE)
+	e2:SetCountLimit(1)
 	e2:SetCondition(s.chcon)
 	e2:SetOperation(s.chop)
 	c:RegisterEffect(e2)
@@ -68,6 +69,7 @@ function s.chop(e,tp,eg,ep,ev,re,r,rp)
 		e:GetHandler():RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,EFFECT_FLAG_CLIENT_HINT,1,0,aux.Stringid(id,1))
 	end
 end
+-- 修改：由对方（原效果控制者）抽2张
 function s.chpop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Draw(tp,2,REASON_EFFECT)
 end

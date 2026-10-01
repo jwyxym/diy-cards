@@ -1,7 +1,7 @@
 --商人拉法姆
 local s,id=GetID()
 function s.initial_effect(c)
-	--① 手卡丢弃诱发即时，进行召唤
+	--① 手卡丢弃自身，从手卡召唤一只拉法姆怪兽（二速）
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_SUMMON)
@@ -13,17 +13,19 @@ function s.initial_effect(c)
 	e1:SetTarget(s.target1)
 	e1:SetOperation(s.operation1)
 	c:RegisterEffect(e1)
-	--② 召唤成功检索
+
+	--② 召唤成功时，检索2只拉法姆怪兽，再丢弃1手卡
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH+CATEGORY_HANDES)
+	e2:SetCategory(CATEGORY_TOHAND+CATEGORY_HANDES)
 	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e2:SetCode(EVENT_SUMMON_SUCCESS)
 	e2:SetCountLimit(1,id+1)
 	e2:SetTarget(s.target2)
 	e2:SetOperation(s.operation2)
 	c:RegisterEffect(e2)
-	--③ 墓地除外效果（修正版，无GetTargetCards）
+
+	--③ 墓地除外自身，回收3只拉法姆怪兽回卡组，抽1张
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,2))
 	e3:SetCategory(CATEGORY_TODECK+CATEGORY_DRAW)
@@ -35,37 +37,35 @@ function s.initial_effect(c)
 	e3:SetOperation(s.operation3)
 	c:RegisterEffect(e3)
 end
-s.listed_series={0x0cf0}
 
--- 自肃注册
+-- 全回合拉法姆自肃（修正版）
 function s.RegisterSelfBond(tp,c)
-	if Duel.GetFlagEffect(tp,id+100)>0 then return end
-	local e1=Effect.CreateEffect(c)
+	local e1=Effect.CreateEffect(c)          -- 使用传入的卡片作为 handler
 	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e1:SetTargetRange(1,0)
-	e1:SetTarget(s.splimit)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e1:SetCode(EFFECT_CANNOT_SUMMON)
 	e1:SetReset(RESET_PHASE+PHASE_END)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(s.sumlimit)                -- 仅禁止非拉法姆通常召唤
 	Duel.RegisterEffect(e1,tp)
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetCode(EFFECT_CANNOT_SUMMON)
-	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e2:SetTargetRange(1,0)
-	e2:SetTarget(s.sumlimit)
-	e2:SetReset(RESET_PHASE+PHASE_END)
+
+	local e2=e1:Clone()
+	e2:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e2:SetTarget(s.splimit)                -- 仅禁止非拉法姆特殊召唤
 	Duel.RegisterEffect(e2,tp)
-	Duel.RegisterFlagEffect(tp,id+100,RESET_PHASE+PHASE_END,0,1)
 end
+
+-- 通常召唤限制（签名：e,c）
+function s.sumlimit(e,c)
+	return not c:IsSetCard(0x0cf0)
+end
+
+-- 特殊召唤限制（签名：e,c,sump,sumtype,sumpos,targetp,se）
 function s.splimit(e,c,sump,sumtype,sumpos,targetp,se)
 	return not c:IsSetCard(0x0cf0)
 end
-function s.sumlimit(e,c,tp,sumtype,sump,sumpos,targetp,se)
-	return not c:IsSetCard(0x0cf0)
-end
 
---① 效果
+--① cost
 function s.cost1(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
 	if chk==0 then return c:IsDiscardable() end
@@ -82,7 +82,7 @@ function s.target1(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_SUMMON,nil,1,0,0)
 end
 function s.operation1(e,tp,eg,ep,ev,re,r,rp)
-	s.RegisterSelfBond(tp,e:GetHandler())
+	s.RegisterSelfBond(tp,e:GetHandler())     -- 传入卡片
 	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SUMMON)
 	local g=Duel.SelectMatchingCard(tp,s.sumfilter1,tp,LOCATION_HAND,0,1,1,nil)
@@ -91,7 +91,7 @@ function s.operation1(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
---② 效果
+--② 检索+丢弃
 function s.thfilter(c)
 	return c:IsSetCard(0x0cf0) and c:IsAbleToHand()
 end
@@ -101,7 +101,7 @@ function s.target2(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_HANDES,nil,0,tp,1)
 end
 function s.operation2(e,tp,eg,ep,ev,re,r,rp)
-	s.RegisterSelfBond(tp,e:GetHandler())
+	s.RegisterSelfBond(tp,e:GetHandler())     -- 传入卡片
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
 	local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,2,2,nil)
 	if #g>0 then
@@ -116,7 +116,7 @@ function s.operation2(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
---③ 效果（重写，不再依赖GetTargetCards）
+--③ 墓地除外自身，回收3只抽1
 function s.cost3(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsAbleToRemoveAsCost() end
 	Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_COST)
@@ -131,11 +131,11 @@ function s.target3(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,1)
 end
 function s.operation3(e,tp,eg,ep,ev,re,r,rp)
-	s.RegisterSelfBond(tp,e:GetHandler())
+	s.RegisterSelfBond(tp,e:GetHandler())     -- 传入卡片
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
 	local g=Duel.SelectMatchingCard(tp,s.tdfilter,tp,LOCATION_GRAVE,0,3,3,nil)
 	if #g>0 then
-		Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+		Duel.SendtoDeck(g,tp,SEQ_DECKSHUFFLE,REASON_EFFECT)
 		Duel.ShuffleDeck(tp)
 		Duel.BreakEffect()
 		Duel.Draw(tp,1,REASON_EFFECT)

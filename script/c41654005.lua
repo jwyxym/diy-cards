@@ -14,7 +14,6 @@ function s.initial_effect(c)
 	e1:SetOperation(s.desop)
 	c:RegisterEffect(e1)
 	s.guichuan_effect=e1
-
 	--② 支付LP/受到伤害时手卡特召
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
@@ -32,8 +31,7 @@ function s.initial_effect(c)
 	e10:SetCode(EVENT_DAMAGE)
 	e10:SetCondition(s.spcon)
 	c:RegisterEffect(e10)
-
-	--③ 未发动效果时的永续增益
+	--③ 未发动效果时的永续增益（已移除不成为效果对象，加入离场回卡组下方）
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_SINGLE)
 	e3:SetCode(EFFECT_DIRECT_ATTACK)
@@ -41,20 +39,22 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 	local e4=Effect.CreateEffect(c)
 	e4:SetType(EFFECT_TYPE_SINGLE)
-	e4:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+	e4:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
 	e4:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
 	e4:SetRange(LOCATION_MZONE)
 	e4:SetCondition(s.indcon)
 	e4:SetValue(1)
 	c:RegisterEffect(e4)
 	local e5=e4:Clone()
-	e5:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e5:SetCode(EFFECT_UPDATE_ATTACK)
+	e5:SetValue(1000)
 	c:RegisterEffect(e5)
-	local e6=e4:Clone()
-	e6:SetCode(EFFECT_UPDATE_ATTACK)
-	e6:SetValue(1000)
+	local e6=Effect.CreateEffect(c)
+	e6:SetType(EFFECT_TYPE_SINGLE)
+	e6:SetCode(EFFECT_LEAVE_FIELD_REDIRECT)
+	e6:SetCondition(s.indcon)
+	e6:SetValue(LOCATION_DECKBOT)
 	c:RegisterEffect(e6)
-
 	-- 联动效果：装备时修改连锁操作
 	local e11=Effect.CreateEffect(c)
 	e11:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
@@ -64,17 +64,13 @@ function s.initial_effect(c)
 	e11:SetOperation(s.chop)
 	c:RegisterEffect(e11)
 end
-
 function s.effcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end
 	Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
 end
-
 function s.thfilter(c)
 	return c:IsSetCard(0xe92) and not c:IsCode(id) and c:IsAbleToHand()
 end
-
--- ① 发动条件：自身以外存在表侧怪兽 + 卡组有检索目标 + 有魔陷区空格 + 存在可装备的其他怪兽
 function s.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local c=e:GetHandler()
 	if chk==0 then
@@ -83,16 +79,12 @@ function s.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 			and Duel.GetLocationCount(tp,LOCATION_SZONE)>0
 			and Duel.IsExistingMatchingCard(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,1,c)
 	end
-	-- 展示将要破坏的卡（最低攻击力，排除自身）
 	local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,c)
 	local dg=g:GetMinGroup(Card.GetAttack)
 	Duel.SetOperationInfo(0,CATEGORY_DESTROY,dg,1,0,0)
 end
-
--- ① 效果处理
 function s.desop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	-- 排除自身获取最低攻击力怪兽
 	local g=Duel.GetMatchingGroup(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,c)
 	if g:GetCount()==0 then return end
 	local dg=g:GetMinGroup(Card.GetAttack)
@@ -101,13 +93,11 @@ function s.desop(e,tp,eg,ep,ev,re,r,rp)
 		dg=dg:Select(tp,1,1,nil)
 	end
 	if Duel.Destroy(dg,REASON_EFFECT)>0 then
-		-- 检索「归川」卡
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
 		local tg=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
 		if tg:GetCount()>0 then
 			Duel.SendtoHand(tg,nil,REASON_EFFECT)
 			Duel.ConfirmCards(1-tp,tg)
-			-- 装备给自身以外的1只怪兽
 			if Duel.GetLocationCount(tp,LOCATION_SZONE)>0
 				and Duel.IsExistingMatchingCard(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,1,c) then
 				if not c:IsRelateToEffect(e) or c:IsFacedown() then return end
@@ -126,12 +116,9 @@ function s.desop(e,tp,eg,ep,ev,re,r,rp)
 		end
 	end
 end
-
 function s.eqlimit(e,c)
 	return c==e:GetLabelObject()
 end
-
--- ②
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return bit.band(r,REASON_BATTLE+REASON_EFFECT)~=0
 end
@@ -143,13 +130,6 @@ end
 function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)~=0 then
-		local e1=Effect.CreateEffect(c)
-		e1:SetType(EFFECT_TYPE_SINGLE)
-		e1:SetCode(EFFECT_LEAVE_FIELD_REDIRECT)
-		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-		e1:SetReset(RESET_EVENT+RESETS_REDIRECT)
-		e1:SetValue(LOCATION_DECKBOT)
-		c:RegisterEffect(e1)
 		local e2=Effect.CreateEffect(c)
 		e2:SetType(EFFECT_TYPE_FIELD)
 		e2:SetCode(EFFECT_CHANGE_DAMAGE)
@@ -163,13 +143,9 @@ end
 function s.damval(e,re,val,r,rp,rc)
 	return math.floor(val/2)
 end
-
--- ③
 function s.indcon(e)
 	return Duel.GetFlagEffect(e:GetHandlerPlayer(),id)<1
 end
-
--- 联动
 function s.chcon(e,tp,eg,ep,ev,re,r,rp)
 	return re:GetHandler()==e:GetHandler():GetEquipTarget()
 		and e:GetHandler():GetEquipTarget():GetEquipCount()==1

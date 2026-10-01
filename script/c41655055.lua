@@ -1,9 +1,7 @@
 -- 烬雪的坚韧·格洛克
 local s,id,o=GetID()
 function s.initial_effect(c)
-	--pendulum summon
 	aux.EnablePendulumAttribute(c,false)
-	--xyz summon
 	c:EnableReviveLimit()
 	aux.AddXyzProcedure(c,nil,6,2)
 	--lv change
@@ -16,9 +14,10 @@ function s.initial_effect(c)
 	e0:SetTarget(s.lvtg)
 	e0:SetValue(s.lvval)
 	c:RegisterEffect(e0)
-	--move
+	--P效①
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_TOGRAVE+CATEGORY_DESTROY)
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e1:SetCode(EVENT_ATTACK_ANNOUNCE)
 	e1:SetRange(LOCATION_PZONE)
@@ -27,32 +26,30 @@ function s.initial_effect(c)
 	e1:SetOperation(s.tgop)
 	c:RegisterEffect(e1)
 	s.jinxue_effect=e1
-	--splimit
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e2:SetRange(LOCATION_PZONE)
-	e2:SetTargetRange(1,0)
-	e2:SetTarget(s.splimit)
-	c:RegisterEffect(e2)
-	--to deck
+	--怪兽①
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,10))
 	e3:SetCategory(CATEGORY_DRAW+CATEGORY_ATKCHANGE)
 	e3:SetType(EFFECT_TYPE_QUICK_O)
-	e3:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e3:SetCode(EVENT_FREE_CHAIN)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetCountLimit(1)
+	e3:SetCost(s.cost)
 	e3:SetTarget(s.tdtg)
 	e3:SetOperation(s.tdop)
 	c:RegisterEffect(e3)
+	--怪兽②
+	local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e4:SetProperty(EFFECT_FLAG_DELAY)
+	e4:SetCode(EVENT_DESTROYED)
+	e4:SetCountLimit(1,id+2)
+	e4:SetCondition(s.pencon)
+	e4:SetTarget(s.pentg)
+	e4:SetOperation(s.penop)
+	c:RegisterEffect(e4)
 end
-s.pendulum_level=7
-function s.matfilter(c)
-	return c:IsFusionSetCard(0xe93) or c:IsFusionType(TYPE_NORMAL)
-end
+s.pendulum_level=6
 function s.lvtg(e,c)
 	return c:IsLevelAbove(1) and c:IsType(TYPE_NORMAL)
 end
@@ -62,8 +59,9 @@ function s.lvval(e,c,rc)
 	else return lv end
 end
 function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chk==0 then return Duel.GetFieldGroupCount(tp,0,LOCATION_MZONE)>0 end
-	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,0,LOCATION_MZONE)
+	if chk==0 then return Duel.GetFieldGroupCount(1-tp,LOCATION_MZONE,0)>0 end
+	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,1-tp,LOCATION_MZONE)
+	Duel.SetOperationInfo(0,CATEGORY_DESTROY,nil,1,tp,LOCATION_ONFIELD)
 end
 function s.tgop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetMatchingGroup(nil,1-tp,LOCATION_MZONE,0,nil)
@@ -73,27 +71,20 @@ function s.tgop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.HintSelection(sg)
 		Duel.SendtoGrave(sg,REASON_RULE,1-tp)
 	end
+	local dg=Duel.GetMatchingGroup(s.desfilter,tp,LOCATION_ONFIELD,0,nil)
+	if dg:GetCount()>0 then
+		Duel.BreakEffect()
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+		local tg=Duel.SelectMatchingCard(tp,s.desfilter,tp,LOCATION_ONFIELD,0,1,1,nil)
+		Duel.Destroy(tg,REASON_EFFECT)
+	end
 end
-function s.splimit(e,c,tp,sumtp,sumpos)
-	return not c:IsSetCard(0xe93) and bit.band(sumtp,SUMMON_TYPE_PENDULUM)==SUMMON_TYPE_PENDULUM
-end
-function s.tdfilter2(c)
-	return c:IsSetCard(0xe93) and c:IsAbleToDeck()
+function s.desfilter(c)
+	return c:IsSetCard(0xe93) and c:IsDestructable()
 end
 function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-	local b1=e:GetHandler():CheckRemoveOverlayCard(tp,1,REASON_COST)
-	local b2=Duel.IsExistingMatchingCard(s.tdfilter2,tp,LOCATION_HAND,0,1,nil)
-	if chk==0 then return b1 or b2 end
-	local op=aux.SelectFromOptions(tp,
-		{b1,aux.Stringid(id,1)},
-		{b2,aux.Stringid(id,2)})
-	if op==1 then
-		e:GetHandler():RemoveOverlayCard(tp,1,1,REASON_COST)
-	else
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
-		local g=Duel.SelectMatchingCard(tp,s.tdfilter2,tp,LOCATION_HAND,0,1,1,nil)
-		Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
-	end	
+	if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,1,REASON_COST) end
+	e:GetHandler():RemoveOverlayCard(tp,1,1,REASON_COST)
 end
 function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chk==0 then return Duel.IsPlayerCanDraw(tp,1) end
@@ -113,8 +104,21 @@ function s.tdop(e,tp,eg,ep,ev,re,r,rp)
 		e1:SetValue(500)
 		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
 		tc:RegisterEffect(e1)
-		local e2=e1:Clone()
-		e2:SetCode(EFFECT_UPDATE_DEFENSE)
-		tc:RegisterEffect(e2)
 	end
+end
+function s.pencon(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	return c:IsPreviousLocation(LOCATION_MZONE) and c:IsLocation(LOCATION_GRAVE)
+end
+function s.pentg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then
+		return Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1)
+	end
+end
+function s.penop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if not c:IsRelateToEffect(e) or not c:IsLocation(LOCATION_GRAVE) then return end
+	if not Duel.CheckLocation(tp,LOCATION_PZONE,0) and not Duel.CheckLocation(tp,LOCATION_PZONE,1) then return end
+	Duel.MoveToField(c,tp,tp,LOCATION_PZONE,POS_FACEUP,false)
+	c:SetStatus(STATUS_EFFECT_ENABLED,true)
 end

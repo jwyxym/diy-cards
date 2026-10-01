@@ -2,11 +2,13 @@
 local s,id=GetID()
 function s.initial_effect(c)
 	c:EnableReviveLimit()
-	aux.AddFusionProcMix(c,true,true,aux.FilterBoolFunction(Card.IsFusionSetCard,0x63a0),aux.FilterBoolFunction(Card.IsType,TYPE_MONSTER),aux.FilterBoolFunction(Card.IsType,TYPE_MONSTER))
+	--修改：山水怪兽＋怪兽2只，3素材融合
+	aux.AddFusionProcMix(c,true,true,aux.FilterBoolFunction(Card.IsFusionSetCard,0x63a0),aux.FilterBoolFunction(Card.IsFusionType,TYPE_MONSTER),aux.FilterBoolFunction(Card.IsFusionType,TYPE_MONSTER))
 	local e0=Effect.CreateEffect(c)
 	e0:SetType(EFFECT_TYPE_SINGLE)
-	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0:SetProperty(EFFECT_FLAG_SINGLE_RANGE+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
 	e0:SetCode(EFFECT_SPSUMMON_CONDITION)
+	e0:SetRange(LOCATION_EXTRA)
 	e0:SetValue(aux.fuslimit)
 	c:RegisterEffect(e0)
 	local e1=Effect.CreateEffect(c)
@@ -50,11 +52,13 @@ function s.hspcon(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
 	local g=Duel.GetMatchingGroup(Card.IsAbleToGraveAsCost,tp,LOCATION_ONFIELD,0,nil)
+	--修改：需要3张
 	return #g>=3 and Duel.GetLocationCountFromEx(tp,tp,g,c)>0
 end
 
 function s.hsptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
 	local g=Duel.GetMatchingGroup(Card.IsAbleToGraveAsCost,tp,LOCATION_ONFIELD,0,nil)
+	--修改：选3张，其中至少1张里侧
 	local sg=g:SelectSubGroup(tp,s.gcheck,true,3,3)
 	if sg then
 		sg:KeepAlive()
@@ -69,6 +73,12 @@ function s.hspop(e,tp,eg,ep,ev,re,r,rp,c)
 		Duel.SendtoGrave(g,REASON_COST)
 		g:DeleteGroup()
 	end
+	--解决手写proc出场不能苏生，对标接触融合的标记
+	local e_reg=Effect.CreateEffect(c)
+	e_reg:SetType(EFFECT_TYPE_SINGLE)
+	e_reg:SetCode(EFFECT_FUSION_SUMMONED)
+	e_reg:SetReset(RESET_EVENT+RESETS_STANDARD-RESET_TOFIELD)
+	c:RegisterEffect(e_reg)
 end
 function s.condition(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

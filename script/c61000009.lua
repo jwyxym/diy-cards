@@ -1,93 +1,104 @@
---霞烈之魔妖 火取魔
+--侠烈之魔妖 火取魔
 local s,id,o=GetID()
-local o=o*10000
 function s.initial_effect(c)
-	c:SetSPSummonOnce(id)
-	aux.AddXyzProcedure(c,nil,6,2,s.ovfilter,aux.Stringid(id,0),3,s.xyzop)
+	--超量召唤。也可把2张手卡丢弃，在自己场上的「火取」怪兽上面重叠来超量召唤
+	aux.AddXyzProcedure(c,nil,6,2,s.ovfilter,aux.Stringid(id,0),2,s.xyzop)
 	c:EnableReviveLimit()
+	--自己对「侠烈之魔妖 火取魔」1回合只能有1次特殊召唤
+	c:SetSPSummonOnce(id)
+	--①：这张卡特殊召唤的场合才能发动。选自己·对方的墓地·除外状态各最多1张卡重叠作为超量素材
 	local e1=Effect.CreateEffect(c)
-	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetDescription(aux.Stringid(id,1))
 	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e1:SetProperty(EFFECT_FLAG_DELAY)
 	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
 	e1:SetTarget(s.mttg)
 	e1:SetOperation(s.mtop)
 	c:RegisterEffect(e1)
+	--②：1回合1次，把这张卡的超量素材全部取除才能发动。检索·加入手卡并丢弃1张手卡，取除3个以上的场合再抽1张
 	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetCategory(CATEGORY_DRAW+CATEGORY_TOGRAVE+CATEGORY_HANDES+CATEGORY_DECKDES)
+	e2:SetDescription(aux.Stringid(id,2))
+	e2:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH+CATEGORY_HANDES_SELF)
 	e2:SetType(EFFECT_TYPE_IGNITION)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetCountLimit(1)
-	e2:SetCost(s.drcost)
-	e2:SetTarget(s.drtg)
-	e2:SetOperation(s.drop)
+	e2:SetCost(s.thcost)
+	e2:SetTarget(s.thtg)
+	e2:SetOperation(s.thop)
 	c:RegisterEffect(e2)
 end
-function s.cfilter(c)
-	return c:IsDiscardable()
-end
+--在自己场上的「火取」怪兽上面重叠来超量召唤
 function s.ovfilter(c)
 	return c:IsFaceup() and c:IsSetCard(0x37c0)
 end
 function s.xyzop(e,tp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_HAND,0,2,nil) end
-	Duel.DiscardHand(tp,s.cfilter,2,2,REASON_COST+REASON_DISCARD)
+	if chk==0 then return Duel.IsExistingMatchingCard(Card.IsDiscardable,tp,LOCATION_HAND,0,2,nil) end
+	Duel.DiscardHand(tp,Card.IsDiscardable,2,2,REASON_COST+REASON_DISCARD,nil)
 end
-function s.mtfilter(c,e)
-	return c:IsCanOverlay() and not (e and c:IsImmuneToEffect(e))
+function s.mtfilter(c)
+	return c:IsCanOverlay()
+end
+function s.mtcount(c,p,loc)
+	return c:GetControler()==p and c:IsLocation(loc)
+end
+--自己·对方的墓地·除外状态各最多1张
+function s.mtcheck(g)
+	for p=0,1 do
+		if g:FilterCount(s.mtcount,nil,p,LOCATION_GRAVE)>1 then return false end
+		if g:FilterCount(s.mtcount,nil,p,LOCATION_REMOVED)>1 then return false end
+	end
+	return true
 end
 function s.mttg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-	if chk==0 then return c:IsType(TYPE_XYZ)
-		and Duel.IsExistingMatchingCard(s.mtfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,LOCATION_GRAVE+LOCATION_REMOVED,1,c) end
-end
-function s.gcheck(g,tp)
-	return g:FilterCount(Card.IsControler,nil,tp)<=1
-		and g:FilterCount(Card.IsControler,nil,1-tp)<=1
+	if chk==0 then return Duel.IsExistingMatchingCard(s.mtfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,LOCATION_GRAVE+LOCATION_REMOVED,1,nil) end
 end
 function s.mtop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if not c:IsRelateToEffect(e) or c:IsFacedown() then return end
-	local g=Duel.GetMatchingGroup(s.mtfilter,tp,LOCATION_GRAVE+LOCATION_REMOVED,LOCATION_GRAVE+LOCATION_REMOVED,c)
+	if not c:IsRelateToEffect(e) then return end
+	local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.mtfilter),tp,LOCATION_GRAVE+LOCATION_REMOVED,LOCATION_GRAVE+LOCATION_REMOVED,nil)
+	if g:GetCount()==0 then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
-	local sg=g:SelectSubGroup(tp,s.gcheck,false,1,2,tp)
-	if sg:GetCount()>0 then
+	local sg=g:SelectSubGroup(tp,s.mtcheck,false,1,4)
+	if sg and sg:GetCount()>0 then
+		Duel.HintSelection(sg)
 		Duel.Overlay(c,sg)
 	end
 end
-function s.drcost(e,tp,eg,ep,ev,re,r,rp,chk)
+function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
+	if chk==0 then return c:CheckRemoveOverlayCard(tp,1,REASON_COST) end
 	local ct=c:GetOverlayCount()
-	if chk==0 then return ct>0 and c:CheckRemoveOverlayCard(tp,ct,REASON_COST) end
+	e:SetLabel(ct)
 	c:RemoveOverlayCard(tp,ct,ct,REASON_COST)
 end
-function s.drtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsPlayerCanDraw(tp,2) end
-	Duel.SetTargetPlayer(tp)
-	Duel.SetTargetParam(2)
-	Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,2)
-	Duel.SetOperationInfo(0,CATEGORY_HANDES,nil,0,tp,1)
+--守备力0的不死族·炎属性怪兽或者「火取」魔法·陷阱卡
+function s.thfilter(c)
+	return c:IsAbleToHand() and ((c:IsType(TYPE_MONSTER) and c:IsRace(RACE_ZOMBIE) and c:IsAttribute(ATTRIBUTE_FIRE) and c:IsDefense(0))
+		or (c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsSetCard(0x37c0)))
 end
-function s.tgfilter(c)
-	return c:IsRace(RACE_ZOMBIE) and c:IsAbleToGrave()
+function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil) end
+	local cat=CATEGORY_TOHAND+CATEGORY_SEARCH+CATEGORY_HANDES_SELF
+	if e:GetLabel()>=3 then cat=cat+CATEGORY_DRAW end
+	e:SetCategory(cat)
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
+	Duel.SetOperationInfo(0,CATEGORY_HANDES_SELF,nil,0,tp,1)
+	if e:GetLabel()>=3 then
+		Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,1)
+	end
 end
-function s.drop(e,tp,eg,ep,ev,re,r,rp)
-	local p=Duel.GetChainInfo(0,CHAININFO_TARGET_PLAYER)
-	if Duel.Draw(p,2,REASON_EFFECT)==2 then
+function s.thop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
+	if g:GetCount()>0 then
+		Duel.SendtoHand(g,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,g)
 		Duel.ShuffleHand(tp)
 		Duel.BreakEffect()
-		Duel.DiscardHand(tp,nil,1,1,REASON_EFFECT+REASON_DISCARD)
-		local g=Duel.GetOperatedGroup()
-		local tc=g:GetFirst()
-		if tc:IsRace(RACE_ZOMBIE) and Duel.IsExistingMatchingCard(s.tgfilter,tp,LOCATION_DECK,0,1,nil) 
-			and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
-			Duel.BreakEffect()
-			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-			local tg=Duel.SelectMatchingCard(tp,s.tgfilter,tp,LOCATION_DECK,0,1,1,nil)
-			if tg:GetCount()>0 then
-				Duel.SendtoGrave(tg,REASON_EFFECT)
-			end
-		end
+		Duel.DiscardHand(tp,nil,1,1,REASON_EFFECT+REASON_DISCARD,nil)
+	end
+	if e:GetLabel()>=3 then
+		Duel.BreakEffect()
+		Duel.Draw(tp,1,REASON_EFFECT)
 	end
 end

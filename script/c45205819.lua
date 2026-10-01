@@ -89,7 +89,8 @@ function s.negcon(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function s.tgfilter(c,tp)
-	return c:IsControler(tp) and (c:IsFacedown() or c:IsType(TYPE_FLIP))
+	return c:IsControler(tp) and c:IsType(TYPE_MONSTER) 
+		and (c:IsFacedown() or c:IsType(TYPE_FLIP))
 end
 
 function s.negcost(e,tp,eg,ep,ev,re,r,rp,chk)

@@ -10,7 +10,6 @@ function s.initial_effect(c)
 	e0:SetCode(EVENT_FREE_CHAIN)
 	e0:SetRange(LOCATION_HAND)
 	e0:SetCountLimit(2,id)
-	e0:SetCondition(s.effcon)
 	e0:SetCost(s.effcost)
 	e0:SetTarget(s.efftg)
 	e0:SetOperation(s.effop)
@@ -28,9 +27,6 @@ function s.initial_effect(c)
 	e2:SetOperation(s.effop3)
 	c:RegisterEffect(e2)
 end
-function s.effcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetFlagEffect(tp,id)<=1
-end
 function s.cfilter(c)
 	return aux.IsCodeOrListed(c,41652000) and c:IsType(TYPE_MONSTER)
 end
@@ -41,7 +37,7 @@ function s.effcost(e,tp,eg,ep,ev,re,r,rp,chk)
 		local cg=Duel.GetDecktopGroup(1-tp,1)
 		g:Merge(cg)
 	end
-	if chk==0 then return g:GetCount()>0 end
+	if chk==0 then return g:GetCount()>0 and Duel.GetFlagEffect(tp,id+1000)==0 end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
 	local tc=g:Select(tp,1,1,c):GetFirst()
 	local cg=Group.CreateGroup()
@@ -68,6 +64,7 @@ function s.effcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	tc:CreateEffectRelation(e)
 	e:SetLabelObject(tc)
 	Duel.ShuffleHand(tp)
+	Duel.RegisterFlagEffect(tp,id+1000,RESET_CHAIN,0,1)
 end
 function s.efftg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local eff=e:GetLabel()
@@ -114,9 +111,6 @@ function s.effop(e,tp,eg,ep,ev,re,r,rp)
 		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
 		sc:RegisterEffect(e2,true)
 		Duel.SpecialSummonComplete()
-		if sc:IsCode(41652000) then
-			Duel.Draw(tp,1,REASON_EFFECT)
-		end
 	elseif eff==1 then
 		if Duel.SendtoGrave(sc,REASON_EFFECT)~=0 and sc:IsLocation(LOCATION_GRAVE) then
 			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
@@ -129,7 +123,6 @@ function s.effop(e,tp,eg,ep,ev,re,r,rp)
 	elseif eff==2 then
 		Duel.Remove(sc,POS_FACEUP,REASON_EFFECT)
 	end
-	Duel.RegisterFlagEffect(tp,id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,0,2)
 end
 function s.effcost2(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
@@ -138,7 +131,7 @@ function s.effcost2(e,tp,eg,ep,ev,re,r,rp,chk)
 		local cg=Duel.GetDecktopGroup(1-tp,1)
 		g:Merge(cg)
 	end
-	if chk==0 then return g:GetCount()>0 end
+	if chk==0 then return g:GetCount()>0 and Duel.GetFlagEffect(tp,id+1000)==0 end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
 	local tc=g:Select(tp,1,1,c):GetFirst()
 	local cg=Group.CreateGroup()
@@ -165,6 +158,7 @@ function s.effcost2(e,tp,eg,ep,ev,re,r,rp,chk)
 	end
 	tc:CreateEffectRelation(e)
 	e:SetLabelObject(tc)
+	Duel.RegisterFlagEffect(tp,id+1000,RESET_CHAIN,0,1)
 end
 function s.efftg2(e,tp,eg,ep,ev,re,r,rp,chk)
 	local eff=e:GetLabel()
@@ -195,9 +189,6 @@ function s.effop2(e,tp,eg,ep,ev,re,r,rp)
 		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
 		sc:RegisterEffect(e2,true)
 		Duel.SpecialSummonComplete()
-		if sc:IsCode(41652000) then
-			Duel.Draw(tp,1,REASON_EFFECT)
-		end
 	elseif eff==1 then
 		local ct=0
 		if Duel.SendtoGrave(c,REASON_EFFECT)~=0 and c:IsLocation(LOCATION_GRAVE) then ct=ct+1 end
@@ -223,7 +214,6 @@ function s.effop2(e,tp,eg,ep,ev,re,r,rp)
 			end
 		end
 	end
-	Duel.RegisterFlagEffect(tp,id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,0,2)
 end
 function s.effcost3(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
@@ -290,9 +280,6 @@ function s.effop3(e,tp,eg,ep,ev,re,r,rp)
 		e2:SetReset(RESET_EVENT+RESETS_STANDARD)
 		sc:RegisterEffect(e2,true)
 		Duel.SpecialSummonComplete()
-		if sc:IsCode(41652000) then
-			Duel.Draw(tp,1,REASON_EFFECT)
-		end
 	elseif eff==1 then
 		if Duel.SendtoGrave(sc,REASON_EFFECT)~=0 and sc:IsLocation(LOCATION_GRAVE) then
 			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
@@ -305,5 +292,4 @@ function s.effop3(e,tp,eg,ep,ev,re,r,rp)
 	elseif eff==2 then
 		Duel.Remove(sc,POS_FACEUP,REASON_EFFECT)
 	end
-	Duel.RegisterFlagEffect(tp,id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,0,2)
 end

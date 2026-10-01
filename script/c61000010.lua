@@ -1,12 +1,14 @@
---霞烈之魔妖 火取魔
+--火取凭依 霞烈仙
 local s,id,o=GetID()
-local o=o*10000
 function s.initial_effect(c)
-	c:SetSPSummonOnce(id)
-	aux.AddXyzProcedure(c,aux.FilterBoolFunction(Card.IsRace,RACE_ZOMBIE),8,2,s.ovfilter,aux.Stringid(id,0),3,s.xyzop)
+	--超量召唤。正规手续为不死族8星怪兽×2；也可把手卡的不死族怪兽全部丢弃，在自己场上的不死族超量怪兽上面重叠来超量召唤
+	aux.AddXyzProcedure(c,s.mfilter,8,2,s.ovfilter,aux.Stringid(id,0),2,s.xyzop)
 	c:EnableReviveLimit()
+	--自己对「火取凭依 霞烈仙」1回合只能有1次特殊召唤
+	c:SetSPSummonOnce(id)
+	--①：这张卡特殊召唤的场合才能发动。选自己的场上·墓地·除外状态最多2张卡在这张卡下面重叠作为超量素材。那之后，可以再选场上最多2张魔法·陷阱卡回到卡组
 	local e1=Effect.CreateEffect(c)
-	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetDescription(aux.Stringid(id,1))
 	e1:SetCategory(CATEGORY_TODECK)
 	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e1:SetProperty(EFFECT_FLAG_DELAY)
@@ -14,9 +16,10 @@ function s.initial_effect(c)
 	e1:SetTarget(s.mttg)
 	e1:SetOperation(s.mtop)
 	c:RegisterEffect(e1)
+	--②：1回合1次，把这张卡的超量素材全部取除才能发动。这张卡的攻击力上升对方墓地·除外状态的卡的数量×300的数值。那之后，选自己·对方墓地的1只不死族怪兽特殊召唤
 	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetCategory(CATEGORY_ATKCHANGE+CATEGORY_SPECIAL_SUMMON+CATEGORY_GRAVE_SPSUMMON)
+	e2:SetDescription(aux.Stringid(id,2))
+	e2:SetCategory(CATEGORY_ATKCHANGE+CATEGORY_SPECIAL_SUMMON)
 	e2:SetType(EFFECT_TYPE_IGNITION)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetCountLimit(1)
@@ -24,6 +27,7 @@ function s.initial_effect(c)
 	e2:SetTarget(s.atktg)
 	e2:SetOperation(s.atkop)
 	c:RegisterEffect(e2)
+	--③：这张卡不会成为对方的效果的对象
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_SINGLE)
 	e3:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
@@ -31,6 +35,7 @@ function s.initial_effect(c)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetValue(aux.tgoval)
 	c:RegisterEffect(e3)
+	--③：这张卡在同1次的战斗阶段中最多3次可以向怪兽攻击
 	local e4=Effect.CreateEffect(c)
 	e4:SetType(EFFECT_TYPE_SINGLE)
 	e4:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
@@ -39,73 +44,97 @@ function s.initial_effect(c)
 	e4:SetValue(2)
 	c:RegisterEffect(e4)
 end
-function s.cfilter(c)
-	return c:IsRace(RACE_ZOMBIE) and c:IsDiscardable()
+--正规超量素材：不死族怪兽（等级由AddXyzProcedure的8指定）
+function s.mfilter(c)
+	return c:IsRace(RACE_ZOMBIE)
 end
+--替代手续的叠放对象：自己场上表侧表示的不死族超量怪兽
 function s.ovfilter(c)
 	return c:IsFaceup() and c:IsRace(RACE_ZOMBIE) and c:IsType(TYPE_XYZ)
 end
-function s.xyzop(e,tp,chk)
-	local g=Duel.GetMatchingGroup(s.cfilter,tp,LOCATION_HAND,0,nil)
-	if chk==0 then return g:GetCount()>0 end
-	Duel.SendtoGrave(g,REASON_SPSUMMON+REASON_DISCARD)
+--替代手续的代价：手卡的不死族怪兽
+function s.hdfilter(c)
+	return c:IsType(TYPE_MONSTER) and c:IsRace(RACE_ZOMBIE) and c:IsDiscardable()
 end
-function s.mtfilter(c,e)
-	return c:IsCanOverlay() and not (e and c:IsImmuneToEffect(e))
+--把手卡的不死族怪兽全部丢弃
+function s.xyzop(e,tp,chk)
+	local ct=Duel.GetMatchingGroupCount(s.hdfilter,tp,LOCATION_HAND,0,nil)
+	if chk==0 then return ct>0 end
+	Duel.DiscardHand(tp,s.hdfilter,ct,ct,REASON_COST+REASON_DISCARD,nil)
+end
+--①：可以在这张卡下面重叠作为超量素材的自己的卡（场上的卡需要表侧表示）
+function s.mtfilter(c,tc)
+	return c:IsCanOverlay() and c~=tc and (not c:IsLocation(LOCATION_ONFIELD) or c:IsFaceup())
 end
 function s.mttg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-	if chk==0 then return c:IsType(TYPE_XYZ)
-		and Duel.IsExistingMatchingCard(s.mtfilter,tp,LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,nil,1,c) end
-end
-function s.gcheck(g,tp)
-	return g:FilterCount(Card.IsControler,nil,tp)<=2
+	if chk==0 then return Duel.IsExistingMatchingCard(s.mtfilter,tp,LOCATION_MZONE+LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,e:GetHandler()) end
+	if Duel.IsExistingMatchingCard(s.tdfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) then
+		Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,0,0)
+	end
 end
 function s.mtop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if not c:IsRelateToEffect(e) or c:IsFacedown() then return end
-	local g=Duel.GetMatchingGroup(s.mtfilter,tp,LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,c)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
-	local sg=g:SelectSubGroup(tp,s.gcheck,false,1,2,tp)
-	if sg:GetCount()>0 then
-		Duel.Overlay(c,sg)
-		if Duel.IsExistingMatchingCard(aux.AND(Card.IsAbleToDeck,Card.IsType),tp,LOCATION_ONFIELD,LOCATION_ONFIELD,2,nil,TYPE_SPELL+TYPE_TRAP)
-			and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
-			local tg=Duel.SelectMatchingCard(tp,aux.AND(Card.IsAbleToDeck,Card.IsType),tp,LOCATION_ONFIELD,LOCATION_ONFIELD,2,2,nil,TYPE_SPELL+TYPE_TRAP)
-			Duel.SendtoDeck(tg,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
+	local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.mtfilter),tp,LOCATION_MZONE+LOCATION_GRAVE+LOCATION_REMOVED,0,nil,c)
+	if g:GetCount()>0 then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
+		local sg=g:Select(tp,1,math.min(g:GetCount(),2),nil)
+		if sg:GetCount()>0 then
+			Duel.HintSelection(sg)
+			Duel.Overlay(c,sg)
+		end
+	end
+	--那之后，可以再选场上最多2张魔法·陷阱卡回到卡组
+	local tg=Duel.GetMatchingGroup(s.tdfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)
+	if tg:GetCount()>0 and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
+		Duel.BreakEffect()
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
+		local rg=tg:Select(tp,1,math.min(tg:GetCount(),2),nil)
+		if rg:GetCount()>0 then
+			Duel.HintSelection(rg)
+			Duel.SendtoDeck(rg,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
 		end
 	end
 end
+--①：场上最多2张魔法·陷阱卡
+function s.tdfilter(c)
+	return c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToDeck()
+end
+--②：把这张卡的超量素材全部取除
 function s.atkcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
+	if chk==0 then return c:CheckRemoveOverlayCard(tp,1,REASON_COST) end
 	local ct=c:GetOverlayCount()
-	if chk==0 then return ct>0 and c:CheckRemoveOverlayCard(tp,ct,REASON_COST) end
 	c:RemoveOverlayCard(tp,ct,ct,REASON_COST)
 end
-function s.atktg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetMatchingGroupCount(nil,tp,0,LOCATION_GRAVE+LOCATION_REMOVED,nil)>0 end
-end
+--②：自己·对方墓地的不死族怪兽
 function s.spfilter(c,e,tp)
-	return c:IsRace(RACE_ZOMBIE) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP)
+	return c:IsRace(RACE_ZOMBIE) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+end
+function s.atktg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.SetOperationInfo(0,CATEGORY_ATKCHANGE,e:GetHandler(),1,0,0)
+	if Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_GRAVE,LOCATION_GRAVE,1,nil,e,tp) then
+		Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_GRAVE)
+	end
 end
 function s.atkop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	local atk=Duel.GetMatchingGroupCount(nil,tp,0,LOCATION_GRAVE+LOCATION_REMOVED,nil)*300
-	if atk==0 then return end
-	if not c:IsRelateToEffect(e) or c:IsFacedown() then return end
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_SINGLE)
-	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-	e1:SetCode(EFFECT_UPDATE_ATTACK)
-	e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_DISABLE)
-	e1:SetValue(atk)
-	c:RegisterEffect(e1)
-	if Duel.IsExistingMatchingCard(aux.NecroValleyFilter(s.spfilter),tp,LOCATION_GRAVE,LOCATION_GRAVE,1,nil,e,tp)
-		and Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
-		Duel.BreakEffect()
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-		local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.spfilter),tp,LOCATION_GRAVE,LOCATION_GRAVE,1,1,nil,e,tp)
+	if c:IsRelateToEffect(e) and c:IsFaceup() then
+		local ct=Duel.GetFieldGroupCount(tp,0,LOCATION_GRAVE+LOCATION_REMOVED)
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetCode(EFFECT_UPDATE_ATTACK)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+		e1:SetValue(ct*300)
+		c:RegisterEffect(e1)
+	end
+	Duel.BreakEffect()
+	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.spfilter),tp,LOCATION_GRAVE,LOCATION_GRAVE,1,1,nil,e,tp)
+	if g:GetCount()>0 then
 		Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
 	end
 end

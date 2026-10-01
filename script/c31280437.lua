@@ -19,12 +19,12 @@ end
 function s.atkfilter(c)
 	return not (c:IsAttack(0) and c:IsDefense(0)) and c:IsFaceup()
 end    
-function s.bhfilter(c)
-	return (c:IsAbleToHand() or c:IsAbleToExtra())
-end    
+function s.bhfilter(c,tp)
+	return Duel.IsPlayerCanSendtoHand(tp,c) or (Duel.IsPlayerCanSendtoDeck(tp,c) and c:IsType(TYPE_FUSION+TYPE_SYNCHRO+TYPE_XYZ+TYPE_LINK))
+end
 function s.eftg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local b1=Duel.GetMatchingGroupCount(s.atkfilter,tp,0,LOCATION_MZONE,nil)>=2
-    local b2=Duel.GetFieldGroup(tp,0,LOCATION_ONFIELD):FilterCount(s.bhfilter,nil)>0
+    local b2=Duel.GetFieldGroup(tp,0,LOCATION_ONFIELD):FilterCount(s.bhfilter,nil,1-tp)>0
 	if chk==0 then return (b1 or b2) end
     local op=aux.SelectFromOptions(tp,
 		{b1,aux.Stringid(id,1),1},
@@ -94,7 +94,7 @@ function s.efop(e,tp,eg,ep,ev,re,r,rp)
             end
         end
     elseif op==2 then
-    	local bg=Duel.GetFieldGroup(tp,0,LOCATION_ONFIELD):Filter(s.bhfilter,nil)
+    	local bg=Duel.GetFieldGroup(tp,0,LOCATION_ONFIELD):Filter(s.bhfilter,nil,1-tp)
         if bg:GetCount()>0 then
     		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
             local hc=bg:Select(tp,1,1,nil):GetFirst()

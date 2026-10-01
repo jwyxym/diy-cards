@@ -25,6 +25,7 @@ function s.initial_effect(c)
 	e3:SetValue(s.atkval)
 	c:RegisterEffect(e3)
 	
+	--装备怪兽不受对方魔陷影响
 	local e4=Effect.CreateEffect(c)
 	e4:SetType(EFFECT_TYPE_EQUIP)
 	e4:SetCode(EFFECT_IMMUNE_EFFECT)
@@ -32,6 +33,7 @@ function s.initial_effect(c)
 	e4:SetValue(s.efilter)
 	c:RegisterEffect(e4)
 	
+	--装备怪兽不会被效果破坏
 	local e5=Effect.CreateEffect(c)
 	e5:SetType(EFFECT_TYPE_EQUIP)
 	e5:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
@@ -39,11 +41,32 @@ function s.initial_effect(c)
 	e5:SetValue(1)
 	c:RegisterEffect(e5)
 	
+	--装备怪兽可以直接攻击
 	local e6=Effect.CreateEffect(c)
 	e6:SetType(EFFECT_TYPE_EQUIP)
 	e6:SetCode(EFFECT_DIRECT_ATTACK)
 	e6:SetCondition(s.eqcon)
 	c:RegisterEffect(e6)
+	
+	--这张卡自身不受对方魔陷影响
+	local e8=Effect.CreateEffect(c)
+	e8:SetType(EFFECT_TYPE_SINGLE)
+	e8:SetCode(EFFECT_IMMUNE_EFFECT)
+	e8:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e8:SetRange(LOCATION_SZONE)
+	e8:SetCondition(s.eqcon)
+	e8:SetValue(s.efilter)
+	c:RegisterEffect(e8)
+	
+	--这张卡自身不会被效果破坏
+	local e9=Effect.CreateEffect(c)
+	e9:SetType(EFFECT_TYPE_SINGLE)
+	e9:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e9:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e9:SetRange(LOCATION_SZONE)
+	e9:SetCondition(s.eqcon)
+	e9:SetValue(1)
+	c:RegisterEffect(e9)
 	
 	local e7=Effect.CreateEffect(c)
 	e7:SetDescription(aux.Stringid(id,0))

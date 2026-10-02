@@ -5,7 +5,7 @@ function s.initial_effect(c)
 	aux.AddSynchroMixProcedure(c,nil,nil,nil,aux.FilterBoolFunction(Card.IsSetCard,0x1F7A),1,99)
 	c:EnableReviveLimit()
 	
-	--① 这张卡从场上离开的场合，从墓地特召1只水族通常怪兽，那之后可以选对方场上1张卡送去墓地
+	--① 这张卡从场上离开的场合，从自己墓地把1只水族通常怪兽特殊召唤，那之后可以选对方场上1张卡送去墓地
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TOGRAVE)
@@ -18,7 +18,7 @@ function s.initial_effect(c)
 	e1:SetOperation(s.spop)
 	c:RegisterEffect(e1)
 	
-	--② 对方的回合，解放场上的1只水属性怪兽，这张卡从墓地特召，选对方场上1张表侧表示的卡效果无效化
+	--② 对方的回合，解放双方场上的1只水属性怪兽，这张卡从墓地特召，选对方场上1张表侧表示的卡效果无效化
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DISABLE)
@@ -36,8 +36,7 @@ end
 
 --① 条件：从场上离开
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	return c:IsPreviousLocation(LOCATION_ONFIELD)
+	return e:GetHandler():IsPreviousLocation(LOCATION_ONFIELD)
 end
 
 --① 特召过滤：水族通常怪兽
@@ -60,7 +59,7 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 	local g=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_GRAVE,0,1,1,nil,e,tp)
 	if #g==0 then return end
-	if Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)>0 then
+	if Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)~=0 then
 		if Duel.IsExistingMatchingCard(nil,tp,0,LOCATION_ONFIELD,1,nil) then
 			if Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
 				Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
@@ -79,7 +78,7 @@ function s.rmcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetTurnPlayer()~=tp
 end
 
---② cost：解放场上的1只水属性怪兽
+--② cost：解放双方场上的1只水属性怪兽
 function s.rmcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.relfilter,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
@@ -92,15 +91,17 @@ function s.relfilter(c)
 end
 
 --② 目标：选对方场上1张表侧表示的卡（必须有效果且未被无效）
-function s.disfilter(c)
-	return c:IsFaceup() and c:IsCanBeDisabledByEffect() and not c:IsDisabled()
+function s.disfilter(c,e)
+	return c:IsFaceup() and not c:IsDisabled() 
+		and c:IsCanBeDisabledByEffect(e) 
+		and (c:IsType(TYPE_EFFECT) or c:IsType(TYPE_SPELL) or c:IsType(TYPE_TRAP))
 end
 
 function s.rmtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-		and Duel.IsExistingMatchingCard(s.disfilter,tp,0,LOCATION_ONFIELD,1,nil) end
+		and Duel.IsExistingMatchingCard(s.disfilter,tp,0,LOCATION_ONFIELD,1,nil,e) end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)
 	Duel.SetOperationInfo(0,CATEGORY_DISABLE,nil,1,0,0)
 end
@@ -110,9 +111,10 @@ function s.rmop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if not c:IsRelateToEffect(e) then return end
 	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
-	if Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)>0 then
+	Duel.SpecialSummon(Group.FromCards(c),0,tp,tp,false,false,POS_FACEUP)
+	if c:IsLocation(LOCATION_MZONE) and c:IsFaceup() then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
-		local g=Duel.SelectMatchingCard(tp,s.disfilter,tp,0,LOCATION_ONFIELD,1,1,nil)
+		local g=Duel.SelectMatchingCard(tp,s.disfilter,tp,0,LOCATION_ONFIELD,1,1,nil,e)
 		if #g>0 then
 			local tc=g:GetFirst()
 			local e1=Effect.CreateEffect(e:GetHandler())

@@ -40,12 +40,14 @@ function s.initial_effect(c)
 	e6:SetType(EFFECT_TYPE_XMATERIAL)
 	e6:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
 	e6:SetCode(EFFECT_IMMUNE_EFFECT)
+	e6:SetRange(LOCATION_MZONE)
 	e6:SetCondition(s.immcon)
 	e6:SetValue(s.efilter)
 	c:RegisterEffect(e6)
 	local e7=Effect.CreateEffect(c)
 	e7:SetType(EFFECT_TYPE_XMATERIAL)
 	e7:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e7:SetRange(LOCATION_MZONE)
 	e7:SetCode(EFFECT_PIERCE)
 	c:RegisterEffect(e7)
 	local e8=Effect.CreateEffect(c)
@@ -99,7 +101,7 @@ function s.drop(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
-	if not c:IsLocation(LOCATION_ONFIELD) or c:IsFacedown() then return end
+	if not c:IsLocation(LOCATION_HAND+LOCATION_ONFIELD) or c:IsFacedown() then return end
 	if chk==0 then return Duel.GetFlagEffect(tp,id)==0 and rp~=tp and eg:IsExists(s.repfilter,1,nil,e,tp) and c:IsReleasable(REASON_EFFECT) and not c:IsStatus(STATUS_DESTROY_CONFIRMED+STATUS_BATTLE_DESTROYED) end
 	if Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
 		Duel.Hint(HINT_CARD,0,id)

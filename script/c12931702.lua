@@ -47,7 +47,7 @@ function s.initial_effect(c)
     c:RegisterEffect(e3)
 end
 
--- ① 检索：原本持有者
+-- ① 检索
 function s.thfilter(c,p)
     return c:IsSetCard(0xef) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand(p)
 end
@@ -66,9 +66,10 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
     end
 end
 
--- ②
+-- 【修正】② 条件：必须是作为融合素材
 function s.th2con(e,tp,eg,ep,ev,re,r,rp)
-    return bit.band(r,REASON_MATERIAL)~=0
+    -- 必须带 REASON_FUSION 标记，排除链接、同调、超量等
+    return bit.band(r,REASON_FUSION)~=0
 end
 function s.th2filter(c,p)
     return c:IsSetCard(0xef) and c:IsAbleToHand(p)

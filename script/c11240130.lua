@@ -49,7 +49,7 @@ function s.initial_effect(c)
   e4:SetCondition(function(e) return e:GetHandler():GetOverlayCount()>=7 end)
   c:RegisterEffect(e4)
 end
-function s.matfilter(c)
+function s.cfilter(c)
 	return c:IsFaceupEx() and c:IsSetCard(0xb94) and c:IsType(TYPE_MONSTER)
 end
 function s.splimit(e,se,sp,st)

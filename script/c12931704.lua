@@ -43,12 +43,13 @@ function s.initial_effect(c)
     e2:SetValue(1)
     c:RegisterEffect(e2)
 
-    -- ③ 发动堕天使卡效果时，以对方场上1张卡为对象除外
+    -- ③ 【修正】自己把「堕天使」卡的效果发动时，取对象除外对方场上1张卡
     local e3=Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id,1))
     e3:SetCategory(CATEGORY_REMOVE)
-    e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+    e3:SetType(EFFECT_TYPE_QUICK_O)
     e3:SetCode(EVENT_CHAINING)
+    e3:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL+EFFECT_FLAG_CARD_TARGET)
     e3:SetRange(LOCATION_MZONE)
     e3:SetCountLimit(1,id+2000)
     e3:SetCondition(s.rmcon)
@@ -64,11 +65,11 @@ function s.mfilter2(c)
     return c:IsRace(RACE_FAIRY)
 end
 
--- 【修正】替代召唤的手卡丢弃过滤：必须天使族
+-- 丢弃过滤：天使族
 function s.discardfilter(c)
     return c:IsRace(RACE_FAIRY) and c:IsDiscardable()
 end
--- 除外区天使族过滤
+-- 除外区天使族回墓地
 function s.spfilter(c)
     return c:IsRace(RACE_FAIRY) and c:IsAbleToRemove() and c:IsAbleToGrave()
 end
@@ -81,7 +82,6 @@ function s.spscon(e,c)
         and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_REMOVED,0,3,nil)
 end
 
--- 【修正】替代召唤目标：只允许丢弃天使族
 function s.sprtg(e,tp,eg,ep,ev,re,r,rp,chk,c)
     if chk==0 then return true end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DISCARD)
@@ -95,14 +95,13 @@ end
 function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
     local dg=e:GetLabelObject()
     if not dg then return end
-    if Duel.SendtoGrave(dg,REASON_COST+REASON_DISCARD)==0 then dg:DeleteGroup() return end
+    Duel.SendtoGrave(dg,REASON_COST+REASON_DISCARD)
     dg:DeleteGroup()
-    -- 选除外区3只天使族回墓地
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
     local rg=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_REMOVED,0,3,3,nil)
     if #rg<3 then return end
     Duel.SendtoGrave(rg,REASON_EFFECT)
-    Duel.SpecialSummon(c,SUMMON_VALUE_SELF,tp,tp,false,false,POS_FACEUP)
+    -- 引擎自动完成召唤
 end
 
 -- ①
@@ -138,11 +137,18 @@ function s.indtg(e,c)
     return c~=e:GetHandler() and c:IsSetCard(0xef)
 end
 
--- ③
+-- ③ 【修正】条件：自己发动「堕天使」卡的效果
 function s.rmcon(e,tp,eg,ep,ev,re,r,rp)
+    -- 必须是自己发动的效果
+    if rp~=tp then return false end
+    -- 防止空指针
+    if not re then return false end
     local rc=re:GetHandler()
+    if not rc then return false end
+    -- 发动的卡必须属于「堕天使」字段
     return rc:IsSetCard(0xef)
 end
+
 function s.rmtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
     if chkc then return chkc:IsOnField() and chkc:IsControler(1-tp) and chkc:IsAbleToRemove() end
     if chk==0 then return Duel.IsExistingTarget(Card.IsAbleToRemove,tp,0,LOCATION_ONFIELD,1,nil) end

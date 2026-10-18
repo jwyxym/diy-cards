@@ -19,7 +19,7 @@ function s.initial_effect(c)
 	e1:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_PZONE)
-	e1:SetCountLimit(1,id+o)
+	e1:SetCountLimit(1)
 	e1:SetCost(s.thcost)
 	e1:SetTarget(s.thtg)
 	e1:SetOperation(s.thop)
@@ -41,7 +41,7 @@ function s.initial_effect(c)
 	e3:SetType(EFFECT_TYPE_IGNITION)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetProperty(EFFECT_FLAG_CARD_TARGET)
-	e3:SetCountLimit(1,id+o*100)
+	e3:SetCountLimit(1,id+o)
 	e3:SetTarget(s.sptg)
 	e3:SetOperation(s.spop)
 	c:RegisterEffect(e3)
@@ -59,8 +59,8 @@ function s.thop1(e,tp,eg,ep,ev,re,r,rp)
 	Duel.SendtoHand(c,nil,REASON_EFFECT)
 end
 function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckLPCost(tp,300) end
-	Duel.PayLPCost(tp,300)
+	if chk==0 then return Duel.CheckLPCost(tp,500) end
+	Duel.PayLPCost(tp,500)
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>=3 end
@@ -110,7 +110,7 @@ function s.desfilter(c)
 	return c:IsSetCard(0x763) or c:IsRace(RACE_PLANT)
 end
 function s.spfilter(c,e,tp)
-	return c:IsSetCard(0x763) and not c:IsCode(id) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsSetCard(0x763) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsLocation(e:GetLabel()) and chkc:IsControler(tp) and s.desfilter(chkc) end

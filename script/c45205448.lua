@@ -85,17 +85,20 @@ function s.effop(e,tp,eg,ep,ev,re,r,rp)
 		if xyzg:GetCount()>0 then
 			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 			local xyz=xyzg:Select(tp,1,1,nil):GetFirst()
-			Duel.XyzSummon(tp,xyz,g,2,2)
-			if xyz:IsRelateToEffect(e) then
-				local e1=Effect.CreateEffect(e:GetHandler())
-				e1:SetType(EFFECT_TYPE_SINGLE)
-				e1:SetCode(EFFECT_IMMUNE_EFFECT)
-				e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-				e1:SetRange(LOCATION_MZONE)
-				e1:SetValue(s.efilter)
-				e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END+RESET_OPPO_TURN)
-				xyz:RegisterEffect(e1)
-			end
+			-- 用 SpecialSummon + Overlay 模拟超量召唤（立即处理）
+			xyz:SetMaterial(g)
+			Duel.Overlay(xyz,g)
+			Duel.SpecialSummon(xyz,SUMMON_TYPE_XYZ,tp,tp,false,false,POS_FACEUP)
+			xyz:CompleteProcedure()
+			-- 全抗：直到下个回合结束阶段
+			local e1=Effect.CreateEffect(e:GetHandler())
+			e1:SetType(EFFECT_TYPE_SINGLE)
+			e1:SetCode(EFFECT_IMMUNE_EFFECT)
+			e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+			e1:SetRange(LOCATION_MZONE)
+			e1:SetValue(s.efilter)
+			e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,2)
+			xyz:RegisterEffect(e1)
 		end
 	elseif op==2 then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)

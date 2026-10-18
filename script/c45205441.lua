@@ -51,8 +51,13 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
+-- 王战怪兽过滤
+function s.wzfilter(c)
+	return c:IsFaceup() and c:IsSetCard(0x134)
+end
+
 function s.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	local ct=Duel.GetMatchingGroupCount(Card.IsFaceup,tp,LOCATION_MZONE,0,nil,0x134)
+	local ct=Duel.GetMatchingGroupCount(s.wzfilter,tp,LOCATION_MZONE,0,nil)
 	if chkc then return chkc:IsOnField() and chkc:IsControler(1-tp) and chkc:IsCanBeEffectTarget(e) end
 	if chk==0 then return ct>0 and Duel.IsExistingTarget(nil,tp,0,LOCATION_ONFIELD,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)

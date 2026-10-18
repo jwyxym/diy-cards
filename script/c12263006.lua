@@ -53,7 +53,7 @@ function c12263006.initial_effect(c)
     e2:SetOperation(c12263006.eqop2)
     c:RegisterEffect(e2)
 
-    --③ 自己·对方回合发动：对象为自己场上1只链接·仪式怪兽或天水卡（怪兽/魔陷均可），破坏；之后可最多2张双方墓地回卡组
+    --③ 自己·对方回合发动：对象为自己场上1只链接·仪式怪兽或天水卡（怪兽/魔陷均可），破坏；之后可最多2张双方墓地·除外回卡组最上面
     local e3=Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id,2))
     e3:SetCategory(CATEGORY_DESTROY+CATEGORY_TODECK)
@@ -87,7 +87,7 @@ function c12263006.eqtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
     Duel.SelectTarget(tp,Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
 end
 
---① 操作：装备1～2只（传统循环）
+--① 操作：装备1～2只
 function c12263006.eqop(e,tp,eg,ep,ev,re,r,rp)
     local tc=Duel.GetFirstTarget()
     if not tc or not tc:IsRelateToEffect(e) or tc:IsFacedown() then return end
@@ -109,7 +109,9 @@ end
 
 --② 条件
 function c12263006.econ2(e,tp,eg,ep,ev,re,r,rp)
-    return eg:IsExists(Card.IsType,1,nil,TYPE_LINK+TYPE_RITUAL)
+    return eg:IsExists(function(c)
+        return c:IsType(TYPE_LINK) or c:IsType(TYPE_RITUAL)
+    end,1,nil)
 end
 
 --② 目标
@@ -143,7 +145,7 @@ end
 function c12263006.lktg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
     local function tarfilter(c)
         return c:IsControler(tp)
-        and (c:IsType(TYPE_LINK+TYPE_RITUAL) or c:IsSetCard(0x5244))
+        and (c:IsType(TYPE_LINK) or c:IsType(TYPE_RITUAL) or c:IsSetCard(0x5244))
     end
     if chkc then return tarfilter(chkc) end
     if chk==0 then
@@ -158,8 +160,8 @@ function c12263006.lkop(e,tp,eg,ep,ev,re,r,rp)
     local tc=Duel.GetFirstTarget()
     if not (tc and tc:IsRelateToEffect(e)) then return end
     if Duel.Destroy(tc,REASON_EFFECT)==0 then return end
-    --那之后，可以从自己·对方墓地最多2张返回卡组
-    local btg=Duel.GetMatchingGroup(Card.IsAbleToDeck,tp,LOCATION_GRAVE,LOCATION_GRAVE,nil)
+    -- 那之后，可以从自己·对方的墓地·除外状态把最多2张卡回到卡组最上面
+    local btg=Duel.GetMatchingGroup(Card.IsAbleToDeck,tp,LOCATION_GRAVE+LOCATION_REMOVED,LOCATION_GRAVE+LOCATION_REMOVED,nil)
     if #btg>0 and Duel.SelectYesNo(tp,aux.Stringid(id,4)) then
         Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TODECK)
         local sg=btg:Select(tp,0,2,nil)

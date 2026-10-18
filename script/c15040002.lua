@@ -6,126 +6,119 @@
 local s,id=GetID()
 function s.initial_effect(c)
     aux.AddCodeList(c,26062911)
-
-    -- 同调召唤限制
     c:EnableReviveLimit()
-    aux.AddSynchroMixProcedure(c,
-        aux.FilterBoolFunction(Card.IsSetCard,0xb11),
-        nil, nil,
-        aux.Tuner(nil),
-        1, 99)
 
-    -- 监听「春日影」发动，给予双方玩家回合标记
+    -- 不能同调召唤，也不能以标准方式从额外卡组特殊召唤（仅限额外卡组）
     local e0=Effect.CreateEffect(c)
-    e0:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
-    e0:SetCode(EVENT_CHAIN_SOLVED)
-    e0:SetRange(LOCATION_EXTRA)
-    e0:SetCondition(s.flagcon)
-    e0:SetOperation(s.flagop)
+    e0:SetType(EFFECT_TYPE_SINGLE)
+    e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+    e0:SetCode(EFFECT_SPSUMMON_CONDITION)
+    e0:SetValue(s.splimit)
     c:RegisterEffect(e0)
 
-    -- 额外召唤手续：解放记述怪兽 + 若叶睦怪兽，当作同调召唤
-    local e5=Effect.CreateEffect(c)
-    e5:SetType(EFFECT_TYPE_FIELD)
-    e5:SetCode(EFFECT_SPSUMMON_PROC)
-    e5:SetProperty(EFFECT_FLAG_UNCOPYABLE+EFFECT_FLAG_CANNOT_DISABLE)
-    e5:SetRange(LOCATION_EXTRA)
-    e5:SetCondition(s.sumpcon)
-    e5:SetTarget(s.sumptg)
-    e5:SetOperation(s.sumpop)
-    c:RegisterEffect(e5)
-
-    -- ① 二速解放自身，随机除外对方1张手牌（从额外卡组特殊召唤的此卡才能发动）
+    -- 自身特殊召唤手续：把「若叶睦」怪兽和「春日影」记述怪兽各1只送去墓地
     local e1=Effect.CreateEffect(c)
-    e1:SetDescription(aux.Stringid(id,0))
-    e1:SetCategory(CATEGORY_REMOVE)
-    e1:SetType(EFFECT_TYPE_QUICK_O)
-    e1:SetCode(EVENT_FREE_CHAIN)
-    e1:SetRange(LOCATION_MZONE)
-    e1:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_MAIN_END)
+    e1:SetType(EFFECT_TYPE_FIELD)
+    e1:SetCode(EFFECT_SPSUMMON_PROC)
+    e1:SetProperty(EFFECT_FLAG_UNCOPYABLE)
+    e1:SetRange(LOCATION_EXTRA)
     e1:SetCondition(s.spcon)
-    e1:SetCost(s.rccost)
-    e1:SetTarget(s.rctg)
-    e1:SetOperation(s.rcop)
+    e1:SetTarget(s.sptg)
+    e1:SetOperation(s.spop)
     c:RegisterEffect(e1)
 
-    -- ② 墓地回收效果
+    -- ① 二速解放自身，随机除外对方1张手牌
     local e2=Effect.CreateEffect(c)
-    e2:SetDescription(aux.Stringid(id,1))
-    e2:SetCategory(CATEGORY_TODECK+CATEGORY_SPECIAL_SUMMON)
-    e2:SetType(EFFECT_TYPE_IGNITION)
-    e2:SetRange(LOCATION_GRAVE)
-    e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
-    e2:SetCountLimit(1,id)
-    e2:SetTarget(s.rettg)
-    e2:SetOperation(s.retop)
+    e2:SetDescription(aux.Stringid(id,0))
+    e2:SetCategory(CATEGORY_REMOVE)
+    e2:SetType(EFFECT_TYPE_QUICK_O)
+    e2:SetCode(EVENT_FREE_CHAIN)
+    e2:SetRange(LOCATION_MZONE)
+    e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_MAIN_END)
+    e2:SetCondition(s.spcon2)
+    e2:SetCost(s.rccost)
+    e2:SetTarget(s.rctg)
+    e2:SetOperation(s.rcop)
     c:RegisterEffect(e2)
+
+    -- ② 墓地回收效果
+    local e3=Effect.CreateEffect(c)
+    e3:SetDescription(aux.Stringid(id,1))
+    e3:SetCategory(CATEGORY_TODECK+CATEGORY_SPECIAL_SUMMON)
+    e3:SetType(EFFECT_TYPE_IGNITION)
+    e3:SetRange(LOCATION_GRAVE)
+    e3:SetProperty(EFFECT_FLAG_CARD_TARGET)
+    e3:SetCountLimit(1,id)
+    e3:SetTarget(s.rettg)
+    e3:SetOperation(s.retop)
+    c:RegisterEffect(e3)
 end
 
--- 监听「春日影」发动，设置双方玩家flag
-function s.flagcon(e,tp,eg,ep,ev,re,r,rp)
-    return re and re:GetHandler():IsCode(26062911) and re:IsHasType(EFFECT_TYPE_ACTIVATE)
-end
-function s.flagop(e,tp,eg,ep,ev,re,r,rp)
-    Duel.RegisterFlagEffect(0,id,RESET_PHASE+PHASE_END,0,1)
-    Duel.RegisterFlagEffect(1,id,RESET_PHASE+PHASE_END,0,1)
+-- 限制仅对从额外卡组特殊召唤生效（返回 true 表示允许，false 表示禁止）
+function s.splimit(e,se,sp,st)
+    return not e:GetHandler():IsLocation(LOCATION_EXTRA)
 end
 
--- 额外召唤手续：条件
-function s.sumpcon(e,c)
+-- 特殊召唤条件：需要有「若叶睦」怪兽和「春日影」记述怪兽各1只
+-- 由于手续会把2只怪兽送去墓地并腾出空间，因此不需要检查场上是否有空位
+function s.spcon(e,c)
     if c==nil then return true end
     local tp=c:GetControler()
-    if Duel.GetFlagEffect(tp,id)==0 then return false end
-    local g=Duel.GetMatchingGroup(s.spfilter_all,tp,LOCATION_MZONE,0,nil)
-    return g:FilterCount(s.codefilter,nil)>=1 and g:FilterCount(s.setfilter,nil)>=1
-        and g:GetCount()>=2
-        and Duel.GetLocationCountFromEx(tp,tp,c)>0
-end
-function s.codefilter(c)
-    return c:IsReleasable() and aux.IsCodeListed(c,26062911)
-end
-function s.setfilter(c)
-    return c:IsReleasable() and c:IsSetCard(0xb11)
-end
-function s.spfilter_all(c)
-    return c:IsReleasable() and (aux.IsCodeListed(c,26062911) or c:IsSetCard(0xb11))
+    local g1=Duel.GetMatchingGroup(s.filter_yu,tp,LOCATION_MZONE,0,nil)
+    local g2=Duel.GetMatchingGroup(s.filter_spring,tp,LOCATION_MZONE,0,nil)
+    if #g1==0 or #g2==0 then return false end
+    if #g1==1 and #g2==1 and g1:GetFirst()==g2:GetFirst() then return false end
+    return true
 end
 
--- 选择两只怪兽
-function s.sumptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
-    local g=Duel.GetReleaseGroup(tp,false,REASON_SPSUMMON):Filter(s.spfilter_all,nil)
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
-    local sg=g:Select(tp,2,2,nil)
-    if #sg~=2 then return false end
-    if sg:FilterCount(s.codefilter,nil)==0 or sg:FilterCount(s.setfilter,nil)==0 then return false end
+function s.filter_yu(c)
+    return c:IsFaceup() and c:IsSetCard(0xb11) and c:IsAbleToGrave()
+end
+
+function s.filter_spring(c)
+    return c:IsFaceup() and aux.IsCodeListed(c,26062911) and c:IsAbleToGrave()
+end
+
+-- 选择并记录素材
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
+    local g1=Duel.GetMatchingGroup(s.filter_yu,tp,LOCATION_MZONE,0,nil)
+    local g2=Duel.GetMatchingGroup(s.filter_spring,tp,LOCATION_MZONE,0,nil)
+    if #g1==0 or #g2==0 then return false end
+    if #g1==1 and #g2==1 and g1:GetFirst()==g2:GetFirst() then return false end
+    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+    local sg1=g1:Select(tp,1,1,nil)
+    local tc1=sg1:GetFirst()
+    if not tc1 then return false end
+    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+    local sg2=g2:Select(tp,1,1,tc1)
+    local tc2=sg2:GetFirst()
+    if not tc2 then return false end
+    local sg=Group.FromCards(tc1,tc2)
     sg:KeepAlive()
     e:SetLabelObject(sg)
     return true
 end
--- 执行解放（引擎自动特殊召唤）
-function s.sumpop(e,tp,eg,ep,ev,re,r,rp,c)
+
+function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
     local sg=e:GetLabelObject()
-    if sg and #sg==2 and sg:Filter(Card.IsLocation,nil,LOCATION_MZONE):GetCount()==2 then
-        Duel.SendtoGrave(sg,REASON_SPSUMMON)
-        -- 引擎会自动从额外卡组特殊召唤此卡，召唤地点为LOCATION_EXTRA
+    if sg and #sg==2 then
+        Duel.SendtoGrave(sg,REASON_MATERIAL+REASON_SYNCHRO)
     end
 end
 
--- ① 条件：从额外卡组特殊召唤的此卡（参考時械神祖ヴルガータ）
-function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+-- ① 条件：从额外卡组特殊召唤的这张卡
+function s.spcon2(e,tp,eg,ep,ev,re,r,rp)
     return e:GetHandler():IsSummonLocation(LOCATION_EXTRA)
 end
--- ① cost：解放自身
+
 function s.rccost(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return e:GetHandler():IsReleasable() end
     Duel.Release(e:GetHandler(),REASON_COST)
 end
--- ① 目标：对方手牌存在即可
 function s.rctg(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return Duel.GetFieldGroupCount(tp,0,LOCATION_HAND)>0 end
     Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,1,1-tp,LOCATION_HAND)
 end
--- ① 操作：随机除外并设置返回
 function s.rcop(e,tp,eg,ep,ev,re,r,rp)
     local g=Duel.GetFieldGroup(1-tp,LOCATION_HAND,0)
     if #g==0 then return end

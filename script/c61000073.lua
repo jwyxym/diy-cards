@@ -68,23 +68,29 @@ end
 function s.cfilter(c)
 	return c:IsPreviousLocation(LOCATION_HAND)
 end
+function s.ccfilter(c)
+	return c:IsAbleToGrave()
+end
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(s.cfilter,1,nil)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
+		and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false)
+		and Duel.GetMatchingGroupCount(s.ccfilter,tp,LOCATION_HAND,0,e=GetHandler())>0
+	end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
 function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
+	local hg=Duel.GetFieldGroup(tp,LOCATION_HAND,0)
 	if c:IsRelateToEffect(e)
-		and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)>0 then
-		local hg=Duel.GetFieldGroup(tp,LOCATION_HAND,0)
-		if #hg>0 then
-			local sg=hg:RandomSelect(tp,1)
-			Duel.SendtoGrave(sg,REASON_EFFECT+REASON_DISCARD)
-		end
+		and Duel.GetMatchingGroupCount(s.ccfilter,tp,LOCATION_HAND,0,e=GetHandler())>0
+		then Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
+	end
+	if #hg>0 then
+	   local sg=hg:RandomSelect(tp,1)
+	   Duel.SendtoGrave(sg,REASON_EFFECT+REASON_DISCARD)
 	end
 end
 

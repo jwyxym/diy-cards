@@ -94,7 +94,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 			end
 			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
 			aux.GCheckAdditional=aux.RitualCheckAdditional(tc,tc:GetLevel(),"Greater")
-			local mat=mg:SelectSubGroup(tp,aux.RitualCheck,true,1,tc:GetLevel(),tp,tc,tc:GetLevel(),"Equal")
+			local mat=mg:SelectSubGroup(tp,aux.RitualCheck,true,1,tc:GetLevel(),tp,tc,tc:GetLevel(),"Greater")
 			aux.GCheckAdditional=nil
 			if not mat then
 				aux.RCheckAdditional=nil

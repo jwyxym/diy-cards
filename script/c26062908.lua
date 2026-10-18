@@ -3,7 +3,8 @@
 -- 记述「春日影」(26062911)
 local s,id=GetID()
 function s.initial_effect(c)
-    aux.AddCodeList(c,26062911)  -- 声明卡名记述
+    aux.AddCodeList(c,26062911)
+    aux.AddMaterialCodeList(c,26062902)  -- 声明素材怪兽「跟大家不一样 高松灯」
 
     -- 同调召唤限制：“跟大家不一样 高松灯” + 同调怪兽1只以上
     c:EnableReviveLimit()

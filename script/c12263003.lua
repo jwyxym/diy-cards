@@ -11,7 +11,7 @@ function c12263003.initial_effect(c)
 	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
 	e1:SetProperty(EFFECT_FLAG_CARD_TARGET+EFFECT_FLAG_DELAY)
 	e1:SetRange(LOCATION_GRAVE)
-	e1:SetCountLimit(1,12263003) -- 独立ID
+	e1:SetCountLimit(1,122630031)
 	e1:SetCondition(c12263003.eqcon)
 	e1:SetTarget(c12263003.eqtg)
 	e1:SetOperation(c12263003.eqop)
@@ -23,20 +23,20 @@ function c12263003.initial_effect(c)
 	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e2:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e2:SetCountLimit(1,122630031)
+	e2:SetCountLimit(1,122630032)
 	e2:SetTarget(c12263003.sptg)
 	e2:SetOperation(c12263003.spop)
 	c:RegisterEffect(e2)
 
 	local e3=e2:Clone()
-	e3:SetCode(EVENT_DESTROYED)
+	e3:SetCode(EVENT_TO_GRAVE)
 	e3:SetCondition(c12263003.descon)
 	c:RegisterEffect(e3)
 end
 
 function c12263003.eqcon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(function(c)
-		return c:IsType(TYPE_LINK+TYPE_RITUAL) and c:IsFaceup()
+		return (c:IsType(TYPE_LINK) or c:IsType(TYPE_RITUAL)) and c:IsFaceup()
 	end,1,nil)
 end
 
@@ -69,7 +69,9 @@ function c12263003.eqop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function c12263003.descon(e,tp,eg,ep,ev,re,r,rp)
-	return e:GetHandler():IsPreviousControler(tp)
+	local c=e:GetHandler()
+	return c:IsPreviousLocation(LOCATION_ONFIELD) and c:IsPreviousControler(tp)
+		and c:IsReason(REASON_DESTROY)
 end
 
 function c12263003.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -90,3 +92,4 @@ function c12263003.spop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
 	end
 end
+

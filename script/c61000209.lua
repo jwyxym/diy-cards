@@ -39,7 +39,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function s.tgfilter(c,e,tp,chk)
-	return c:IsFaceup() and c:IsAttackAbove(2900)
+	return c:IsFaceup() and c:IsAttackAbove(2900) and c:IsOnField() and c:IsType(TYPE_MONSTER) and c:IsLocation(LOCATION_MZONE) and c:IsCanBeEffectTarget(e)
 		and Duel.IsExistingMatchingCard(s.eqfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil,c,tp)
 end
 function s.eqfilter(c,tc,tp)

@@ -84,8 +84,13 @@ function s.tgop(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
-	if not c:IsLocation(LOCATION_HAND+LOCATION_ONFIELD) or c:IsFacedown() then return end
+	if not (c:IsLocation(LOCATION_HAND+LOCATION_ONFIELD) and c:IsFaceupEx()) then return end
 	if chk==0 then return Duel.GetFlagEffect(tp,id)==0 and rp~=tp and eg:IsExists(s.repfilter,1,nil,e,tp) and c:IsReleasable(REASON_EFFECT) and not c:IsStatus(STATUS_DESTROY_CONFIRMED+STATUS_BATTLE_DESTROYED) end
+	if c:IsLocation(LOCATION_HAND) then 
+		hint=1
+	else
+		hint=2
+	end
 	if Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
 		Duel.Hint(HINT_CARD,0,id)
 		Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,EFFECT_FLAG_OATH,1)

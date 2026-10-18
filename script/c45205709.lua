@@ -1,12 +1,12 @@
 --铁鳞海贼团-雄人鱼术士
 local s,id=GetID()
 function s.initial_effect(c)
-	--① 自己场上没有怪兽或有通常怪兽的场合，从手卡·墓地特召
+	--① 自己场上没有怪兽或有通常怪兽的场合，从手卡特召
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e1:SetType(EFFECT_TYPE_IGNITION)
-	e1:SetRange(LOCATION_HAND+LOCATION_GRAVE)
+	e1:SetRange(LOCATION_HAND)
 	e1:SetCountLimit(1,id)
 	e1:SetCondition(s.spcon)
 	e1:SetTarget(s.sptg)

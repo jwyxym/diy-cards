@@ -17,20 +17,7 @@ function s.initial_effect(c)
 	e1:SetOperation(s.operation)
 	c:RegisterEffect(e1)
 	
-	--② 守备表示的这张卡不会被效果·战斗破坏
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_SINGLE)
-	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-	e2:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
-	e2:SetRange(LOCATION_MZONE)
-	e2:SetCondition(s.indcon)
-	e2:SetValue(1)
-	c:RegisterEffect(e2)
-	local e3=e2:Clone()
-	e3:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
-	c:RegisterEffect(e3)
-	
-	--③ 双方的回合，自己场上有「铁鳞」怪兽的场合，解放自己场上1只水族怪兽，选对方场上1只怪兽为对象才能发动。这张卡从墓地特殊召唤，那只怪兽变成里侧守备表示。
+	--② 双方的回合，自己场上有「铁鳞」怪兽的场合，解放自己场上1只水族怪兽...
 	local e4=Effect.CreateEffect(c)
 	e4:SetDescription(aux.Stringid(id,1))
 	e4:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_POSITION)
@@ -45,6 +32,19 @@ function s.initial_effect(c)
 	e4:SetTarget(s.sptg)
 	e4:SetOperation(s.spop)
 	c:RegisterEffect(e4)
+
+	--③ 守备表示的这张卡不会被效果·战斗破坏
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e2:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetCondition(s.indcon)
+	e2:SetValue(1)
+	c:RegisterEffect(e2)
+	local e3=e2:Clone()
+	e3:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	c:RegisterEffect(e3)
 end
 
 -- 超量素材：水属性2星怪兽
@@ -84,7 +84,7 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
 		Duel.SendtoHand(g2,nil,REASON_EFFECT)
 		Duel.ConfirmCards(1-tp,g2)
 	end
-	-- 自肃：这个回合只能从额外卡组特召「铁鳞」怪兽
+	-- 自肃
 	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -95,29 +95,26 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
 	Duel.RegisterEffect(e1,tp)
 end
 
--- 特召过滤：4星以下「铁鳞海贼团」怪兽
 function s.spfilter(c,e,tp)
 	return c:IsSetCard(0x1F7A) and c:IsType(TYPE_MONSTER) and c:IsLevelBelow(4)
 		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 
--- 检索过滤：「铁鳞」魔法·陷阱卡
 function s.thfilter(c)
 	return c:IsSetCard(0x1F7A) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand()
 end
 
--- 自肃
 function s.splimit(e,c)
 	return c:IsLocation(LOCATION_EXTRA) and not c:IsSetCard(0x1F7A)
 end
 
---② 条件：守备表示
+--③ 条件：守备表示
 function s.indcon(e)
 	local c=e:GetHandler()
 	return c:IsDefensePos()
 end
 
---③ 条件：自己场上有「铁鳞」怪兽
+--② 条件：自己场上有「铁鳞」怪兽
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsExistingMatchingCard(s.fconfilter,tp,LOCATION_MZONE,0,1,nil)
 end
@@ -126,7 +123,7 @@ function s.fconfilter(c)
 	return c:IsFaceup() and c:IsSetCard(0x1F7A)
 end
 
---③ cost：解放自己场上1只水族怪兽
+--② cost：解放自己场上1只水族怪兽
 function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.CheckReleaseGroup(tp,s.relfilter,1,nil) end
 	local g=Duel.SelectReleaseGroup(tp,s.relfilter,1,1,nil)
@@ -137,7 +134,7 @@ function s.relfilter(c)
 	return c:IsRace(RACE_AQUA) and c:IsReleasable()
 end
 
---③ 目标：选对方场上1只怪兽
+--② 目标：选对方场上1只怪兽
 function s.postgfilter(c)
 	return c:IsFaceup() and c:IsCanTurnSet()
 end
@@ -145,8 +142,8 @@ end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local c=e:GetHandler()
 	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) and s.postgfilter(chkc) end
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	-- ★ 修改：去掉 Duel.GetLocationCount 检查，因为 cost 解放后必然有位置
+	if chk==0 then return c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 		and Duel.IsExistingTarget(s.postgfilter,tp,0,LOCATION_MZONE,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
 	local g=Duel.SelectTarget(tp,s.postgfilter,tp,0,LOCATION_MZONE,1,1,nil)
@@ -154,11 +151,12 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	Duel.SetOperationInfo(0,CATEGORY_POSITION,g,1,0,0)
 end
 
---③ 处理
+--② 处理
 function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	local tc=Duel.GetFirstTarget()
 	if not c:IsRelateToEffect(e) then return end
+	-- 这里保留位置检查是防御性编程，此时格子已经因为 cost 解放而腾出来了
 	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
 	if Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)>0 then
 		if tc and tc:IsRelateToEffect(e) and tc:IsFaceup() then

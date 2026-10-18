@@ -3,8 +3,8 @@ local s,id,o=GetID()
 local CARD_BLACK_SHARK_DRONE=61000081 -- 「黑鲨子机」
 
 function s.initial_effect(c)
-	-- 超量召唤手续：8星怪兽×3
-	aux.AddXyzProcedure(c,nil,8,3)
+	-- 超量召唤手续：8星怪兽×3（自己场上的超量怪兽可以当作8星怪兽来成为素材）
+	aux.AddXyzProcedureLevelFree(c,s.mfilter,nil,3,3)
 	c:EnableReviveLimit()
 	-- 记述卡号关联
 	aux.AddCodeList(c,CARD_BLACK_SHARK_DRONE)
@@ -47,6 +47,13 @@ function s.initial_effect(c)
 	e3:SetTarget(s.sptg)
 	e3:SetOperation(s.spop)
 	c:RegisterEffect(e3)
+end
+
+-- ==================== 超量素材条件 ====================
+
+-- 素材条件：8星怪兽，或自己场上的超量怪兽（无论阶级，均当作8星怪兽使用）
+function s.mfilter(c,xyzc)
+	return c:IsXyzLevel(xyzc,8) or c:IsType(TYPE_XYZ)
 end
 
 -- ==================== ① 效果逻辑 ====================

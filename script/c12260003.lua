@@ -4,11 +4,12 @@ function s.initial_effect(c)
 	--spsummon
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))
-    e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_HANDES+CATEGORY_DECKDES)
+    e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_HANDES+CATEGORY_SSET)
     e1:SetType(EFFECT_TYPE_QUICK_O)
     e1:SetCode(EVENT_FREE_CHAIN)
     e1:SetRange(LOCATION_HAND+LOCATION_GRAVE)
     e1:SetCountLimit(1,id+EFFECT_COUNT_CODE_DUEL)
+    e1:SetHintTiming(0,TIMING_DRAW_PHASE+TIMING_STANDBY_PHASE+TIMING_MAIN_END+TIMING_BATTLE_START+TIMING_BATTLE_END+TIMING_END_PHASE)
     e1:SetCondition(s.spcon)
     e1:SetCost(s.spcost)
     e1:SetTarget(s.sptg)
@@ -17,7 +18,7 @@ function s.initial_effect(c)
     --sset then boom
     local e2=Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id,1))
-    e2:SetCategory(CATEGORY_DESTROY)
+    e2:SetCategory(CATEGORY_SSET+CATEGORY_DESTROY)
     e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
     e2:SetProperty(EFFECT_FLAG_DELAY)
     e2:SetCode(EVENT_TO_GRAVE)
@@ -28,9 +29,9 @@ function s.initial_effect(c)
     c:RegisterEffect(e2)
 end
 
+-- 自己·对方回合，任意阶段
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
-    return (Duel.GetCurrentPhase()==PHASE_MAIN1 or Duel.GetCurrentPhase()==PHASE_MAIN2)
-        and Duel.GetTurnPlayer()==tp or Duel.GetTurnPlayer()==1-tp
+    return true
 end
 
 function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -42,8 +43,6 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then 
         return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
             and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_HAND,0,1,nil,e,tp)
-            and (not Duel.IsPlayerCanDiscardDeck(tp,1) 
-                or Duel.IsExistingMatchingCard(Card.IsAbleToGraveAsCost,tp,LOCATION_HAND,0,1,nil))
     end
     Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_HAND)
 end
@@ -110,12 +109,12 @@ function s.settg(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then 
         return Duel.IsExistingMatchingCard(s.stfilter,tp,LOCATION_DECK,0,1,nil)
     end
-    Duel.SetOperationInfo(0,CATEGORY_SEARCH,nil,1,tp,LOCATION_DECK)
+    Duel.SetOperationInfo(0,CATEGORY_SSET,nil,1,tp,LOCATION_DECK)
     Duel.SetOperationInfo(0,CATEGORY_DESTROY,nil,1,0,LOCATION_ONFIELD)
 end
 
 function s.stfilter(c)
-    return c:IsSetCard(0x63a0) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToHand()
+    return c:IsSetCard(0x63a0) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsSSetable()
 end
 
 function s.setop(e,tp,eg,ep,ev,re,r,rp)
@@ -134,3 +133,4 @@ function s.setop(e,tp,eg,ep,ev,re,r,rp)
         end
     end
 end
+

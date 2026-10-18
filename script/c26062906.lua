@@ -3,7 +3,8 @@
 -- 记述「春日影」(26062911)
 local s,id=GetID()
 function s.initial_effect(c)
-    aux.AddCodeList(c,26062911)  -- 声明卡名记述
+    aux.AddCodeList(c,26062911)
+    aux.AddMaterialCodeList(c,26062901)  -- 声明素材怪兽「初次的邂逅 丰川祥子」
 
     -- 同调召唤限制：协调1只 + “初次的邂逅 丰川祥子”(26062901)
     aux.AddSynchroProcedure(c,

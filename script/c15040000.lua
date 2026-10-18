@@ -4,6 +4,7 @@
 local s,id=GetID()
 function s.initial_effect(c)
     aux.AddCodeList(c,26062911)
+    aux.AddMaterialCodeList(c,26062904)  -- 声明素材怪兽「碰面 椎名立希」
 
     -- 同调召唤限制：「碰面 椎名立希」(26062904) + 调整以外的怪兽1只以上
     c:EnableReviveLimit()

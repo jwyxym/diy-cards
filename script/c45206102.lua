@@ -91,7 +91,8 @@ end
 --②效果
 function s.drcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	return c:IsPreviousLocation(LOCATION_MZONE) and c:IsLocation(LOCATION_EXTRA) and c:IsReason(REASON_MATERIAL)
+	return c:IsPreviousLocation(LOCATION_MZONE) and c:IsLocation(LOCATION_EXTRA)
+		and c:IsReason(REASON_MATERIAL) and c:IsReason(REASON_SYNCHRO)
 end
 
 function s.drtg(e,tp,eg,ep,ev,re,r,rp,chk)

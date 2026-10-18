@@ -14,14 +14,15 @@ function s.initial_effect(c)
 	e1:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)
 	e1:SetValue(RACE_PLANT)
 	c:RegisterEffect(e1)
-	--defatk
+	--search
 	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetCode(EFFECT_DEFENSE_ATTACK)
+	e2:SetDescription(aux.Stringid(id,0))
+	e2:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
+	e2:SetType(EFFECT_TYPE_IGNITION)
 	e2:SetRange(LOCATION_SZONE)
-	e2:SetTargetRange(LOCATION_MZONE,0)
-	e2:SetTarget(s.atktg)
-	e2:SetValue(1)
+	e2:SetCountLimit(1,id)
+	e2:SetTarget(s.sctg)
+	e2:SetOperation(s.scop)
 	c:RegisterEffect(e2)
 	--to hand
 	local e3=Effect.CreateEffect(c)
@@ -29,14 +30,29 @@ function s.initial_effect(c)
 	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e3:SetCode(EVENT_TO_GRAVE)
 	e3:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
-	e3:SetCountLimit(1,id)
+	e3:SetCountLimit(1,id+o)
 	e3:SetCondition(s.thcon)
 	e3:SetTarget(s.thtg)
 	e3:SetOperation(s.thop)
 	c:RegisterEffect(e3)
 end
-function s.atktg(e,c)
-	return c:IsSetCard(0x763) and c:IsType(TYPE_MONSTER)
+function s.sctg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>=3 end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,0,LOCATION_DECK)
+end
+function s.scop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.ConfirmDecktop(tp,3)
+	local g=Duel.GetDecktopGroup(tp,3)
+	if g:GetCount()>0 then
+		if g:IsExists(s.thfilter,1,nil) and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+			local sg=g:FilterSelect(tp,s.thfilter,1,1,nil)
+			Duel.SendtoHand(sg,nil,REASON_EFFECT)
+			Duel.ConfirmCards(1-tp,sg)
+			Duel.ShuffleHand(tp)
+		end
+		Duel.ShuffleDeck(tp)
+	end
 end
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsReason(REASON_EFFECT)

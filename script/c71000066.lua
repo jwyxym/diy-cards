@@ -13,25 +13,10 @@ function cm.initial_effect(c)
 	e1:SetOperation(cm.op1)
 	c:RegisterEffect(e1)
 
-	-- ②：这张卡被「大墓」卡的效果送去墓地或除外状态的场合才能发动。从自己墓地选1只「大墓」怪兽加入手卡。
-	-- local e2 = Effect.CreateEffect(c)
-	-- e2:SetDescription(aux.Stringid(m, 1))
-	-- e2:SetCategory(CATEGORY_TOHAND + CATEGORY_SEARCH)
-	-- e2:SetType(EFFECT_TYPE_SINGLE + EFFECT_TYPE_TRIGGER_O)
-	-- e2:SetCode(EVENT_TO_GRAVE)
-	-- e2:SetCountLimit(1, m + 2)
-	-- e2:SetProperty(EFFECT_FLAG_DELAY)
-	-- e2:SetCondition(cm.condition2)
-	-- e2:SetTarget(cm.tg2)
-	-- e2:SetOperation(cm.op2)
-	-- c:RegisterEffect(e2)
-	-- local e3 = e2:Clone()
-	-- e3:SetCode(EVENT_REMOVE)
-	-- c:RegisterEffect(e3)
-
+	-- ②：这张卡被「大墓」卡的效果送去墓地或除外状态的场合才能发动。从自己或对方卡组上面把2张卡送去墓地，那之后，这张卡加入手卡。
 	local e2 = Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(m, 1))
-	e2:SetCategory(CATEGORY_TOGRAVE + CATEGORY_TOHAND)
+	e2:SetCategory(CATEGORY_DECKDES + CATEGORY_TOHAND)
 	e2:SetType(EFFECT_TYPE_SINGLE + EFFECT_TYPE_TRIGGER_O)
 	e2:SetCode(EVENT_TO_GRAVE)
 	e2:SetCountLimit(1, m + 2)
@@ -124,6 +109,7 @@ function cm.op1(e, tp, eg, ep, ev, re, r, rp)
 	end
 end
 
+-- 旧②用函数（保留但未使用）
 function cm.condition2(e, tp, eg, ep, ev, re, r, rp)
 	local c = e:GetHandler()
 	return re and
@@ -149,33 +135,41 @@ function cm.op2(e, tp, eg, ep, ev, re, r, rp)
 	end
 end
 
+-- 新②的条件与效果
 function cm.condition3(e, tp, eg, ep, ev, re, r, rp)
 	local c = e:GetHandler()
 	return re and
 		re:GetHandler():IsSetCard(0x3e11) and bit.band(r, REASON_EFFECT) ~= 0
 end
 
+--② 目标：自己或对方卡组至少有2张可送，且自身可回手
 function cm.tg3(e, tp, eg, ep, ev, re, r, rp, chk)
 	if chk == 0 then
-		return Duel.GetFieldGroupCount(tp, LOCATION_DECK, 0) >= 2 and
-			Duel.GetFieldGroupCount(tp, 0, LOCATION_DECK) >= 2 and e:GetHandler():IsAbleToHand()
+		local can_self = Duel.IsPlayerCanDiscardDeck(tp, 2)
+		local can_opp  = Duel.IsPlayerCanDiscardDeck(1 - tp, 2)
+		return (can_self or can_opp) and e:GetHandler():IsAbleToHand()
 	end
-	Duel.SetOperationInfo(0, CATEGORY_TOGRAVE, nil, 2, 0, LOCATION_DECK)
-	Duel.SetOperationInfo(0, CATEGORY_TOGRAVE, nil, 2, 1, LOCATION_DECK)
+	Duel.SetOperationInfo(0, CATEGORY_DECKDES, nil, 2, tp, LOCATION_DECK)
+	Duel.SetOperationInfo(0, CATEGORY_DECKDES, nil, 2, 1 - tp, LOCATION_DECK)
 	Duel.SetOperationInfo(0, CATEGORY_TOHAND, e:GetHandler(), 1, 0, 0)
 end
 
+--② 操作：从自己或对方卡组上面把2张卡送去墓地→这张卡加入手卡
 function cm.op3(e, tp, eg, ep, ev, re, r, rp)
-	local g1 = Duel.GetDecktopGroup(tp, 2)
-	local g2 = Duel.GetDecktopGroup(1 - tp, 2)
-	if #g1 > 0 then
-		Duel.SendtoGrave(g1, REASON_EFFECT)
+	local c = e:GetHandler()
+	local can_self = Duel.IsPlayerCanDiscardDeck(tp, 2)
+	local can_opp  = Duel.IsPlayerCanDiscardDeck(1 - tp, 2)
+	if not can_self and not can_opp then return end
+	local send_self
+	if can_self and can_opp then
+		send_self = Duel.SelectOption(tp, aux.Stringid(m, 2), aux.Stringid(m, 3)) == 0
+	else
+		send_self = can_self
 	end
-	if #g2 > 0 then
-		Duel.SendtoGrave(g2, REASON_EFFECT)
-	end
-	if e:GetHandler():IsRelateToEffect(e) then
-		Duel.SendtoHand(e:GetHandler(), nil, REASON_EFFECT)
-		Duel.ConfirmCards(1 - tp, e:GetHandler())
+	local target = send_self and tp or (1 - tp)
+	Duel.DiscardDeck(target, 2, REASON_EFFECT)
+	if c:IsRelateToEffect(e) and c:IsAbleToHand() then
+		Duel.SendtoHand(c, nil, REASON_EFFECT)
+		Duel.ConfirmCards(1 - tp, c)
 	end
 end

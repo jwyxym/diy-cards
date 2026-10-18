@@ -52,7 +52,7 @@ function s.filter(c)
 	return c:IsFaceup() and c:IsPosition(POS_DEFENSE)
 end
 function s.value(e,c)
-	return Duel.GetMatchingGroupCount(s.filter,0,LOCATION_MZONE,LOCATION_MZONE,nil)*500
+	return Duel.GetMatchingGroupCount(s.filter,0,LOCATION_MZONE,LOCATION_MZONE,nil)*600
 end
 function s.cfilter(c,tp)
 	return c:IsRace(RACE_PLANT) and (c:IsControler(tp) or c:IsFaceup())

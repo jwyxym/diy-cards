@@ -9,13 +9,13 @@ function s.initial_effect(c)
     e0:SetCode(EVENT_FREE_CHAIN)
     c:RegisterEffect(e0)
 
-    -- ① 本家不会被解放
+    -- ① 本家不会被对方解放，自己可以解放
     local e1=Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_FIELD)
     e1:SetCode(EFFECT_CANNOT_RELEASE)
     e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
     e1:SetRange(LOCATION_SZONE)
-    e1:SetTargetRange(1,0)
+    e1:SetTargetRange(0,1) -- 只限制对方玩家解放
     e1:SetTarget(s.rellimit)
     c:RegisterEffect(e1)
 
@@ -24,7 +24,7 @@ function s.initial_effect(c)
     e2:SetType(EFFECT_TYPE_FIELD)
     e2:SetCode(EFFECT_UPDATE_ATTACK)
     e2:SetRange(LOCATION_SZONE)
-    e2:SetTargetRange(0,LOCATION_MZONE)
+    e2:SetTargetRange(0,1) -- 对方场上的怪兽
     e2:SetValue(s.atkval)
     c:RegisterEffect(e2)
 

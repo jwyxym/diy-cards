@@ -10,7 +10,7 @@ function cm.initial_effect(c)
 	-- ①：这张卡连接召唤成功的场合才能发动。从自己墓地把1只「大墓」怪兽特殊召唤。那之后，自己场上有对方怪兽的场合，可以再从卡组把1只「大墓」卡送去墓地或除外。这个回合，自己不是不死族怪兽不能从额外卡组特殊召唤。
 	local e1 = Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(m, 0))
-	e1:SetCategory(CATEGORY_SPECIAL_SUMMON + CATEGORY_TOGRAVE)
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON + CATEGORY_TOGRAVE + CATEGORY_REMOVE)
 	e1:SetType(EFFECT_TYPE_SINGLE + EFFECT_TYPE_TRIGGER_O)
 	e1:SetCode(EVENT_SPSUMMON_SUCCESS)
 	e1:SetProperty(EFFECT_FLAG_DELAY)
@@ -20,24 +20,12 @@ function cm.initial_effect(c)
 	e1:SetOperation(cm.e1op)
 	c:RegisterEffect(e1)
 
-	-- ②：这张卡被除外的场合，以对方墓地1只怪兽为对象才能发动，那只怪兽效果无效并特殊召唤到自己场上，攻击力·守备力变为0，不能作为融合·同调·超量·链接的素材。
-	-- local e2 = Effect.CreateEffect(c)
-	-- e2:SetDescription(aux.Stringid(m, 1))
-	-- e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
-	-- e2:SetType(EFFECT_TYPE_SINGLE + EFFECT_TYPE_TRIGGER_O)
-	-- e2:SetProperty(EFFECT_FLAG_DELAY + EFFECT_FLAG_CARD_TARGET)
-	-- e2:SetCode(EVENT_REMOVE)
-	-- e2:SetCountLimit(1, m + 2)
-	-- e2:SetTarget(cm.e2tg)
-	-- e2:SetOperation(cm.e2op)
-	-- c:RegisterEffect(e2)
-
-	-- ②：这张卡被除外的场合才能发动。从卡组把不死族融合怪兽卡决定的融合素材怪兽最多3只送去墓地，把那1只融合怪兽从额外卡组融合召唤。这个效果发动后，自己不是「大墓」怪兽不能从额外卡组特殊召唤。
+	-- ②：这张卡被除外的场合才能发动。从自己除外状态把不死族融合怪兽卡决定的融合素材怪兽返回卡组，把那1只融合怪兽从额外卡组融合召唤（这个场合，特殊召唤当作融合召唤）。
 	local e2 = Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(m, 1))
-	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e2:SetCategory(CATEGORY_TODECK + CATEGORY_SPECIAL_SUMMON)
 	e2:SetType(EFFECT_TYPE_SINGLE + EFFECT_TYPE_TRIGGER_O)
-	e2:SetProperty(EFFECT_FLAG_DELAY + EFFECT_FLAG_CARD_TARGET)
+	e2:SetProperty(EFFECT_FLAG_DELAY)
 	e2:SetCode(EVENT_REMOVE)
 	e2:SetCountLimit(1, m + 2)
 	e2:SetTarget(cm.e2tg2)
@@ -78,17 +66,26 @@ function cm.e1op(e, tp, eg, ep, ev, re, r, rp)
 	Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SPSUMMON)
 	local g = Duel.SelectMatchingCard(tp, cm.spfilter, tp, LOCATION_GRAVE, 0, 1, 1, nil, e, tp)
 	if #g > 0 and Duel.SpecialSummon(g, 0, tp, tp, false, false, POS_FACEUP) > 0 then
-		-- 那之后，自己场上有对方怪兽的场合，可以再从卡组把1只「大墓」卡送去墓地或除外
+		-- 那之后，自己场上有对方怪兽的场合，可以选那只对方怪兽送去墓地
 		local g2 = Duel.GetMatchingGroup(cm.oppmonfilter, tp, LOCATION_MZONE, 0, nil)
-		if #g2 > 0 and Duel.IsExistingMatchingCard(cm.tgfilter, tp, LOCATION_DECK, 0, 1, nil) then
-			if Duel.SelectYesNo(tp, aux.Stringid(m, 2)) then
+		if #g2 > 0 then
+			-- 询问是否适用“那之后”效果（把对方怪兽送去墓地）
+			if Duel.SelectYesNo(tp, aux.Stringid(m, 4)) then
 				Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
-				local sg = Duel.SelectMatchingCard(tp, cm.tgfilter, tp, LOCATION_DECK, 0, 1, 1, nil)
-				if #sg > 0 then
-					if sg:GetFirst():IsAbleToRemove() and Duel.SelectYesNo(tp, aux.Stringid(m, 3)) then
-						Duel.Remove(sg, POS_FACEUP, REASON_EFFECT)
-					else
-						Duel.SendtoGrave(sg, REASON_EFFECT)
+				local sg2 = g2:Select(tp, 1, 1, nil)
+				Duel.SendtoGrave(sg2, REASON_EFFECT)
+				-- 可以再从卡组把1张「大墓」卡送去墓地或除外
+				if Duel.IsExistingMatchingCard(cm.tgfilter, tp, LOCATION_DECK, 0, 1, nil) then
+					if Duel.SelectYesNo(tp, aux.Stringid(m, 2)) then
+						Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
+						local sg = Duel.SelectMatchingCard(tp, cm.tgfilter, tp, LOCATION_DECK, 0, 1, 1, nil)
+						if #sg > 0 then
+							if sg:GetFirst():IsAbleToRemove() and Duel.SelectYesNo(tp, aux.Stringid(m, 3)) then
+								Duel.Remove(sg, POS_FACEUP, REASON_EFFECT)
+							else
+								Duel.SendtoGrave(sg, REASON_EFFECT)
+							end
+						end
 					end
 				end
 			end
@@ -110,23 +107,8 @@ function cm.splimit(e, c)
 	return not c:IsRace(RACE_ZOMBIE) and c:IsLocation(LOCATION_EXTRA)
 end
 
-function cm.xyzfilter(c, e, tp)
-	return c:IsCanBeSpecialSummoned(e, 0, tp, false, false)
-end
-
-function cm.e2tg(e, tp, eg, ep, ev, re, r, rp, chk, chkc)
-	if chkc then return chkc:IsLocation(LOCATION_GRAVE) and chkc:IsControler(1 - tp) and cm.xyzfilter(chkc, e, tp) end
-	if chk == 0 then
-		return Duel.GetLocationCount(tp, LOCATION_MZONE) > 0
-			and Duel.IsExistingTarget(cm.xyzfilter, tp, 0, LOCATION_GRAVE, 1, nil, e, tp)
-	end
-	Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SPSUMMON)
-	local g = Duel.SelectTarget(tp, cm.xyzfilter, tp, 0, LOCATION_GRAVE, 1, 1, nil, e, tp)
-	Duel.SetOperationInfo(0, CATEGORY_SPECIAL_SUMMON, g, 1, 0, 0)
-end
-
 function cm.filter1(c, e)
-	return c:IsType(TYPE_MONSTER) and c:IsAbleToGrave()
+	return c:IsType(TYPE_MONSTER) and c:IsAbleToDeck()
 end
 
 function cm.filter2(c, e, tp, m, f, chkf)
@@ -134,88 +116,27 @@ function cm.filter2(c, e, tp, m, f, chkf)
 		and c:IsCanBeSpecialSummoned(e, SUMMON_TYPE_FUSION, tp, false, false) and c:CheckFusionMaterial(m, nil, chkf)
 end
 
-function cm.fcheck(tp, sg, fc)
-	return sg:FilterCount(cm.ffilter, nil, tp) <= 3
-end
-
-function cm.gcheck(sg)
-	return #sg <= 3
-end
-
-function cm.ffilter(c, tp)
-	return c:IsControler(tp)
-end
-
 function cm.e2tg2(e, tp, eg, ep, ev, re, r, rp, chk)
 	local chkf = tp
-	local mg1 = Duel.GetMatchingGroup(cm.filter1, tp, LOCATION_DECK, 0, nil, e)
+	local mg = Duel.GetMatchingGroup(cm.filter1, tp, LOCATION_REMOVED, 0, nil, e)
 	if chk == 0 then
-		aux.FCheckAdditional = cm.fcheck
-		aux.GCheckAdditional = cm.gcheck
-		local res = Duel.IsExistingMatchingCard(cm.filter2, tp, LOCATION_EXTRA, 0, 1, nil, e, tp, mg1, nil, chkf)
-		if not res then
-			local ce = Duel.GetChainMaterial(tp)
-			if ce ~= nil then
-				local fgroup = ce:GetTarget()
-				local mg2 = fgroup(ce, e, tp)
-				local mf = ce:GetValue()
-				res = Duel.IsExistingMatchingCard(cm.filter2, tp, LOCATION_EXTRA, 0, 1, nil, e, tp, mg2, mf, chkf)
-			end
-		end
-		aux.FCheckAdditional = nil
-		aux.GCheckAdditional = nil
-		return res
+		return Duel.IsExistingMatchingCard(cm.filter2, tp, LOCATION_EXTRA, 0, 1, nil, e, tp, mg, nil, chkf)
 	end
-	Duel.SetOperationInfo(0, CATEGORY_TOGRAVE, mg1, 1, tp, LOCATION_DECK)
+	Duel.SetOperationInfo(0, CATEGORY_TODECK, mg, 1, tp, LOCATION_REMOVED)
 	Duel.SetOperationInfo(0, CATEGORY_SPECIAL_SUMMON, nil, 1, 0, 0)
 end
 
 function cm.e2op2(e, tp, eg, ep, ev, re, r, rp)
-	local c = e:GetHandler()
-	aux.FCheckAdditional = cm.fcheck
-	aux.GCheckAdditional = cm.gcheck
 	local chkf = tp
-	local mg1 = Duel.GetMatchingGroup(cm.filter1, tp, LOCATION_DECK, 0, nil, e)
-	local sg1 = Duel.GetMatchingGroup(cm.filter2, tp, LOCATION_EXTRA, 0, nil, e, tp, mg1, nil, chkf)
-	local mg2 = nil
-	local sg2 = nil
-	local ce = Duel.GetChainMaterial(tp)
-	if ce ~= nil then
-		local fgroup = ce:GetTarget()
-		mg2 = fgroup(ce, e, tp)
-		local mf = ce:GetValue()
-		sg2 = Duel.GetMatchingGroup(cm.filter2, tp, LOCATION_EXTRA, 0, nil, e, tp, mg2, mf, chkf)
-	end
-	if sg1:GetCount() > 0 or (sg2 ~= nil and sg2:GetCount() > 0) then
-		local sg = sg1:Clone()
-		if sg2 then sg:Merge(sg2) end
+	local mg = Duel.GetMatchingGroup(cm.filter1, tp, LOCATION_REMOVED, 0, nil, e)
+	local sg = Duel.GetMatchingGroup(cm.filter2, tp, LOCATION_EXTRA, 0, nil, e, tp, mg, nil, chkf)
+	if sg:GetCount() > 0 then
 		Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SPSUMMON)
-		local tg = sg:Select(tp, 1, 1, nil)
-		local tc = tg:GetFirst()
-		if sg1:IsContains(tc) and (sg2 == nil or not sg2:IsContains(tc) or not Duel.SelectYesNo(tp, ce:GetDescription())) then
-			local mat1 = Duel.SelectFusionMaterial(tp, tc, mg1, nil, chkf)
-			tc:SetMaterial(mat1)
-			Duel.SendtoGrave(mat1, REASON_EFFECT + REASON_MATERIAL + REASON_FUSION)
-			Duel.BreakEffect()
-			Duel.SpecialSummon(tc, SUMMON_TYPE_FUSION, tp, tp, false, false, POS_FACEUP)
-		else
-			local mat2 = Duel.SelectFusionMaterial(tp, tc, mg2, nil, chkf)
-			local fop = ce:GetOperation()
-			fop(ce, e, tp, tc, mat2)
-		end
+		local tc = sg:Select(tp, 1, 1, nil):GetFirst()
+		local mat = Duel.SelectFusionMaterial(tp, tc, mg, nil, chkf)
+		tc:SetMaterial(mat)
+		Duel.SendtoDeck(mat, nil, SEQ_DECKSHUFFLE, REASON_EFFECT + REASON_MATERIAL + REASON_FUSION)
+		Duel.BreakEffect()
+		Duel.SpecialSummon(tc, SUMMON_TYPE_FUSION, tp, tp, false, false, POS_FACEUP)
 	end
-	aux.FCheckAdditional = nil
-	aux.GCheckAdditional = nil
-	local e2 = Effect.CreateEffect(e:GetHandler())
-	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e2:SetTargetRange(1, 0)
-	e2:SetReset(RESET_PHASE + PHASE_END)
-	e2:SetTarget(cm.splimit2)
-	Duel.RegisterEffect(e2, tp)
-end
-
-function cm.splimit2(e, c, sump, sumtype, sumpos, targetp, se)
-	return c:IsLocation(LOCATION_EXTRA) and not c:IsSetCard(0x3e11)
 end

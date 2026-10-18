@@ -1,12 +1,12 @@
 -- 决定性的一句话 若叶睦
 -- ID: 26062905
 -- 记述「春日影」(26062911)
--- 「丰川祥子」字段 (0xb10)
+-- 「丰川祥子」字段：0xb10
 local s,id=GetID()
 function s.initial_effect(c)
-    aux.AddCodeList(c,26062911)  -- 声明卡名记述
+    aux.AddCodeList(c,26062911)
 
-    -- ① 手卡起动，效果送墓自身，特召植物族以外的墓地·除外记述「春日影」怪兽，若为「丰川祥子」怪兽可抽1
+    -- ① 手卡起动，效果送墓自身，特召植物族以外的墓地·除外记述「春日影」怪兽，若祥子可抽1
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))
     e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_DRAW)
@@ -17,7 +17,7 @@ function s.initial_effect(c)
     e1:SetOperation(s.operation1)
     c:RegisterEffect(e1)
 
-    -- ② 墓地起动，破坏自己场上1张记述「春日影」卡，特召自身，本回合额外只能特召光属性同调怪兽
+    -- ② 墓地起动，破坏自己场上1张记述「春日影」卡，特召自身，本回合只能特召「春日影」记述怪兽
     local e2=Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id,1))
     e2:SetCategory(CATEGORY_DESTROY+CATEGORY_SPECIAL_SUMMON)
@@ -30,7 +30,7 @@ function s.initial_effect(c)
     c:RegisterEffect(e2)
 end
 
--- ① 对象：植物族以外，自己墓地或除外的记述「春日影」怪兽
+-- ① 目标：植物族以外，自己墓地或除外的记述「春日影」怪兽
 function s.filter1(c,e,tp)
     return aux.IsCodeListed(c,26062911) and not c:IsRace(RACE_PLANT)
         and (c:IsLocation(LOCATION_GRAVE) or c:IsLocation(LOCATION_REMOVED))
@@ -40,7 +40,7 @@ function s.target1(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
     local c=e:GetHandler()
     if chkc then return chkc:IsControler(tp) and s.filter1(chkc,e,tp) end
     if chk==0 then
-        if not c:IsAbleToGrave() then return false end  -- 虹光宣告者等除外代破对策
+        if not c:IsAbleToGrave() then return false end
         return Duel.IsExistingTarget(s.filter1,tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,e,tp)
     end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
@@ -53,7 +53,6 @@ function s.operation1(e,tp,eg,ep,ev,re,r,rp)
     if Duel.SendtoGrave(c,REASON_EFFECT)~=0 then
         local tc=Duel.GetFirstTarget()
         if tc:IsRelateToEffect(e) and Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)>0 then
-            -- 如果是「丰川祥子」怪兽 (0xb10)，可以抽1张
             if tc:IsSetCard(0xb10) and Duel.IsPlayerCanDraw(tp,1)
                 and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
                 Duel.Draw(tp,1,REASON_EFFECT)
@@ -62,7 +61,7 @@ function s.operation1(e,tp,eg,ep,ev,re,r,rp)
     end
 end
 
--- ② 对象：自己场上1张记述「春日影」的卡
+-- ② 目标：自己场上1张记述「春日影」的卡
 function s.filter2(c)
     return aux.IsCodeListed(c,26062911) and c:IsFaceup()
 end
@@ -78,6 +77,7 @@ function s.target2(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 end
 -- ② 操作
 function s.operation2(e,tp,eg,ep,ev,re,r,rp)
+    -- 自肃：本回合只能特殊召唤有「春日影」卡名记述的怪兽
     local e1=Effect.CreateEffect(e:GetHandler())
     e1:SetType(EFFECT_TYPE_FIELD)
     e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -95,6 +95,8 @@ function s.operation2(e,tp,eg,ep,ev,re,r,rp)
         end
     end
 end
+
+-- ② 自肃：只能特殊召唤有「春日影」卡名记述的怪兽
 function s.splimit(e,c)
-    return c:IsLocation(LOCATION_EXTRA) and not (c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsType(TYPE_SYNCHRO))
+    return not aux.IsCodeListed(c,26062911)
 end

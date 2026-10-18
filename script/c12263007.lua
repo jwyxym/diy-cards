@@ -123,12 +123,13 @@ function c12263007.eqop2(e,tp,eg,ep,ev,re,r,rp)
 end
 
 --==============================
---③ 效果：完全复刻珠泪小美人鱼格式
+--③ 效果：双方场上·墓地最多2只怪兽当作装备魔法卡装备
 --==============================
 --连接怪兽过滤
 function c12263007.lkfilter(c,e,tp)
     return c:IsType(TYPE_LINK) and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_LINK,tp,false,false)
 end
+
 --素材过滤
 function c12263007.matfilter(c,rc)
     return c:IsLocation(LOCATION_GRAVE) and rc:GetMaterial():IsContains(c)
@@ -142,13 +143,14 @@ function c12263007.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
     Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 end
 
---③ 双方场上·墓地 最多2只装备（修复遍历方法）
+--③ 双方场上·墓地 最多2只装备
 function c12263007.eqtg3(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
     if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsFaceup() end
     if chk==0 then
         return Duel.IsExistingTarget(Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil)
-        and Duel.IsExistingMatchingCard(Card.IsCanBeEquippedTo,tp,LOCATION_MZONE+LOCATION_GRAVE,LOCATION_MZONE+LOCATION_GRAVE,1,nil)
+            and Duel.IsExistingMatchingCard(Card.IsCanBeEquippedTo,tp,LOCATION_MZONE+LOCATION_GRAVE,LOCATION_MZONE+LOCATION_GRAVE,1,nil)
     end
+    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
     Duel.SelectTarget(tp,Card.IsFaceup,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
 end
 
@@ -158,10 +160,11 @@ function c12263007.eqop3(e,tp,eg,ep,ev,re,r,rp)
 
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
     local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(Card.IsCanBeEquippedTo),tp,LOCATION_MZONE+LOCATION_GRAVE,LOCATION_MZONE+LOCATION_GRAVE,1,2,nil)
-    -- 修复：用标准while循环替代错误的Iter()
     local ec=g:GetFirst()
     while ec do
-        if Duel.Equip(tp,ec,tc,true) then
+        -- 按卡原本持有者决定装备卡归属
+        local owner=ec:GetOwner()
+        if Duel.Equip(owner,ec,tc,true) then
             local e1=Effect.CreateEffect(e:GetHandler())
             e1:SetType(EFFECT_TYPE_SINGLE)
             e1:SetCode(EFFECT_EQUIP_LIMIT)
@@ -172,6 +175,7 @@ function c12263007.eqop3(e,tp,eg,ep,ev,re,r,rp)
         ec=g:GetNext()
     end
 end
+
 --天水怪兽过滤
 function c12263007.eqfilter(c)
     return c:IsSetCard(0x5244) and c:IsType(TYPE_MONSTER) and not c:IsForbidden()

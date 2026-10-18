@@ -18,7 +18,7 @@ function s.initial_effect(c)
 	--② 把自己手卡·场上1张卡送墓，这张卡当作永续魔法卡放置，那之后可以特召
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TOGRAVE)
+	e2:SetCategory(CATEGORY_TOGRAVE+CATEGORY_SPECIAL_SUMMON)
 	e2:SetType(EFFECT_TYPE_QUICK_O)
 	e2:SetCode(EVENT_FREE_CHAIN)
 	e2:SetRange(LOCATION_MZONE)
@@ -28,7 +28,7 @@ function s.initial_effect(c)
 	e2:SetOperation(s.placeop)
 	c:RegisterEffect(e2)
 	
-	--③-1 战斗伤害由对方代受
+	--③-1 战斗伤害由对方代受（自己回合）
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_FIELD)
 	e3:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
@@ -36,10 +36,10 @@ function s.initial_effect(c)
 	e3:SetRange(LOCATION_SZONE)
 	e3:SetTargetRange(1,0)
 	e3:SetValue(1)
-	e3:SetCondition(s.con3)
+	e3:SetCondition(s.con3b)
 	c:RegisterEffect(e3)
 	
-	--③-1 效果伤害由对方代受
+	--③-1 效果伤害由对方代受（自己回合）
 	local e3b=Effect.CreateEffect(c)
 	e3b:SetType(EFFECT_TYPE_FIELD)
 	e3b:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
@@ -47,10 +47,10 @@ function s.initial_effect(c)
 	e3b:SetRange(LOCATION_SZONE)
 	e3b:SetTargetRange(1,0)
 	e3b:SetValue(s.rfval)
-	e3b:SetCondition(s.con3)
+	e3b:SetCondition(s.con3b)
 	c:RegisterEffect(e3b)
 	
-	--③-2 1回合1次，把除外状态最多3张卡回到墓地
+	--③-2 1回合1次，把双方除外状态最多3张卡回到墓地
 	local e4=Effect.CreateEffect(c)
 	e4:SetDescription(aux.Stringid(id,2))
 	e4:SetCategory(CATEGORY_TOGRAVE)
@@ -74,6 +74,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e5)
 end
 
+--① cost：解放自己场上1只怪兽
 function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.CheckReleaseGroup(tp,nil,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
@@ -81,6 +82,7 @@ function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.Release(g,REASON_COST)
 end
 
+--① 目标
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
@@ -88,6 +90,7 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)
 end
 
+--① 处理
 function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if c:IsRelateToEffect(e) then
@@ -95,6 +98,7 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
+--② cost：手卡·场上1张卡送墓（不能选自己）
 function s.costfilter(c,e)
 	return c:IsAbleToGraveAsCost() and c~=e:GetHandler()
 end
@@ -106,16 +110,14 @@ function s.placecost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SendtoGrave(g,REASON_COST)
 end
 
-function s.placefilter(c,e,tp)
-	return aux.IsCodeListed(c,48179391) and c:IsType(TYPE_MONSTER) 
-		and c:IsCanBeSpecialSummoned(e,0,tp,true,true)
-end
-
+--② 目标
 function s.placetg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return true end
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0 end
+	Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,e:GetHandler(),1,0,0)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_HAND+LOCATION_GRAVE)
 end
 
+--② 处理：当作永续魔法卡放置，那之后可以特召
 function s.placeop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if not c:IsRelateToEffect(e) then return end
@@ -129,27 +131,43 @@ function s.placeop(e,tp,eg,ep,ev,re,r,rp)
 	e1:SetValue(TYPE_SPELL+TYPE_CONTINUOUS)
 	e1:SetReset(RESET_EVENT+RESETS_STANDARD-RESET_TURN_SET)
 	c:RegisterEffect(e1)
+	-- 那之后，可以选自己手卡·墓地的1只有「山铜结界」卡名记述的怪兽特召
 	if Duel.IsExistingMatchingCard(s.placefilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,nil,e,tp)
 		and Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 		and Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-		local g=Duel.SelectMatchingCard(tp,s.placefilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,1,nil,e,tp)
+		local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.placefilter),tp,LOCATION_HAND+LOCATION_GRAVE,0,1,1,nil,e,tp)
 		if #g>0 then
 			Duel.BreakEffect()
-			Duel.SpecialSummon(g,0,tp,tp,true,true,POS_FACEUP)
+			Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
 		end
 	end
 end
 
+--② 特召过滤：有「山铜结界」卡名记述的怪兽（普通特召）
+function s.placefilter(c,e,tp)
+	return aux.IsCodeListed(c,48179391) and c:IsType(TYPE_MONSTER) 
+		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+end
+
+--③ 通用条件：作为永续魔法卡表侧表示存在
 function s.con3(e)
 	local c=e:GetHandler()
 	return c:IsFaceup() and c:IsLocation(LOCATION_SZONE)
 end
 
+--③-1 条件：作为永续魔法卡表侧表示存在，且是自己回合
+function s.con3b(e)
+	if not s.con3(e) then return false end
+	return Duel.GetTurnPlayer()==e:GetHandlerPlayer()
+end
+
+--③-1 效果伤害反射
 function s.rfval(e,re,val,r,rp,rc)
 	return bit.band(r,REASON_EFFECT)~=0
 end
 
+--③-2 目标：双方除外状态最多3张卡回到墓地
 function s.refilter(c)
 	return c:IsAbleToGrave() and c:IsLocation(LOCATION_REMOVED)
 end
@@ -159,6 +177,7 @@ function s.retg(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_REMOVED)
 end
 
+--③-2 处理
 function s.reop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
 	local g=Duel.SelectMatchingCard(tp,s.refilter,tp,LOCATION_REMOVED,LOCATION_REMOVED,1,3,nil)
@@ -167,6 +186,7 @@ function s.reop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
+--③-3 自肃：不能从额外卡组特召
 function s.splimit(e,c)
 	return c:IsLocation(LOCATION_EXTRA)
 end

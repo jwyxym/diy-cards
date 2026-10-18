@@ -19,7 +19,7 @@ function s.initial_effect(c)
 	e1:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_PZONE)
-	e1:SetCountLimit(1,id+o)
+	e1:SetCountLimit(1)
 	e1:SetCost(s.thcost)
 	e1:SetTarget(s.thtg)
 	e1:SetOperation(s.thop)
@@ -40,7 +40,7 @@ function s.initial_effect(c)
 	e3:SetCategory(CATEGORY_DESTROY)
 	e3:SetType(EFFECT_TYPE_IGNITION)
 	e3:SetRange(LOCATION_MZONE)
-	e3:SetCountLimit(1,id+o*100)
+	e3:SetCountLimit(1,id+o)
 	e3:SetTarget(s.pentg)
 	e3:SetOperation(s.penop)
 	c:RegisterEffect(e3)
@@ -58,8 +58,8 @@ function s.thop1(e,tp,eg,ep,ev,re,r,rp)
 	Duel.SendtoHand(c,nil,REASON_EFFECT)
 end
 function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckLPCost(tp,300) end
-	Duel.PayLPCost(tp,300)
+	if chk==0 then return Duel.CheckLPCost(tp,500) end
+	Duel.PayLPCost(tp,500)
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetFieldGroupCount(tp,LOCATION_DECK,0)>=3 end

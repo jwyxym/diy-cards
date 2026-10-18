@@ -1,9 +1,8 @@
 -- 鬼八仙·各显神通 (ID:99849226)
 local s,id=GetID()
 function s.initial_effect(c)
-	aux.AddCodeList(c,99849227)  
+	aux.AddCodeList(c,99849227)
 
-  
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_TOGRAVE+CATEGORY_DRAW)
@@ -14,7 +13,6 @@ function s.initial_effect(c)
 	e1:SetOperation(s.operation1)
 	c:RegisterEffect(e1)
 
- 
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
@@ -27,10 +25,11 @@ function s.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 
--- ========== ① ==========
+-- ========== ①  ==========
 
 function s.send_filter(c)
-	return c:IsType(TYPE_SPELL+TYPE_TRAP) and (c:IsCode(99849227) or aux.IsCodeListed(c,99849227))
+	return c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToGrave()
+		and (c:IsCode(99849227) or aux.IsCodeListed(c,99849227))
 end
 
 
@@ -53,28 +52,30 @@ function s.dmg_check(e,tp)
 	return s.gy_count(tp)>=3
 end
 
+
 function s.target1(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then
 		return Duel.IsExistingMatchingCard(s.send_filter, tp, LOCATION_DECK, 0, 1, nil)
 	end
 	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_DECK)
-	if s.draw_check(e,tp) then
+	if Duel.IsPlayerCanDraw(tp,1) then
 		Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,1)
 	end
 end
+
 
 function s.operation1(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
 	local g=Duel.SelectMatchingCard(tp, s.send_filter, tp, LOCATION_DECK, 0, 1, 1, nil)
 	if #g==0 then return end
-	Duel.SendtoGrave(g, REASON_EFFECT)
+	if Duel.SendtoGrave(g, REASON_EFFECT)==0 then return end
 
-	-- ●1张
+
 	if s.draw_check(e,tp) then
 		Duel.Draw(tp, 1, REASON_EFFECT)
 	end
 
-	-- ●2张
+
 	if s.ac_check(e,tp) then
 		local e1=Effect.CreateEffect(e:GetHandler())
 		e1:SetType(EFFECT_TYPE_FIELD)
@@ -87,7 +88,6 @@ function s.operation1(e,tp,eg,ep,ev,re,r,rp)
 		Duel.RegisterEffect(e1, tp)
 	end
 
-	-- ●3张：
 
 	if s.dmg_check(e,tp) then
 		local e2=Effect.CreateEffect(e:GetHandler())
@@ -98,38 +98,50 @@ function s.operation1(e,tp,eg,ep,ev,re,r,rp)
 		e2:SetTargetRange(0,1)
 		e2:SetCondition(s.damcon)
 		e2:SetValue(DOUBLE_DAMAGE)
+		e2:SetLabel(tp)
 		e2:SetReset(RESET_PHASE+PHASE_END)
 		Duel.RegisterEffect(e2, tp)
 	end
 end
 
---●2张：
 
-function s.aclimit(e, re, tp)
+function s.is_battle_phase()
 	local ph=Duel.GetCurrentPhase()
-	if ph<PHASE_BATTLE_START or ph>PHASE_BATTLE_END then return false end
-	local rc=re:GetHandler()
-	return rc:IsLocation(LOCATION_ONFIELD) and rc:IsType(TYPE_SPELL+TYPE_TRAP)
+	return ph>=PHASE_BATTLE_START and ph<=PHASE_BATTLE
 end
 
--- ●3张
+function s.is_facedown_st(c)
+	return c and c:IsLocation(LOCATION_SZONE)
+		and c:IsFacedown()
+		and c:IsType(TYPE_SPELL+TYPE_TRAP)
+end
+
+
+function s.aclimit(e, re, tp)
+	if not s.is_battle_phase() then return false end
+	return s.is_facedown_st(re:GetHandler())
+end
+
 
 function s.damcon(e)
-	local tp=e:GetHandlerPlayer()
+	local tp=e:GetLabel()
 	local a=Duel.GetAttacker()
 	return a and a:IsControler(tp) and a:IsFaceup() and a:IsRace(RACE_ZOMBIE)
 end
 
 -- ========== ② ==========
 
+
 function s.thfilter2(c)
 	return c:IsCode(99849227) and c:IsAbleToHand()
 end
+
 
 function s.cost2(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsAbleToRemoveAsCost() end
 	Duel.Remove(e:GetHandler(), POS_FACEUP, REASON_COST)
 end
+
 
 function s.target2(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then
@@ -138,6 +150,7 @@ function s.target2(e,tp,eg,ep,ev,re,r,rp,chk)
 	end
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
 end
+
 
 function s.operation2(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_ATOHAND)

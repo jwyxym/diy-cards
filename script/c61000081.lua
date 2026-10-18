@@ -32,6 +32,31 @@ function s.initial_effect(c)
 	e3:SetType(EFFECT_TYPE_EQUIP)
 	e3:SetCode(EFFECT_DISABLE)
 	c:RegisterEffect(e3)
+
+	-- ②-3：有这张卡装备的怪兽不能作为融合·同调·超量·连接召唤的素材
+	local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_EQUIP)
+	e4:SetCode(EFFECT_CANNOT_BE_FUSION_MATERIAL)
+	e4:SetValue(s.fuslimit)
+	c:RegisterEffect(e4)
+
+	local e5=Effect.CreateEffect(c)
+	e5:SetType(EFFECT_TYPE_EQUIP)
+	e5:SetCode(EFFECT_CANNOT_BE_SYNCHRO_MATERIAL)
+	e5:SetValue(1)
+	c:RegisterEffect(e5)
+
+	local e6=Effect.CreateEffect(c)
+	e6:SetType(EFFECT_TYPE_EQUIP)
+	e6:SetCode(EFFECT_CANNOT_BE_XYZ_MATERIAL)
+	e6:SetValue(1)
+	c:RegisterEffect(e6)
+
+	local e7=Effect.CreateEffect(c)
+	e7:SetType(EFFECT_TYPE_EQUIP)
+	e7:SetCode(EFFECT_CANNOT_BE_LINK_MATERIAL)
+	e7:SetValue(1)
+	c:RegisterEffect(e7)
 end
 
 -- ==================== ① 效果逻辑 ====================
@@ -72,4 +97,8 @@ end
 
 function s.eqlimit(e,c)
 	return c==e:GetLabelObject()
+end
+
+function s.fuslimit(e,c,sumtype)
+	return sumtype==SUMMON_TYPE_FUSION
 end

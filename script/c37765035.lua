@@ -2,7 +2,7 @@
 function c37765035.initial_effect(c)
 	--Activate
 	local e1=Effect.CreateEffect(c)
-	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH+CATEGORY_ATKCHANGE)
+	e1:SetCategory(CATEGORY_ATKCHANGE)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetTarget(c37765035.target)
@@ -424,7 +424,7 @@ function c37765035.seqfilter(c,tp,seq)
 	return c_col==seq
 end
 function c37765035.thcon(e,tp,eg,ep,ev,re,r,rp)
-	return eg:IsExists(function(c) return e:GetLabelObject():GetLabelObject():IsContains(c) end,1,nil)
+	return e:GetLabel()~=114 and eg:IsExists(function(c) return e:GetLabelObject():GetLabelObject():IsContains(c) end,1,nil)
 end
 function c37765035.thfilter(c)
 	return c:IsCode(37765035) and c:IsAbleToHand() and aux.NecroValleyFilter()(c)
@@ -436,10 +436,23 @@ function c37765035.thop(e,tp,eg,ep,ev,re,r,rp)
 	if (#tg==0 and #g==0) or not Duel.SelectYesNo(tp,aux.Stringid(m,0)) then
 		for tc in aux.Next(eg) do
 			tc:ResetFlagEffect(m)
-			e:GetLabelObject():GetLabelObject():RemoveCard(tc)
+			local ge1=e:GetLabelObject()
+			if aux.GetValueType(ge1)=="Effect" then
+				local g1=ge1:GetLabelObject()
+				if aux.GetValueType(g1)=="Group" then g1:RemoveCard(tc) end
+			end
 		end
 		return
 	end
+	-- 确认适用后注销双轨监听
+	e:SetLabel(114)
+	local ge1=e:GetLabelObject()
+	if aux.GetValueType(ge1)=="Effect" then
+		local g1=ge1:GetLabelObject()
+		--if aux.GetValueType(g1)=="Group" then g1:DeleteGroup() end
+		ge1:Reset()
+	end
+	e:Reset()
 	Duel.Hint(HINT_CARD,0,m)
 	for tc in aux.Next(eg) do tc:ResetFlagEffect(m) end
 	if #g>0 then
@@ -449,12 +462,4 @@ function c37765035.thop(e,tp,eg,ep,ev,re,r,rp)
 		tg:Merge(sg)
 	end
 	Duel.SendtoHand(tg,nil,REASON_EFFECT)
-	-- 确认适用后注销双轨监听
-	local ge1=e:GetLabelObject()
-	if aux.GetValueType(ge1)=="Effect" then
-		local g1=ge1:GetLabelObject()
-		if aux.GetValueType(g1)=="Group" then g1:DeleteGroup() end
-		ge1:Reset()
-	end
-	e:Reset()
 end

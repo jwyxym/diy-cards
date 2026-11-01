@@ -485,7 +485,7 @@ function c37765015.thcon(e,tp,eg,ep,ev,re,r,rp)
 	local ge1=e:GetLabelObject()
 	local tc=ge1:GetLabelObject()
 	-- 必须满足：即时轨已确认送墓事实，且本次释放的移动批次包含该卡
-	return ge1:GetLabel()==1 and eg:IsContains(tc)
+	return e:GetLabel()~=114 and ge1:GetLabel()==1 and eg:IsContains(tc)
 end
 
 function c37765015.thop(e,tp,eg,ep,ev,re,r,rp)
@@ -508,7 +508,11 @@ function c37765015.thop(e,tp,eg,ep,ev,re,r,rp)
 	end
 
 	-- 无论最终是否回手成功，86 时点到达即代表该事件已消费完毕，注销双轨
-	ge1:Reset()
+	e:SetLabel(114)
+	local ge1=e:GetLabelObject()
+	if aux.GetValueType(ge1)=="Effect" then
+		ge1:Reset()
+	end
 	e:Reset()
 
 	-- 只要任一目标有效（无论是双回、只回墓地那张、还是只回场上的卡）均执行

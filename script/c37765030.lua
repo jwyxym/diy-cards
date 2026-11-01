@@ -419,7 +419,7 @@ function c37765030.seqfilter(c,tp,seq)
 	return c_col==seq
 end
 function c37765030.thcon(e,tp,eg,ep,ev,re,r,rp)
-	return eg:IsExists(function(c) return e:GetLabelObject():GetLabelObject():IsContains(c) end,1,nil)
+	return e:GetLabel()~=114 and eg:IsExists(function(c) return e:GetLabelObject():GetLabelObject():IsContains(c) end,1,nil)
 end
 function c37765030.thfilter(c)
 	return c:IsCode(37765030) and c:IsAbleToHand() and aux.NecroValleyFilter()(c)
@@ -431,15 +431,20 @@ function c37765030.thop(e,tp,eg,ep,ev,re,r,rp)
 	if (#tg==0 and #g==0) or not Duel.SelectYesNo(tp,aux.Stringid(m,0)) then
 		for tc in aux.Next(eg) do
 			tc:ResetFlagEffect(m)
-			e:GetLabelObject():GetLabelObject():RemoveCard(tc)
+			local ge1=e:GetLabelObject()
+			if aux.GetValueType(ge1)=="Effect" then
+				local g1=ge1:GetLabelObject()
+				if aux.GetValueType(g1)=="Group" then g1:RemoveCard(tc) end
+			end
 		end
 		return
 	end
 	-- 确认适用后注销双轨监听
+	e:SetLabel(114)
 	local ge1=e:GetLabelObject()
 	if aux.GetValueType(ge1)=="Effect" then
 		local g1=ge1:GetLabelObject()
-		if aux.GetValueType(g1)=="Group" then g1:DeleteGroup() end
+		--if aux.GetValueType(g1)=="Group" then g1:DeleteGroup() end
 		ge1:Reset()
 	end
 	e:Reset()

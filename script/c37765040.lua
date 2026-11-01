@@ -14,15 +14,6 @@ function c37765040.initial_effect(c)
 	e1:SetTarget(aux.TargetBoolFunction(Card.IsSetCard,0x2a4))
 	e1:SetTargetRange(LOCATION_HAND,0)
 	c:RegisterEffect(e1)
-	--cannot remove
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetCode(EFFECT_CANNOT_REMOVE)
-	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e2:SetCondition(Duel.IsBattlePhase)
-	e2:SetRange(LOCATION_FZONE)
-	e2:SetTargetRange(1,1)
-	c:RegisterEffect(e2)
 	--set
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(37765040,1))
@@ -438,7 +429,7 @@ function c37765040.seqfilter(c,tp,seq)
 	return c_col==seq
 end
 function c37765040.tfcon(e,tp,eg,ep,ev,re,r,rp)
-	return eg:IsExists(function(c) return e:GetLabelObject():GetLabelObject():IsContains(c) end,1,nil)
+	return e:GetLabel()~=114 and eg:IsExists(function(c) return e:GetLabelObject():GetLabelObject():IsContains(c) end,1,nil)
 end
 function c37765040.tffilter(c,tp)
 	return c:IsCode(37765040) and not c:IsForbidden() and c:CheckUniqueOnField(tp) and aux.NecroValleyFilter()(c)
@@ -447,10 +438,23 @@ function c37765040.tfop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.GetMatchingGroup(c37765040.tffilter,tp,LOCATION_GRAVE,0,nil,tp)
 	if #g==0 or not Duel.SelectYesNo(tp,aux.Stringid(37765040,0)) then
 		for tc in aux.Next(eg) do
-			e:GetLabelObject():GetLabelObject():RemoveCard(tc)
+			local ge1=e:GetLabelObject()
+			if aux.GetValueType(ge1)=="Effect" then
+				local g1=ge1:GetLabelObject()
+				if aux.GetValueType(g1)=="Group" then g1:RemoveCard(tc) end
+			end
 		end
 		return
 	end
+	-- 确认适用后注销双轨监听
+	e:SetLabel(114)
+	local ge1=e:GetLabelObject()
+	if aux.GetValueType(ge1)=="Effect" then
+		local g1=ge1:GetLabelObject()
+		--if aux.GetValueType(g1)=="Group" then g1:DeleteGroup() end
+		ge1:Reset()
+	end
+	e:Reset()
 	Duel.Hint(HINT_CARD,0,37765040)
 	local tc=g:GetFirst()
 	if #g>=2 then
@@ -463,12 +467,4 @@ function c37765040.tfop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.BreakEffect()
 	end
 	Duel.MoveToField(tc,tp,tp,LOCATION_FZONE,POS_FACEUP,true)
-	-- 确认适用后注销双轨监听
-	local ge1=e:GetLabelObject()
-	if aux.GetValueType(ge1)=="Effect" then
-		local g1=ge1:GetLabelObject()
-		if aux.GetValueType(g1)=="Group" then g1:DeleteGroup() end
-		ge1:Reset()
-	end
-	e:Reset()
 end

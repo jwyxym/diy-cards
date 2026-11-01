@@ -39,7 +39,7 @@ function c38030160.qcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsPlayerAffectedByEffect(tp,38030153)~=nil and e:GetHandler():IsOriginalSetCard(0x5616)
 end
 function c38030160.sltg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) and aux.NegateMonsterFilter(chkc) end
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(1-tp) end
 	local b1=Duel.IsExistingTarget(nil,tp,0,LOCATION_MZONE,1,nil)
 	local b2=true
 	if chk==0 then return b1 or b2 end
@@ -49,7 +49,7 @@ function c38030160.sltg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 		{b2,aux.Stringid(38030160,1)},
 		{b3,aux.Stringid(38030160,2)})
 	e:SetLabel(op)
-	if op~=1 then
+	if op~=2 then
 		e:SetProperty(EFFECT_FLAG_CARD_TARGET)
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
 		local g=Duel.SelectTarget(tp,nil,tp,0,LOCATION_MZONE,1,1,nil)
@@ -57,7 +57,7 @@ function c38030160.sltg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	else
 		e:SetProperty(0)
 	end
-	if op~=2 then Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,tp,2000) end
+	if op~=1 then Duel.SetOperationInfo(0,CATEGORY_RECOVER,nil,0,tp,2000) end
 	local cat=op==1 and CATEGORY_DESTROY or CATEGORY_RECOVER
 	if op==3 then cat=CATEGORY_DESTROY+CATEGORY_RECOVER end
 	e:SetCategory(cat)

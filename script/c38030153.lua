@@ -31,7 +31,7 @@ function c38030153.initial_effect(c)
 	c:RegisterEffect(e4)
 end
 function c38030153.matfilter(c,fc,sub,mg,sg)
-	local tc=sg:Filter(Card.IsFusionCode,nil,38030168):GetFirst()
+	local tc=sg and sg:Filter(Card.IsFusionCode,nil,38030168):GetFirst() or nil
 	return c:IsFusionType(TYPE_EFFECT) and (not sg or not sg:Filter(Card.IsFusionType,tc,TYPE_EFFECT):IsExists(Card.IsFusionSetCard,1,nil,0x5616))
 end
 function c38030153.atkop(e,tp,eg,ep,ev,re,r,rp)

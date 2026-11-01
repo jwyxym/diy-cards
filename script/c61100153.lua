@@ -36,13 +36,12 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
 	Duel.SetTargetPlayer(1-tp)
 	Duel.SetTargetParam(te)
 	if tc~=nil then Duel.SetTargetCard(tc) else end
-	Duel.GetChainInfo(ev,CHAININFO_TRIGGERING_EFFECT)
 	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) then
 		local ec=eg:GetFirst()
 		ec:CancelToGrave()
 		if Duel.SendtoHand(ec,c:GetControler(),REASON_EFFECT) then
 			local operation=re:GetOperation()
-			operation(re,1-c:GetControler(),nil,0,0,0,0,0)
+			operation(re,1-c:GetControler(),nil,0,ev-1,0,0,0)
 		end
 	end
 end

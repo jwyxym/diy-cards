@@ -62,12 +62,12 @@ function s.xyzop(e,tp,chk)
 	if chk==0 then return ct>0 end
 	Duel.DiscardHand(tp,s.hdfilter,ct,ct,REASON_COST+REASON_DISCARD,nil)
 end
---①：可以在这张卡下面重叠作为超量素材的自己的卡（场上的卡需要表侧表示）
+--①：可以在这张卡下面重叠作为超量素材的自己的卡（里侧卡也可以；但本回合盖放的卡按引擎规则不能作为超量素材）
 function s.mtfilter(c,tc)
-	return c:IsCanOverlay() and c~=tc and (not c:IsLocation(LOCATION_ONFIELD) or c:IsFaceup())
+	return c:IsCanOverlay() and c~=tc
 end
 function s.mttg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.mtfilter,tp,LOCATION_MZONE+LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,e:GetHandler()) end
+	if chk==0 then return Duel.IsExistingMatchingCard(s.mtfilter,tp,LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,e:GetHandler()) end
 	if Duel.IsExistingMatchingCard(s.tdfilter,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) then
 		Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,1,0,0)
 	end
@@ -75,7 +75,7 @@ end
 function s.mtop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if not c:IsRelateToEffect(e) or c:IsFacedown() then return end
-	local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.mtfilter),tp,LOCATION_MZONE+LOCATION_GRAVE+LOCATION_REMOVED,0,nil,c)
+	local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.mtfilter),tp,LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,nil,c)
 	if g:GetCount()>0 then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
 		local sg=g:Select(tp,1,math.min(g:GetCount(),2),nil)

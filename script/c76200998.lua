@@ -3,7 +3,7 @@ local s,id,o=GetID()
 function s.initial_effect(c)
 	aux.AddCodeList(c,76200681)
 	--change name
-	aux.EnableChangeCode(c,76200681,LOCATION_MZONE+LOCATION_GRAVE)
+	aux.EnableChangeCode(c,76200681,LOCATION_MZONE+LOCATION_HAND)
 	--special summon rule(on self field)
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))

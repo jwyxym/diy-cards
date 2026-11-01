@@ -28,12 +28,12 @@ function s.initial_effect(c)
 	c:RegisterEffect(e2)
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
-	e3:SetCategory(CATEGORY_DECKDES)
+	e3:SetCategory(CATEGORY_EQUIP+CATEGORY_DECKDES)
 	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e3:SetCode(EVENT_TO_GRAVE)
-	e3:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DELAY)
+	e3:SetRange(LOCATION_GRAVE)
+	e3:SetProperty(EFFECT_FLAG_CARD_TARGET+EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DELAY)
 	e3:SetCountLimit(1,id+o)
-	e3:SetCondition(s.tgcon)
 	e3:SetTarget(s.tgtg)
 	e3:SetOperation(s.tgop)
 	c:RegisterEffect(e3)
@@ -57,13 +57,6 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
 	if c:IsRelateToEffect(e) and tc:IsRelateToEffect(e) and tc:IsFaceup() then
 		Duel.Equip(tp,c,tc)
 	end
-end
-function s.drcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-	if chk==0 then return c:IsAbleToGraveAsCost() and c:GetControler()==c:GetEquipTarget():GetControler()
-		and c:GetEquipTarget():IsAbleToGraveAsCost() end
-	local g=Group.FromCards(c,c:GetEquipTarget())
-	Duel.SendtoGrave(g,REASON_COST)
 end
 function s.sumtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
@@ -91,15 +84,45 @@ function s.sumop(e,tp,eg,ep,ev,re,r,rp)
 		end
 	end
 end
-function s.tgcon(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	return c:IsReason(REASON_COST) and re:IsActivated() and re:IsActiveType(TYPE_XYZ)
-		and c:IsPreviousLocation(LOCATION_OVERLAY)
-end
-function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsPlayerCanDiscardDeck(tp,3) end
+-- ② 效果
+function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and s.filter(chkc) end
+	if chk==0 then
+		return Duel.IsPlayerCanDiscardDeck(tp,3)
+			and Duel.GetLocationCount(tp,LOCATION_SZONE)>0
+			and Duel.IsExistingTarget(s.filter,tp,LOCATION_MZONE,0,1,nil)
+	end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
+	Duel.SelectTarget(tp,s.filter,tp,LOCATION_MZONE,0,1,1,nil)
 	Duel.SetOperationInfo(0,CATEGORY_DECKDES,nil,0,tp,3)
 end
 function s.tgop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.DiscardDeck(tp,3,REASON_EFFECT)
+	local c=e:GetHandler()
+	local tc=Duel.GetFirstTarget()
+	if Duel.IsPlayerCanDiscardDeck(tp,3) then
+		Duel.DiscardDeck(tp,3,REASON_EFFECT)
+	end
+	if tc and tc:IsRelateToEffect(e) and tc:IsFaceup() and c:IsRelateToEffect(e)
+		and Duel.GetLocationCount(tp,LOCATION_SZONE)>0 and Duel.Equip(tp,c,tc) then
+		-- ● 代替战斗·效果破坏
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_EQUIP)
+		e1:SetCode(EFFECT_DESTROY_REPLACE)
+		e1:SetTarget(s.reptg)
+		e1:SetOperation(s.repop)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+		c:RegisterEffect(e1)
+	end
+end
+function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	local tg=c:GetEquipTarget()
+	if chk==0 then
+		return c:IsAbleToGrave() and not c:IsStatus(STATUS_DESTROY_CONFIRMED)
+			and tg and tg:IsReason(REASON_BATTLE+REASON_EFFECT)
+	end
+	return Duel.SelectEffectYesNo(tp,c,96)
+end
+function s.repop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.SendtoGrave(e:GetHandler(),REASON_EFFECT+REASON_REPLACE)
 end

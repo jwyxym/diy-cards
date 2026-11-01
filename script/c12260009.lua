@@ -1,5 +1,7 @@
 --山水-云雾
+local s,id,o=GetID()
 function c12260009.initial_effect(c)
+	--①
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(12260009,0))
 	e1:SetCategory(CATEGORY_SEARCH+CATEGORY_SPECIAL_SUMMON)
@@ -10,6 +12,7 @@ function c12260009.initial_effect(c)
 	e1:SetTarget(c12260009.thtg)
 	e1:SetOperation(c12260009.thop)
 	c:RegisterEffect(e1)
+	--②
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(12260009,1))
 	e2:SetCategory(CATEGORY_TOHAND+CATEGORY_POSITION)
@@ -22,33 +25,40 @@ function c12260009.initial_effect(c)
 	e2:SetOperation(c12260009.thop2)
 	c:RegisterEffect(e2)
 end
+
+--①cost筛选：场上任意可以变更表示形式的怪兽
 function c12260009.cfilter(c)
-	return c:IsFacedown() and c:IsLocation(LOCATION_MZONE) and c:IsCanChangePosition()
+	return c:IsLocation(LOCATION_MZONE) and c:IsCanChangePosition()
 end
 function c12260009.flipcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(c12260009.cfilter,tp,LOCATION_MZONE,0,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_POSCHANGE)
 	local g=Duel.SelectMatchingCard(tp,c12260009.cfilter,tp,LOCATION_MZONE,0,1,1,nil)
-	Duel.ConfirmCards(1-tp,g)
 	local tc=g:GetFirst()
-	local sel=0
-	sel=Duel.SelectOption(tp,aux.Stringid(12260009,2),aux.Stringid(12260009,3))
-
-	if sel==0 then
-		Duel.ChangePosition(tc,POS_FACEUP_ATTACK)
+	if tc:IsFacedown() then
+		--里侧怪兽 → 翻表，选择攻击/守备
+		Duel.ConfirmCards(1-tp,g)
+		local sel=Duel.SelectOption(tp,aux.Stringid(12260009,2),aux.Stringid(12260009,3))
+		if sel==0 then
+			Duel.ChangePosition(tc,POS_FACEUP_ATTACK)
+		else
+			Duel.ChangePosition(tc,POS_FACEUP_DEFENSE)
+		end
 	else
-		Duel.ChangePosition(tc,POS_FACEUP_DEFENSE)
+		--表侧怪兽（表攻/表守）→ 变为里侧守备
+		Duel.ChangePosition(tc,POS_FACEDOWN_DEFENSE)
 	end
 end
+
 function c12260009.thfilter(c)
 	return c:IsSetCard(0x63a0) and not c:IsCode(12260009) and c:IsAbleToHand()
 end
 function c12260009.spfilter(c,e,tp)
-	return c:IsSetCard(0x63a0) and c:IsLevelBelow(4) and (c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEDOWN_DEFENSE) or (c:IsLocation(LOCATION_GRAVE) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0))
+	return c:IsSetCard(0x63a0) and c:IsLevelBelow(4) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEDOWN_DEFENSE)
 end
 function c12260009.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then 
-		return Duel.IsExistingMatchingCard(c12260009.thfilter,tp,LOCATION_DECK,0,1,nil) 
+	if chk==0 then
+		return Duel.IsExistingMatchingCard(c12260009.thfilter,tp,LOCATION_DECK,0,1,nil)
 	end
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_HAND+LOCATION_GRAVE)
@@ -65,11 +75,12 @@ function c12260009.thop(e,tp,eg,ep,ev,re,r,rp)
 			local sc=sg:Select(tp,1,1,nil):GetFirst()
 			if sc then
 				Duel.SpecialSummon(sc,0,tp,tp,false,false,POS_FACEDOWN_DEFENSE)
-				Duel.ConfirmCards(1-tp,sc)
 			end
 		end
 	end
 end
+
+--②条件不变：里侧的这张从场上送墓
 function c12260009.thcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	return c:IsPreviousPosition(POS_FACEDOWN) and c:IsPreviousLocation(LOCATION_ONFIELD)
@@ -79,19 +90,32 @@ function c12260009.thtg2(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,e:GetHandler(),1,0,0)
 	Duel.SetOperationInfo(0,CATEGORY_POSITION,nil,1,tp,LOCATION_MZONE)
 end
-function c12260009.posfilter(c)
-	return c:IsFaceup() and c:IsCanTurnSet()
+--②效果后选择分支：
+--分支A：里侧守备怪兽 → 翻成表攻/表守
+--分支B：表侧怪兽 → 盖成里侧守备
+function c12260009.posfilter2(c)
+	return c:IsCanChangePosition() and c:IsLocation(LOCATION_MZONE)
 end
 function c12260009.thop2(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) and Duel.SendtoHand(c,nil,REASON_EFFECT)~=0 and c:IsLocation(LOCATION_HAND) then
-		local g=Duel.GetMatchingGroup(c12260009.posfilter,tp,LOCATION_MZONE,0,nil)
-		if g:GetCount()>0 and Duel.SelectYesNo(tp,aux.Stringid(12260009,5)) then
-			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_POSCHANGE)
-			local sc=g:Select(tp,1,1,nil):GetFirst()
-			if sc then
-				Duel.ChangePosition(sc,POS_FACEDOWN_DEFENSE)
+	if not (c:IsRelateToEffect(e) and Duel.SendtoHand(c,nil,REASON_EFFECT)~=0 and c:IsLocation(LOCATION_HAND)) then return end
+	local g=Duel.GetMatchingGroup(c12260009.posfilter2,tp,LOCATION_MZONE,0,nil)
+	if g:GetCount()>0 and Duel.SelectYesNo(tp,aux.Stringid(12260009,5)) then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_POSCHANGE)
+		local tc=g:Select(tp,1,1,nil):GetFirst()
+		if not tc then return end
+		if tc:IsFacedown() then
+			--里侧守备：翻表，选攻击/守备
+			Duel.ConfirmCards(1-tp,tc)
+			local sel=Duel.SelectOption(tp,aux.Stringid(12260009,2),aux.Stringid(12260009,3))
+			if sel==0 then
+				Duel.ChangePosition(tc,POS_FACEUP_ATTACK)
+			else
+				Duel.ChangePosition(tc,POS_FACEUP_DEFENSE)
 			end
+		else
+			--表侧任意 → 盖成里侧守备
+			Duel.ChangePosition(tc,POS_FACEDOWN_DEFENSE)
 		end
 	end
 end

@@ -1,71 +1,82 @@
---山水-挥墨
+--山水-挥墨 12260011
 local s,id,o=GetID()
 function s.initial_effect(c)
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_SINGLE)
-	e0:SetCode(EFFECT_TRAP_ACT_IN_SET_TURN)
-	e0:SetCondition(s.actcon)
-	c:RegisterEffect(e0)
-	
+	--基础激活本体
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_POSITION+CATEGORY_DAMAGE)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
 	e1:SetCountLimit(1,id)
-	e1:SetCondition(s.con)
 	e1:SetTarget(s.target)
 	e1:SetOperation(s.operation)
 	c:RegisterEffect(e1)
-	
+
+	--盖放回合发动特权
 	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetCategory(CATEGORY_POSITION)
-	e2:SetType(EFFECT_TYPE_QUICK_O)
-	e2:SetCode(EVENT_FREE_CHAIN)
-	e2:SetRange(LOCATION_GRAVE)
-	e2:SetCountLimit(1,id+o)
-	e2:SetCost(aux.bfgcost)
-	e2:SetTarget(s.ptg)
-	e2:SetOperation(s.pop)
+	e2:SetDescription(aux.Stringid(id,6))
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetCode(EFFECT_TRAP_ACT_IN_SET_TURN)
+	e2:SetProperty(EFFECT_FLAG_SET_AVAILABLE+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e2:SetCondition(s.setcon)
+	e2:SetCost(s.setcost)
 	c:RegisterEffect(e2)
+
+	--②墓地效果
+	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,1))
+	e3:SetCategory(CATEGORY_POSITION)
+	e3:SetType(EFFECT_TYPE_QUICK_O)
+	e3:SetCode(EVENT_FREE_CHAIN)
+	e3:SetRange(LOCATION_GRAVE)
+	e3:SetCountLimit(1,id+o)
+	e3:SetCost(aux.bfgcost)
+	e3:SetTarget(s.ptg)
+	e3:SetOperation(s.pop)
+	c:RegisterEffect(e3)
 end
 
-function s.actcon(e)
-	local tp=e:GetHandlerPlayer()
+function s.setcon(e)
 	local c=e:GetHandler()
-	return c:GetTurnID()==Duel.GetTurnCount() 
-		and Duel.IsExistingMatchingCard(Card.IsFacedown,tp,LOCATION_MZONE,0,1,nil)
+	return c:IsStatus(STATUS_SET_TURN) and c:IsLocation(LOCATION_ONFIELD)
 end
 
-function s.con(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:GetTurnID()==Duel.GetTurnCount() then
-		return Duel.IsExistingMatchingCard(Card.IsFacedown,tp,LOCATION_MZONE,0,1,nil)
+-- 和寒舍一致的 costfilter：自己场上可改表示形式的怪兽（里侧/表侧都可以）
+function s.costfilter(c)
+	return c:IsLocation(LOCATION_MZONE) and c:IsCanChangePosition()
+end
+
+-- 和寒舍一致的 setcost：用 Duel.SelectMatchingCard
+function s.setcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_MZONE,0,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_POSCHANGE)
+	local g=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_MZONE,0,1,1,nil)
+	local tc=g:GetFirst()
+	if not tc then return end
+	if tc:IsFacedown() then
+		-- 里侧守备 → 翻表，选攻击/守备
+		Duel.ConfirmCards(1-tp,g)
+		local sel=Duel.SelectOption(tp,aux.Stringid(id,4),aux.Stringid(id,5))
+		if sel==0 then
+			Duel.ChangePosition(tc,POS_FACEUP_ATTACK)
+		else
+			Duel.ChangePosition(tc,POS_FACEUP_DEFENSE)
+		end
+	else
+		-- 表侧怪兽 → 盖成里侧守备
+		Duel.ChangePosition(tc,POS_FACEDOWN_DEFENSE)
 	end
-	return true
 end
 
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then 
+	if chk==0 then
 		return Duel.IsExistingMatchingCard(Card.IsCanTurnSet,tp,LOCATION_MZONE,0,1,nil)
 			or Duel.IsExistingMatchingCard(Card.IsCanTurnSet,tp,0,LOCATION_MZONE,1,nil)
 	end
-	Duel.SetOperationInfo(0,CATEGORY_POSITION,nil,0,PLAYER_ALL,0)
 	Duel.SetOperationInfo(0,CATEGORY_DAMAGE,nil,0,1-tp,0)
 end
 
 function s.operation(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:GetTurnID()==Duel.GetTurnCount() then
-		local g=Duel.GetMatchingGroup(Card.IsFacedown,tp,LOCATION_MZONE,0,nil)
-		if #g>0 then
-			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
-			local sg=g:Select(tp,1,1,nil)
-			Duel.ChangePosition(sg,POS_FACEUP_DEFENSE)
-		end
-	end
-	
 	local tp1=tp
 	local tp2=1-tp
 	
@@ -123,13 +134,9 @@ function s.pop(e,tp,eg,ep,ev,re,r,rp)
 	if #sg==0 then return end
 	for tc in aux.Next(sg) do
 		if tc:IsFacedown() then
-			local sel=0
-			if Duel.SelectYesNo(tp,aux.Stringid(id,3)) then
-				sel=Duel.SelectOption(tp,aux.Stringid(id,4),aux.Stringid(id,5))
-			else
-				sel=0
-			end
-			if sel==0 then
+			Duel.ConfirmCards(1-tp,tc)
+			local op=Duel.SelectOption(tp,aux.Stringid(id,4),aux.Stringid(id,5))
+			if op==0 then
 				Duel.ChangePosition(tc,POS_FACEUP_ATTACK)
 			else
 				Duel.ChangePosition(tc,POS_FACEUP_DEFENSE)

@@ -1,9 +1,9 @@
 --大墓之葬送者
 -- 卡片类型：怪兽卡, 效果
+-- 暗 3星 不死族 1600/1000
 local cm, m, o = GetID()
 function cm.initial_effect(c)
-	-- 这个卡名的①②效果1回合各能使用1次。
-	-- ①：自己场上有「大墓」卡存在的场合才能发动。这张卡从手卡特殊召唤。那之后，可以从双方卡组上面把2张卡送去墓地。这个回合，自己不是不死族怪兽不能从卡组特殊召唤。
+	-- ①：自己场上有「大墓」卡存在的场合才能发动。这张卡从手卡特殊召唤。那之后，可以从双方卡组上面把2张卡送去墓地。这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤。
 	local e1 = Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(m, 0))
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON + CATEGORY_TOGRAVE)
@@ -15,7 +15,7 @@ function cm.initial_effect(c)
 	e1:SetOperation(cm.e1op)
 	c:RegisterEffect(e1)
 
-	-- ②：把墓地的这张卡除外才能发动。从自己墓地把不死族融合怪兽卡决定的融合素材怪兽除外，把那1只融合怪兽从额外卡组融合召唤。自己场上有对方怪兽的场合，这个效果在对方回合也能发动。
+	-- ②：把墓地的这张卡除外才能发动。从自己墓地把「大墓」融合怪兽卡决定的融合素材怪兽除外，把那1只融合怪兽从额外卡组融合召唤。自己场上有对方怪兽的场合，这个效果在对方回合也能发动。
 	-- 二速效果版：自己场上存在原本持有者为对方的怪兽时才能发动
 	local e2 = Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(m, 1))
@@ -76,7 +76,7 @@ function cm.e1op(e, tp, eg, ep, ev, re, r, rp)
 			end
 		end
 
-		-- 这个回合，自己不是不死族怪兽不能从卡组特殊召唤
+		-- 【核心修改】这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤
 		local e1 = Effect.CreateEffect(c)
 		e1:SetType(EFFECT_TYPE_FIELD)
 		e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -88,13 +88,12 @@ function cm.e1op(e, tp, eg, ep, ev, re, r, rp)
 	end
 end
 
-function cm.splimit(e, c)
-	return not c:IsRace(RACE_ZOMBIE) and c:IsLocation(LOCATION_DECK)
-end
-
-function cm.spcon(e, tp, eg, ep, ev, re, r, rp)
-	return Duel.GetLocationCount(tp, LOCATION_MZONE) > 0
-		and Duel.IsExistingMatchingCard(cm.cfilter, tp, LOCATION_ONFIELD, 0, 1, nil)
+-- 【核心修改】限制条件改为「大墓」怪兽，且限制 手卡·卡组·额外卡组
+function cm.splimit(e, c, sump, sumtype, sumpos, targetp, se)
+	if c:IsLocation(LOCATION_HAND + LOCATION_DECK + LOCATION_EXTRA) then
+		return not (c:IsSetCard(0x3E11) and c:IsType(TYPE_MONSTER))
+	end
+	return false
 end
 
 function cm.e2con_quick(e, tp, eg, ep, ev, re, r, rp)
@@ -111,8 +110,9 @@ function cm.oppmonfilter(c)
 	return c:GetOwner() ~= c:GetControler()
 end
 
+-- 【核心修改】融合怪兽过滤：改为「大墓」融合怪兽
 function cm.fusfilter(c, e, tp, mg, f, chkf)
-	return c:IsType(TYPE_FUSION) and c:IsRace(RACE_ZOMBIE) and (not f or f(c))
+	return c:IsType(TYPE_FUSION) and c:IsSetCard(0x3E11) and (not f or f(c))
 		and c:IsCanBeSpecialSummoned(e, SUMMON_TYPE_FUSION, tp, false, false) and
 		c:CheckFusionMaterial(mg, nil, chkf, true)
 end
@@ -120,8 +120,7 @@ end
 function cm.e2tg(e, tp, eg, ep, ev, re, r, rp, chk)
 	if chk == 0 then
 		local chkf = tp
-		local mg1 = Duel.GetMatchingGroup(function(c) return c:IsAbleToRemove() end, tp, LOCATION_GRAVE,
-			0, 1, nil)
+		local mg1 = Duel.GetMatchingGroup(function(c) return c:IsAbleToRemove() end, tp, LOCATION_GRAVE, 0, 1, nil)
 		mg1:RemoveCard(e:GetHandler())
 		local res = Duel.IsExistingMatchingCard(cm.fusfilter, tp, LOCATION_EXTRA, 0, 1, nil, e, tp, mg1, nil, chkf)
 		if not res then
@@ -140,8 +139,7 @@ end
 
 function cm.e2op(e, tp, eg, ep, ev, re, r, rp)
 	local chkf = tp
-	local mg1 = Duel.GetMatchingGroup(function(c) return c:IsAbleToRemove() end, tp, LOCATION_GRAVE,
-		0, 1, nil)
+	local mg1 = Duel.GetMatchingGroup(function(c) return c:IsAbleToRemove() end, tp, LOCATION_GRAVE, 0, 1, nil)
 	mg1:RemoveCard(e:GetHandler())
 	local sg1 = Duel.GetMatchingGroup(cm.fusfilter, tp, LOCATION_EXTRA, 0, nil, e, tp, mg1, nil, chkf)
 	local mg2 = nil

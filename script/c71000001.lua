@@ -1,9 +1,9 @@
 --大墓之祈祷者
 -- 卡片类型：怪兽卡, 效果
+-- 暗 3星 不死族 500/500
 local cm, m, o = GetID()
 function cm.initial_effect(c)
-	-- 这个卡名的①②效果1回合各能使用1次。
-	-- ①：这张卡召唤·特殊召唤成功的场合才能发动。从卡组把1只「大墓」怪兽送去墓地。这个回合，自己不是不死族怪兽不能从卡组特殊召唤。
+	-- ①：这张卡召唤·特殊召唤成功的场合才能发动。从卡组把1只「大墓」怪兽送去墓地。这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤。
 	local e1 = Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(m, 0))
 	e1:SetCategory(CATEGORY_TOGRAVE)
@@ -18,7 +18,7 @@ function cm.initial_effect(c)
 	e1b:SetCode(EVENT_SPSUMMON_SUCCESS)
 	c:RegisterEffect(e1b)
 
-	-- ②：这张卡被送去墓地的场合才能发动。从自己的卡组选1张「大墓」陷阱卡加入手卡。
+	-- ②：这张卡被效果送去墓地的场合才能发动。从自己的卡组选1张「大墓」陷阱卡加入手卡。
 	local e2 = Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(m, 1))
 	e2:SetCategory(CATEGORY_TOHAND + CATEGORY_SEARCH)
@@ -26,11 +26,13 @@ function cm.initial_effect(c)
 	e2:SetCode(EVENT_TO_GRAVE)
 	e2:SetProperty(EFFECT_FLAG_DELAY)
 	e2:SetCountLimit(1, m + 2)
+	e2:SetCondition(cm.con2) -- 【新增】被效果送去墓地的条件
 	e2:SetTarget(cm.tg2)
 	e2:SetOperation(cm.op2)
 	c:RegisterEffect(e2)
 end
 
+-- ========== ① ==========
 function cm.tg1(e, tp, eg, ep, ev, re, r, rp, chk)
 	if chk == 0 then return Duel.IsExistingMatchingCard(cm.filter, tp, LOCATION_DECK, 0, 1, nil) end
 	Duel.SetOperationInfo(0, CATEGORY_TOGRAVE, nil, 1, tp, LOCATION_DECK)
@@ -55,8 +57,18 @@ function cm.filter(c)
 	return c:IsSetCard(0x3e11) and c:IsType(TYPE_MONSTER) and c:IsAbleToGrave()
 end
 
-function cm.splimit(e, c)
-	return not c:IsRace(RACE_ZOMBIE) and c:IsLocation(LOCATION_DECK)
+-- 【修改】限制「手卡·卡组·额外卡组」特召，且必须是「大墓」怪兽
+function cm.splimit(e, c, sump, sumtype, sumpos, targetp, se)
+	if c:IsLocation(LOCATION_HAND + LOCATION_DECK + LOCATION_EXTRA) then
+		return not (c:IsSetCard(0x3e11) and c:IsType(TYPE_MONSTER))
+	end
+	return false
+end
+
+-- ========== ② ==========
+-- 【新增】被效果送去墓地的条件判断
+function cm.con2(e, tp, eg, ep, ev, re, r, rp)
+	return bit.band(r, REASON_EFFECT) ~= 0
 end
 
 function cm.trapfilter(c)
@@ -74,5 +86,6 @@ function cm.op2(e, tp, eg, ep, ev, re, r, rp)
 	if #g > 0 then
 		Duel.SendtoHand(g, nil, REASON_EFFECT)
 		Duel.ConfirmCards(1 - tp, g)
+		Duel.ShuffleHand(tp)
 	end
 end

@@ -58,11 +58,11 @@ function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	end
 end
 function s.eqop(e,tp,eg,ep,ev,re,r,rp)
-	 local c=e:GetHandler()
+	local c=e:GetHandler()
 	local tc=Duel.GetFirstTarget()
 	if tc:IsRelateToEffect(e) and tc:IsFaceup() then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
-		local g=Duel.SelectMatchingCard(tp,s.eqfilter,tp,LOCATION_DECK,0,1,1,nil,tc,tp)
+		local g=Duel.SelectMatchingCard(tp,s.eqfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil,tc,tp)
 		if g:GetCount()>0 and Duel.Equip(tp,g:GetFirst(),tc)
 			and c:IsRelateToEffect(e) then
 			Duel.SendtoDeck(c,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)

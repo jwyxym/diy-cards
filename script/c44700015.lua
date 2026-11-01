@@ -2,7 +2,6 @@ local s,id=GetID()
 local TWILIGHT=0x747
 local HOLY=0x474
 
--- 全局监控：记录本回合是否发动过非光暗属性的怪兽效果
 if not _G.TWILIGHT_ATTR_REG then
     _G.TWILIGHT_ATTR_REG = true
     local ge=Effect.GlobalEffect()
@@ -12,7 +11,6 @@ if not _G.TWILIGHT_ATTR_REG then
         if re and re:IsActiveType(TYPE_MONSTER) then
             local rc = re:GetHandler()
             local attr = rc:GetAttribute()
-            -- 如果有属性且不是光属性且不是暗属性，则设置标记
             if attr ~= 0 and (attr & ATTRIBUTE_LIGHT) == 0 and (attr & ATTRIBUTE_DARK) == 0 then
                 Duel.RegisterFlagEffect(tp, id, RESET_PHASE+PHASE_END, 0, 1)
             end
@@ -21,24 +19,29 @@ if not _G.TWILIGHT_ATTR_REG then
     Duel.RegisterEffect(ge, 0)
 end
 
+-- ★ 核心修正：排除无属性怪兽(attr==0)，并加上防呆
 function s.no_other_attr(tp)
+    if not tp then return false end
     local g1 = Duel.GetMatchingGroup(Card.IsFaceup, tp, LOCATION_MZONE, 0, nil)
     local g2 = Duel.GetMatchingGroup(nil, tp, LOCATION_GRAVE, 0, nil)
     local g = g1:Clone()
     g:Merge(g2)
     for tc in aux.Next(g) do
-        if tc:IsType(TYPE_MONSTER) and not (tc:IsAttribute(ATTRIBUTE_LIGHT) or tc:IsAttribute(ATTRIBUTE_DARK)) then
-            return false
+        if tc:IsType(TYPE_MONSTER) then
+            local attr = tc:GetAttribute()
+            if attr ~= 0 and (attr & ATTRIBUTE_LIGHT) == 0 and (attr & ATTRIBUTE_DARK) == 0 then
+                return false
+            end
         end
     end
     return true
 end
 
+-- ★ 核心修正：使用 GetControler() 防止刚盖放时取值失败
 function s.actcon(e)
-    return s.no_other_attr(e:GetHandlerPlayer())
+    return s.no_other_attr(e:GetHandler():GetControler())
 end
 
--- 发动非光暗怪兽效果的封锁过滤
 function s.aclimit(e,re,tp)
     if not re:IsActiveType(TYPE_MONSTER) then return false end
     local rc = re:GetHandler()
@@ -61,7 +64,7 @@ function s.initial_effect(c)
     e1:SetType(EFFECT_TYPE_ACTIVATE)
     e1:SetCode(EVENT_FREE_CHAIN)
     e1:SetCountLimit(1,id)
-    e1:SetCondition(s.spcon) -- 增加发动前置条件检查
+    e1:SetCondition(s.spcon)
     e1:SetTarget(s.tg1)
     e1:SetOperation(s.op1)
     c:RegisterEffect(e1)
@@ -91,7 +94,6 @@ function s.initial_effect(c)
     c:RegisterEffect(e3)
 end
 
--- 发动前的全回合限制检查
 function s.spcon(e,tp)
     return Duel.GetFlagEffect(tp, id) == 0
 end
@@ -105,7 +107,6 @@ function s.tg1(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 
 function s.op1(e,tp,eg,ep,ev,re,r,rp)
-    -- 发动成功后，立刻赋予全回合只能发动光暗效果的自肃
     local e1=Effect.CreateEffect(e:GetHandler())
     e1:SetType(EFFECT_TYPE_FIELD)
     e1:SetCode(EFFECT_CANNOT_ACTIVATE)
@@ -157,8 +158,22 @@ function s.op1(e,tp,eg,ep,ev,re,r,rp)
     end
 end
 
-function s.filter2(c)
-    return c:IsFaceup() and (c:IsAttribute(ATTRIBUTE_LIGHT) or c:IsAttribute(ATTRIBUTE_DARK)) and not c:IsType(TYPE_LINK)
+function s.filter2(c,e,tp)
+    if not c:IsFaceup() then return false end
+    if not (c:IsAttribute(ATTRIBUTE_LIGHT) or c:IsAttribute(ATTRIBUTE_DARK)) then return false end
+    if c:IsType(TYPE_LINK) then return false end
+    if not c:IsCanBeEffectTarget(e) then return false end
+    
+    local attr = c:GetAttribute()
+    local target_attr = 0
+    if attr == ATTRIBUTE_LIGHT then target_attr = ATTRIBUTE_DARK
+    elseif attr == ATTRIBUTE_DARK then target_attr = ATTRIBUTE_LIGHT
+    else return false end
+    
+    local val = c:GetLevel() > 0 and c:GetLevel() or c:GetRank()
+    if val <= 0 then return false end
+    
+    return Duel.IsExistingMatchingCard(s.extra_spfilter, tp, LOCATION_EXTRA, 0, 1, nil, e, tp, target_attr, val)
 end
 
 function s.extra_filter(c)
@@ -166,14 +181,10 @@ function s.extra_filter(c)
 end
 
 function s.tg2(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-    if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and s.filter2(chkc) end
-    if chk==0 then
-        local has_target = Duel.IsExistingTarget(s.filter2,tp,LOCATION_MZONE,0,1,nil)
-        local has_extra = Duel.IsExistingMatchingCard(s.extra_filter,tp,LOCATION_EXTRA,0,1,nil)
-        return has_target and has_extra
-    end
+    if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and s.filter2(chkc,e,tp) end
+    if chk==0 then return Duel.IsExistingTarget(s.filter2, tp, LOCATION_MZONE, 0, 1, nil, e, tp) end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
-    Duel.SelectTarget(tp,s.filter2,tp,LOCATION_MZONE,0,1,1,nil)
+    Duel.SelectTarget(tp,s.filter2,tp,LOCATION_MZONE,0,1,1,nil,e,tp)
 end
 
 function s.extra_spfilter(c,e,tp,attr,val)
@@ -186,10 +197,11 @@ end
 function s.op2(e,tp,eg,ep,ev,re,r,rp)
     local tc=Duel.GetFirstTarget()
     if not tc or not tc:IsRelateToEffect(e) then return end
+    
     local attr = tc:GetAttribute()
     local target_attr = 0
-    if attr & ATTRIBUTE_LIGHT ~= 0 then target_attr = ATTRIBUTE_DARK
-    elseif attr & ATTRIBUTE_DARK ~= 0 then target_attr = ATTRIBUTE_LIGHT
+    if attr == ATTRIBUTE_LIGHT then target_attr = ATTRIBUTE_DARK
+    elseif attr == ATTRIBUTE_DARK then target_attr = ATTRIBUTE_LIGHT
     else return end
     
     local lv = tc:GetLevel()
@@ -217,7 +229,7 @@ function s.op2(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function s.con3(e,tp,eg,ep,ev,re,r,rp)
-    return e:GetHandler():IsPreviousLocation(LOCATION_ONFIELD) and re and re:IsActiveType(TYPE_MONSTER)
+    return re and re:IsActiveType(TYPE_MONSTER)
 end
 
 function s.tg3(e,tp,eg,ep,ev,re,r,rp,chk)

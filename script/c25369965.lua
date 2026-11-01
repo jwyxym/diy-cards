@@ -1,7 +1,3 @@
--- 《圣夜骑士团 伯利恒之辰》
--- 卡号：62355638
--- 字段：圣夜骑士 (0x159)
--- 属性：光 种族：天使族 等级：4 攻击：1900 守备：600
 local s,id=GetID()
 local SET_HOLY_NIGHT=0x159
 
@@ -13,7 +9,7 @@ function s.initial_effect(c)
     e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
     e1:SetCode(EVENT_SUMMON_SUCCESS)
     e1:SetProperty(EFFECT_FLAG_DELAY)
-    e1:SetCountLimit(1,id)
+    e1:SetCountLimit(1,id) -- ①效果的使用次数
     e1:SetTarget(s.thtg)
     e1:SetOperation(s.thop)
     c:RegisterEffect(e1)
@@ -21,15 +17,15 @@ function s.initial_effect(c)
     e2:SetCode(EVENT_SPSUMMON_SUCCESS)
     c:RegisterEffect(e2)
 
-    -- ② 双方回合解放自身，从手卡特召光属性·龙族·7星
+    -- ② 双方回合解放自身特召
     local e3=Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id,1))
     e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
     e3:SetType(EFFECT_TYPE_QUICK_O)
     e3:SetCode(EVENT_FREE_CHAIN)
     e3:SetRange(LOCATION_HAND+LOCATION_MZONE)
-    e3:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_MAIN_END+TIMING_BATTLE_END)
-    e3:SetCountLimit(1,id+1)
+    e3:SetHintTiming(0,TIMING_MAIN_END+TIMING_BATTLE_START+TIMING_BATTLE_END)
+    e3:SetCountLimit(1,id+1) -- ★ 核心修复：改成 id+1，区分同名卡次数
     e3:SetCost(s.spcost)
     e3:SetTarget(s.sptg)
     e3:SetOperation(s.spop)
@@ -53,17 +49,15 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
     end
 end
 
--- ② Cost：解放自身
+-- ② 解放自身
 function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
     local c=e:GetHandler()
     if chk==0 then return c:IsReleasable() end
     Duel.Release(c,REASON_COST)
 end
-
--- ② Target
+-- ② 目标
 function s.spfilter(c,e,tp)
-    return c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsRace(RACE_DRAGON) and c:IsLevel(7)
-        and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+    return c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsRace(RACE_DRAGON) and c:IsLevel(7) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0

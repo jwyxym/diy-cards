@@ -1,140 +1,133 @@
---冥狂星涡
+-- 天蚀迁移式 (ID: 23600076)
 local s,id,o=GetID()
+local SET_ECLIPSE=0xd92 -- 「天蚀」字段代码
+
 function s.initial_effect(c)
-	c:EnableReviveLimit()
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_SPSUMMON_PROC)
-	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e1:SetRange(LOCATION_HAND)
-	e1:SetCountLimit(1,id+EFFECT_COUNT_CODE_OATH)
-	e1:SetCondition(s.spcon)
-	e1:SetTarget(s.sptg)
-	e1:SetOperation(s.spop)
-	c:RegisterEffect(e1)
-	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,0))
-	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e2:SetCode(EVENT_SUMMON_SUCCESS)
-	e2:SetProperty(EFFECT_FLAG_DELAY)
-	e2:SetRange(LOCATION_MZONE)
-	e2:SetCountLimit(1)
-	e2:SetCost(s.spcost)
-	e2:SetTarget(s.sptg)
-	e2:SetOperation(s.spop)
-	c:RegisterEffect(e2)
-	local e3=e2:Clone()
-	e3:SetCode(EVENT_SPSUMMON_SUCCESS)
-	c:RegisterEffect(e3)
-	local e4=Effect.CreateEffect(c)
-	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-	e4:SetCode(EVENT_BE_MATERIAL)
-	e4:SetProperty(EFFECT_FLAG_EVENT_PLAYER)
-	e4:SetCondition(s.effcon)
-	e4:SetOperation(s.effop)
-	c:RegisterEffect(e4)
-end
-function s.spfilter(c,tp)
-	return c:IsFaceupEx() and c:IsRace(RACE_THUNDER) and c:IsAbleToRemoveAsCost()
-		and Duel.GetMZoneCount(tp,c)>0
-end
-function s.spcon(e,c)
-	if c==nil then return true end
-	local tp=c:GetControler()
-	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_HAND+LOCATION_MZONE+LOCATION_GRAVE,0,1,e:GetHandler(),tp)
-end
-function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
-	local g=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_HAND+LOCATION_MZONE+LOCATION_GRAVE,0,e:GetHandler(),tp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-	local tc=g:SelectUnselect(nil,tp,false,true,1,1)
-	if tc then
-		e:SetLabelObject(tc)
-		return true
-	else return false end
-end
-function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
-	local g=e:GetLabelObject()
-	Duel.Remove(g,POS_FACEUP,REASON_SPSUMMON)
-end
-function s.cfilter2(c)
-	return c:IsRace(RACE_THUNDER) and c:IsAbleToRemoveAsCost()
-end
-function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.cfilter2,tp,LOCATION_MZONE+LOCATION_GRAVE,0,1,nil) end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-	local g=Duel.SelectMatchingCard(tp,s.cfilter2,tp,LOCATION_MZONE+LOCATION_GRAVE,0,1,1,nil)
-	Duel.Remove(g,POS_FACEUP,REASON_COST)
-end
-function s.filter(c,e,tp)
-	return c:IsFaceupEx() and c:IsSetCard(0xd82) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-end
-function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_HAND+LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil,e,tp) end
-	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_HAND+LOCATION_GRAVE+LOCATION_REMOVED)
-end
-function s.spop(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.spfilter),tp,LOCATION_HAND+LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil,e,tp)
-	if g:GetCount()>0 then
-		Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
-	end
-	local e1=Effect.CreateEffect(e:GetHandler())
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e1:SetTargetRange(1,0)
-	e1:SetTarget(s.splimit)
-	e1:SetReset(RESET_PHASE+PHASE_END)
-	Duel.RegisterEffect(e1,tp)
-end
-function s.splimit(e,c,sump,sumtype,sumpos,targetp,se)
-	return not c:IsRace(RACE_THUNDER)
-end
-function s.effcon(e,tp,eg,ep,ev,re,r,rp)
-	return bit.band(r,REASON_SYNCHRO)~=0 and e:GetHandler():IsPreviousLocation(LOCATION_ONFIELD)
-		and e:GetHandler():GetReasonCard():IsRace(RACE_THUNDER)
-end
-function s.effop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	local rc=c:GetReasonCard()
+	-- ①：这张卡也能把自己场上1只昆虫族超量怪兽解放来发动。
+	-- 从自己的墓地·除外状态把1只昆虫族·光属性怪兽特殊召唤。
+	-- 把怪兽解放来把这张卡发动的场合，可以再让以下效果适用。
+	-- ●把1只昆虫族·光属性超量怪兽在那只怪兽上面重叠当作超量召唤从额外卡组特殊召唤，把这张卡在下面重叠作为超量素材。
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_EXTRA_SUMMON_COUNT)
-	e1:SetRange(LOCATION_MZONE)
-	e1:SetTargetRange(LOCATION_HAND,0)
-	e1:SetTarget(aux.TargetBoolFunction(Card.IsRace,RACE_THUNDER))
-	e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-	c:RegisterEffect(e1,true)
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_GRAVE_ACTION)
+	e1:SetType(EFFECT_TYPE_ACTIVATE)
+	e1:SetCode(EVENT_FREE_CHAIN)
+	e1:SetCost(s.cost)
+	e1:SetTarget(s.target)
+	e1:SetOperation(s.activate)
+	c:RegisterEffect(e1)
+
+	-- ②：持有这张卡作为素材中的超量怪兽得到以下效果。
+	-- ●这张卡不会成为对方的攻击·效果的对象。
+	-- 抗攻击对象
 	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,0))
-	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetCode(EFFECT_SUMMON_PROC)
+	e2:SetType(EFFECT_TYPE_XMATERIAL)
+	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
 	e2:SetRange(LOCATION_MZONE)
-	e2:SetTargetRange(LOCATION_HAND,0)
-	e2:SetCountLimit(1)
-	e2:SetCondition(s.ntcon)
-	e2:SetTarget(s.nttg)
-	e2:SetReset(RESET_EVENT+RESETS_STANDARD)
-	c:RegisterEffect(e2,true)
-	if not rc:IsType(TYPE_EFFECT) then
-		local e3=Effect.CreateEffect(c)
-		e3:SetType(EFFECT_TYPE_SINGLE)
-		e3:SetCode(EFFECT_ADD_TYPE)
-		e3:SetValue(TYPE_EFFECT)
-		e3:SetReset(RESET_EVENT+RESETS_STANDARD)
-		rc:RegisterEffect(e3,true)
+	e2:SetCode(EFFECT_CANNOT_BE_BATTLE_TARGET)
+	e2:SetValue(aux.imval1)
+	c:RegisterEffect(e2)
+
+	-- 抗对方效果对象
+	local e3=Effect.CreateEffect(c)
+	e3:SetType(EFFECT_TYPE_XMATERIAL)
+	e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+	e3:SetValue(aux.tgoval)
+	c:RegisterEffect(e3)
+end
+
+-- ==================== 可选解放 Cost 判定（1回合只能解放1次） ====================
+function s.cfilter(c,tp)
+	return c:IsFaceup() and c:IsRace(RACE_INSECT) and c:IsType(TYPE_XYZ) and c:IsReleasable()
+		and Duel.GetMZoneCount(tp,c)>0
+end
+
+function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
+	local ft=Duel.GetLocationCount(tp,LOCATION_MZONE)
+	-- 解放判定：本回合未曾解放过 且 场上有合法的昆虫族超量怪兽
+	local can_trib=Duel.GetFlagEffect(tp,id)==0
+		and Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_MZONE,0,1,nil,tp)
+	if chk==0 then
+		-- 发动前提：当前有空格，或者能通过解放怪兽腾出空格
+		return ft>0 or can_trib
 	end
-	rc:RegisterFlagEffect(0,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,EFFECT_FLAG_CLIENT_HINT,1,0,aux.Stringid(id,1))
+	e:SetLabel(0)
+	local b1=(ft>0)
+	local b2=can_trib
+	local trib=false
+
+	-- 询问是否解放怪兽发动；若当前满场且允许解放则必须解放怪兽才能发动
+	if b1 and b2 then
+		trib=Duel.SelectYesNo(tp,aux.Stringid(id,0))
+	elseif b2 and not b1 then
+		trib=true
+	end
+
+	if trib then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
+		local g=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_MZONE,0,1,1,nil,tp)
+		Duel.Release(g,REASON_COST)
+		-- 注册本回合已解放标记（1回合只能解放1次）
+		Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
+		-- 记录本次发动为解放发动
+		e:SetLabel(1)
+	end
 end
-function s.ntcon(e,c,minc)
-	if c==nil then return true end
-	return minc==0 and Duel.GetLocationCount(c:GetControler(),LOCATION_MZONE)>0
+
+-- ==================== ① 效果：特召与追加超量叠放 ====================
+function s.spfilter(c,e,tp)
+	return c:IsRace(RACE_INSECT) and c:IsAttribute(ATTRIBUTE_LIGHT)
+		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+		and (c:IsLocation(LOCATION_GRAVE) or c:IsFaceup())
 end
-function s.nttg(e,c)
-	return c:IsLevelAbove(5) and c:IsSetCard(0x105)
+
+function s.xyzfilter(c,e,tp,mc)
+	return c:IsRace(RACE_INSECT) and c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsType(TYPE_XYZ)
+		and mc:IsCanBeXyzMaterial(c)
+		and c:IsCanBeSpecialSummoned(e,SUMMON_TYPE_XYZ,tp,false,false)
+		and Duel.GetLocationCountFromEx(tp,tp,mc,c)>0
+end
+
+function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
+	local loc=LOCATION_GRAVE+LOCATION_REMOVED
+	if chk==0 then
+		return Duel.IsExistingMatchingCard(aux.NecroValleyFilter(s.spfilter),tp,loc,0,1,nil,e,tp)
+	end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,loc)
+end
+
+function s.activate(e,tp,eg,ep,ev,re,r,rp)
+	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+	local loc=LOCATION_GRAVE+LOCATION_REMOVED
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.spfilter),tp,loc,0,1,1,nil,e,tp)
+	local tc=g:GetFirst()
+	if not tc or Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)==0 then return end
+
+	-- 解放怪兽发动的场合，询问是否适用追加效果
+	local tributed=(e:GetLabel()==1)
+	if tributed and tc:IsFaceup() and tc:IsLocation(LOCATION_MZONE) and not tc:IsImmuneToEffect(e) then
+		local xg=Duel.GetMatchingGroup(s.xyzfilter,tp,LOCATION_EXTRA,0,nil,e,tp,tc)
+		if #xg>0 and Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
+			Duel.BreakEffect()
+			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+			local sc=xg:Select(tp,1,1,nil):GetFirst()
+			if sc then
+				local c=e:GetHandler()
+				-- 将特召怪兽作为超量素材重叠
+				sc:SetMaterial(Group.FromCards(tc))
+				Duel.Overlay(sc,Group.FromCards(tc))
+				if Duel.SpecialSummon(sc,SUMMON_TYPE_XYZ,tp,tp,false,false,POS_FACEUP)>0 then
+					sc:CompleteProcedure()
+					-- 把本魔法卡在下面重叠作为超量素材
+					if c:IsRelateToEffect(e) then
+						c:CancelToGrave()
+						Duel.Overlay(sc,Group.FromCards(c))
+					end
+				end
+			end
+		end
+	end
 end

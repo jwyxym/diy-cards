@@ -3,13 +3,10 @@ local s,id=GetID()
 function s.initial_effect(c)
 	c:EnableReviveLimit()
 	aux.AddFusionProcFun2(c,aux.FilterBoolFunction(Card.IsFusionSetCard,0x63a0),aux.FilterBoolFunction(Card.IsFusionType,TYPE_MONSTER),true)
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_SINGLE)
-	e0:SetProperty(EFFECT_FLAG_SINGLE_RANGE+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e0:SetCode(EFFECT_SPSUMMON_CONDITION)
-	e0:SetRange(LOCATION_EXTRA)
-	e0:SetValue(aux.fuslimit)
-	c:RegisterEffect(e0)
+	-- 去掉 aux.fuslimit 限制，允许普通特召
+	-- local e0=... 删除
+
+	-- 特殊召唤方法：送2张卡特召（1回合1次，同卡名共享）
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetType(EFFECT_TYPE_FIELD)
@@ -20,6 +17,7 @@ function s.initial_effect(c)
 	e1:SetTarget(s.hsptg)
 	e1:SetOperation(s.hspop)
 	c:RegisterEffect(e1)
+
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_SEARCH+CATEGORY_TOGRAVE)
@@ -30,6 +28,7 @@ function s.initial_effect(c)
 	e2:SetTarget(s.thtg)
 	e2:SetOperation(s.thop)
 	c:RegisterEffect(e2)
+
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,2))
 	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -46,13 +45,19 @@ function s.initial_effect(c)
 	c:RegisterEffect(e4)
 end
 
+-- 以下函数不变（s.gcheck / s.used_this_turn / s.hspcon / s.hsptg / s.hspop / s.thfilter / s.thtg / s.thop / s.spcon / s.sptg / s.spop 全部保持原样）
 function s.gcheck(g)
 	return g:IsExists(Card.IsFacedown,1,nil)
+end
+
+function s.used_this_turn(tp)
+	return Duel.GetFlagEffect(tp,id+200)>0
 end
 
 function s.hspcon(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
+	if s.used_this_turn(tp) then return false end
 	local g=Duel.GetMatchingGroup(Card.IsAbleToGraveAsCost,tp,LOCATION_ONFIELD,0,nil)
 	return #g>=2 and Duel.GetLocationCountFromEx(tp,tp,g,c)>0
 end
@@ -73,7 +78,7 @@ function s.hspop(e,tp,eg,ep,ev,re,r,rp,c)
 		Duel.SendtoGrave(g,REASON_COST)
 		g:DeleteGroup()
 	end
-	--解决手写proc出场不能苏生，对标接触融合的标记
+	Duel.RegisterFlagEffect(tp,id+200,RESET_PHASE+PHASE_END,0,1)
 	local e_reg=Effect.CreateEffect(c)
 	e_reg:SetType(EFFECT_TYPE_SINGLE)
 	e_reg:SetCode(EFFECT_FUSION_SUMMONED)

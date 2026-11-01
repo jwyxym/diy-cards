@@ -42,7 +42,8 @@ function s.sprcon(e,c)
 end
 
 function s.spfilter(c,e,tp)
-    return c:IsSetCard(SET_HAIMETSU) and c:IsType(TYPE_MONSTER)
+    return c:IsFaceup()
+        and c:IsSetCard(SET_HAIMETSU) and c:IsType(TYPE_MONSTER)
         and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 
@@ -58,7 +59,8 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 end
 
 function s.ssfilter(c,tp)
-    return c:IsSetCard(SET_HAIMETSU) and c:IsType(TYPE_SPELL+TYPE_TRAP)
+    return c:IsFaceup()
+        and c:IsSetCard(SET_HAIMETSU) and c:IsType(TYPE_SPELL+TYPE_TRAP)
         and c:IsSSetable()
 end
 

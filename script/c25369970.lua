@@ -2,7 +2,7 @@ local s,id=GetID()
 local SET_HOLY_NIGHT=0x159
 
 function s.initial_effect(c)
-    -- ① 丢弃自身，从手卡特召天使族或龙族光属性怪兽
+    -- ① 手卡丢弃，从手卡特召光属性怪兽
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))
     e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -27,15 +27,15 @@ function s.initial_effect(c)
     c:RegisterEffect(e2)
 end
 
+-- ① Cost：丢弃自身
 function s.spcost1(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return e:GetHandler():IsDiscardable() end
     Duel.SendtoGrave(e:GetHandler(),REASON_COST+REASON_DISCARD)
 end
+-- ① 特召过滤
 function s.spfilter1(c,e,tp)
-    return c:IsAttribute(ATTRIBUTE_LIGHT)
-        and (c:IsRace(RACE_FAIRY) or c:IsRace(RACE_DRAGON))
-        and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-        and not c:IsCode(id)
+    return c:IsAttribute(ATTRIBUTE_LIGHT) and (c:IsRace(RACE_FAIRY) or c:IsRace(RACE_DRAGON))
+        and c:IsCanBeSpecialSummoned(e,0,tp,false,false) and not c:IsCode(id)
 end
 function s.sptg1(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
@@ -49,18 +49,21 @@ function s.spop1(e,tp,eg,ep,ev,re,r,rp)
     if #g>0 then Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP) end
 end
 
+-- ② 条件：场上有光属性·天使族
 function s.spcon2(e,tp)
     return Duel.IsExistingMatchingCard(s.spfilter2,tp,LOCATION_MZONE,0,1,nil)
 end
 function s.spfilter2(c)
     return c:IsFaceup() and c:IsAttribute(ATTRIBUTE_LIGHT) and c:IsRace(RACE_FAIRY)
 end
+-- ② 目标
 function s.sptg2(e,tp,eg,ep,ev,re,r,rp,chk)
     local c=e:GetHandler()
     if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
         and c:IsCanBeSpecialSummoned(e,0,tp,false,false) end
     Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)
 end
+-- ② 操作
 function s.spop2(e,tp,eg,ep,ev,re,r,rp)
     local c=e:GetHandler()
     if not c:IsRelateToEffect(e) then return end
@@ -69,11 +72,13 @@ function s.spop2(e,tp,eg,ep,ev,re,r,rp)
     -- 离场除外
     local e1=Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_SINGLE)
-    e1:SetCode(EFFECT_REMOVE_ON_LEAVE)
+    e1:SetCode(EFFECT_LEAVE_FIELD_REDIRECT)
+    e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+    e1:SetValue(LOCATION_REMOVED)
     e1:SetReset(RESET_EVENT+RESETS_STANDARD)
     c:RegisterEffect(e1)
 
-    -- 超量自肃：直到回合结束，不能特召非超量怪兽
+    -- 超量自肃
     local e2=Effect.CreateEffect(c)
     e2:SetType(EFFECT_TYPE_FIELD)
     e2:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)

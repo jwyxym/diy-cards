@@ -1,56 +1,101 @@
---炽狱古咒
 local s,id,o=GetID()
 function s.initial_effect(c)
+	c:EnableReviveLimit()
 	local e1=Effect.CreateEffect(c)
-	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
-	e1:SetType(EFFECT_TYPE_ACTIVATE)
-	e1:SetCode(EVENT_FREE_CHAIN)
-	e1:SetCountLimit(1,id)
-	e1:SetOperation(s.activate)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_SPSUMMON_PROC)
+	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e1:SetRange(LOCATION_HAND+LOCATION_GRAVE)
+	e1:SetCondition(s.spcon)
+	e1:SetOperation(s.spop)
+	c:RegisterEffect(e1)
+	Duel.AddCustomActivityCounter(id,ACTIVITY_CHAIN,s.chainfilter)
+	Duel.AddCustomActivityCounter(id,ACTIVITY_SUMMON,s.sumfilter)
+	Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,s.sumfilter)
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetCode(EFFECT_IMMUNE_EFFECT)
+	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetValue(s.immval)
+	c:RegisterEffect(e2)
+	local e3=Effect.CreateEffect(c)
+	e3:SetType(EFFECT_TYPE_SINGLE)
+	e3:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetCondition(s.procon)
+	e3:SetValue(1)
+	c:RegisterEffect(e3)
+	local e4=e3:Clone()
+	e4:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+	e4:SetValue(aux.tgoval)
+	c:RegisterEffect(e4)
+	local e5=Effect.CreateEffect(c)
+	e5:SetDescription(aux.Stringid(id,0))
+	e5:SetCategory(CATEGORY_ATKCHANGE)
+	e5:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_F)
+	e5:SetCode(EVENT_DAMAGE_STEP_END)
+	e5:SetCountLimit(1)
+	e5:SetCondition(s.atkcon)
+	e5:SetOperation(s.atkop)
+	c:RegisterEffect(e5)
+end
+function s.chainfilter(re,tp,cid)
+	return Duel.GetTurnPlayer()==tp or Duel.GetChainInfo(cid,CHAININFO_TRIGGERING_LOCATION)&LOCATION_ONFIELD==0
+end
+function s.sumfilter(c)
+	return c:IsSetCard(0xd83)
+end
+function s.spcon(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.GetTurnPlayer()==tp and Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and Duel.GetCustomActivityCount(id,1-tp,ACTIVITY_CHAIN)>=2
+		and Duel.GetCustomActivityCount(id,tp,ACTIVITY_SUMMON)==0
+		and Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0
+end
+function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(s.sumlimit)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+	local e2=e1:Clone()
+	e2:SetCode(EFFECT_CANNOT_SUMMON)
+	Duel.RegisterEffect(e2,tp)
+end
+function s.sumlimit(e,c)
+	return not c:IsSetCard(0xd83)
+end
+function s.immval(e,te)
+	return te:GetOwner()~=e:GetOwner() and te:IsActiveType(TYPE_MONSTER)
+		and not te:GetOwner():IsStatus(STATUS_SUMMON_TURN+STATUS_SPSUMMON_TURN)
+end
+function s.procon(e)
+	local tp=e:GetHandlerPlayer()
+	return Duel.GetFieldGroupCount(tp,LOCATION_HAND+LOCATION_ONFIELD,0)<Duel.GetFieldGroupCount(tp,0,LOCATION_HAND+LOCATION_ONFIELD)
+end
+function s.atkcon(e)
+	return e:GetHandler():GetBattleTarget()~=nil
+end
+function s.atkop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local bc=c:GetBattleTarget()
+	if not c:IsFaceup() or not c:IsRelateToEffect(e) or not bc then return end
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetCode(EFFECT_UPDATE_ATTACK)
+	e1:SetValue(math.max(bc:GetAttack(),0))
+	e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_DISABLE)
 	c:RegisterEffect(e1)
 	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,0))
-	e2:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TOKEN)
-	e2:SetType(EFFECT_TYPE_IGNITION)
-	e2:SetRange(LOCATION_SZONE)
-	e2:SetCountLimit(1,id+o*10000)
-	e2:SetCost(s.spcost)
-	e2:SetTarget(s.sptg)
-	e2:SetOperation(s.spop)
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetCode(EFFECT_EXTRA_ATTACK)
+	e2:SetValue(1)
+	e2:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_BATTLE)
 	c:RegisterEffect(e2)
-end
-function s.filter(c)
-	return c:IsSetCard(0xd83) and c:IsType(TYPE_MONSTER) and c:IsAbleToHand()
-end
-function s.activate(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetMatchingGroup(s.filter,tp,LOCATION_DECK,0,nil)
-	if g:GetCount()>0 and Duel.SelectYesNo(tp,aux.Stringid(id,0)) then
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-		local sg=g:Select(tp,1,1,nil)
-		Duel.SendtoHand(sg,nil,REASON_EFFECT)
-		Duel.ConfirmCards(1-tp,sg)
-	end
-end
-function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckReleaseGroupEx(tp,Card.IsLevelAbove,1,REASON_COST,true,e:GetHandler(),5) end
-	local g=Duel.SelectReleaseGroupEx(tp,Card.IsLevelAbove,1,1,REASON_COST,true,e:GetHandler(),5)
-	Duel.Release(g,REASON_COST)
-end
-function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and Duel.IsPlayerCanSpecialSummonMonster(tp,23600060,0xd83,TYPES_TOKEN_MONSTER,2000,2000,7,RACE_REPTILE,ATTRIBUTE_FIRE) end
-	Duel.SetOperationInfo(0,CATEGORY_TOKEN,nil,1,0,0)
-	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,0,0)
-end
-function s.spop(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0
-		or not Duel.IsPlayerCanSpecialSummonMonster(tp,23600060,0xd83,TYPES_TOKEN_MONSTER,2000,2000,7,RACE_REPTILE,ATTRIBUTE_FIRE) then return end
-	local token=Duel.CreateToken(tp,23600060)
-	Duel.SpecialSummon(token,0,tp,tp,false,false,POS_FACEUP)
-	local e1=Effect.CreateEffect(e:GetHandler())
-	e1:SetType(EFFECT_TYPE_SINGLE)
-	e1:SetCode(EFFECT_CANNOT_BE_SYNCHRO_MATERIAL)
-	e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-	e1:SetValue(1)
-	token:RegisterEffect(e1,true)
 end

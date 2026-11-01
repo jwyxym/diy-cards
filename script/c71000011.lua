@@ -1,9 +1,9 @@
 --大墓之引渡者
 -- 卡片类型：怪兽卡, 效果
+-- 暗 3星 不死族 1000/500
 local cm, m, o = GetID()
 function cm.initial_effect(c)
-	-- 这个卡名的①②效果1回合各能使用1次。
-	-- ①：这张卡召唤·特殊召唤成功的场合才能发动。从卡组把1张「大墓」魔法·陷阱卡送去墓地。这个回合，自己不是不死族怪兽不能从手卡特殊召唤。
+	-- ①：这张卡召唤·特殊召唤成功的场合才能发动。从卡组把1张「大墓」魔法·陷阱卡送去墓地。这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤。
 	local e1 = Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(m, 0))
 	e1:SetCategory(CATEGORY_TOGRAVE)
@@ -21,18 +21,19 @@ function cm.initial_effect(c)
 	-- ②：把墓地的这张卡除外，以对方墓地1只怪兽为对象才能发动。那只怪兽效果无效并特殊召唤到自己场上，攻击力·守备力变为0，不能作为融合·同调·超量·链接的素材。这个效果在对方回合也能发动。
 	local e2 = Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(m, 1))
-	e2:SetCategory(CATEGORY_REMOVE + CATEGORY_SPECIAL_SUMMON)
+	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e2:SetType(EFFECT_TYPE_QUICK_O)
 	e2:SetCode(EVENT_FREE_CHAIN)
 	e2:SetRange(LOCATION_GRAVE)
 	e2:SetCountLimit(1, m + 2)
-	e2:SetCost(aux.bfgcost)
+	e2:SetCost(aux.bfgcost) -- 把墓地这张卡除外作为代价
 	e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e2:SetTarget(cm.tg2)
 	e2:SetOperation(cm.op2)
 	c:RegisterEffect(e2)
 end
 
+-- ========== ① ==========
 function cm.tg1(e, tp, eg, ep, ev, re, r, rp, chk)
 	if chk == 0 then return Duel.IsExistingMatchingCard(cm.filter, tp, LOCATION_DECK, 0, 1, nil) end
 	Duel.SetOperationInfo(0, CATEGORY_TOGRAVE, nil, 1, tp, LOCATION_DECK)
@@ -57,63 +58,73 @@ function cm.filter(c)
 	return c:IsSetCard(0x3e11) and (c:IsType(TYPE_SPELL) or c:IsType(TYPE_TRAP)) and c:IsAbleToGrave()
 end
 
-function cm.splimit(e, c)
-	return not c:IsRace(RACE_ZOMBIE) and c:IsLocation(LOCATION_HAND)
+-- 【修改】限制：这个回合不是「大墓」怪兽不能从 手卡·卡组·额外卡组 特召
+function cm.splimit(e, c, sump, sumtype, sumpos, targetp, se)
+	if c:IsLocation(LOCATION_HAND + LOCATION_DECK + LOCATION_EXTRA) then
+		return not (c:IsSetCard(0x3e11) and c:IsType(TYPE_MONSTER))
+	end
+	return false
 end
 
-function cm.tg2(e, tp, eg, ep, ev, re, r, rp, chk)
+-- ========== ② ==========
+-- 【修改】取对象：以对方墓地1只怪兽为对象
+function cm.tg2(e, tp, eg, ep, ev, re, r, rp, chk, chkc)
+	if chkc then 
+		return chkc:IsLocation(LOCATION_GRAVE) and chkc:IsControler(1 - tp) and chkc:IsCanBeSpecialSummoned(e, 0, tp, false, false) 
+	end
 	if chk == 0 then
 		return Duel.GetLocationCount(tp, LOCATION_MZONE) > 0 and
-			Duel.IsExistingMatchingCard(Card.IsCanBeSpecialSummoned, tp, 0, LOCATION_GRAVE, 1, nil, e, 0, tp, false,
-				false)
+			Duel.IsExistingTarget(Card.IsCanBeSpecialSummoned, tp, 0, LOCATION_GRAVE, 1, nil, e, 0, tp, false, false)
 	end
-	Duel.SetOperationInfo(0, CATEGORY_SPECIAL_SUMMON, nil, 1, 0, LOCATION_GRAVE)
+	Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SPSUMMON)
+	local g = Duel.SelectTarget(tp, Card.IsCanBeSpecialSummoned, tp, 0, LOCATION_GRAVE, 1, 1, nil, e, 0, tp, false, false)
+	Duel.SetOperationInfo(0, CATEGORY_SPECIAL_SUMMON, g, 1, 0, LOCATION_GRAVE)
 end
 
 function cm.op2(e, tp, eg, ep, ev, re, r, rp)
+	local tc = Duel.GetFirstTarget()
+	if not tc or not tc:IsRelateToEffect(e) then return end
 	if Duel.GetLocationCount(tp, LOCATION_MZONE) <= 0 then return end
-	Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SPSUMMON)
-	local g = Duel.SelectMatchingCard(tp, Card.IsCanBeSpecialSummoned, tp, 0, LOCATION_GRAVE, 1, 1, nil, e, 0, tp, false,
-		false)
-	if #g > 0 then
-		local tc = g:GetFirst()
-		if Duel.SpecialSummonStep(tc, 0, tp, tp, false, false, POS_FACEUP) then
-			-- 效果无效
-			local e1 = Effect.CreateEffect(e:GetHandler())
-			e1:SetType(EFFECT_TYPE_SINGLE)
-			e1:SetCode(EFFECT_DISABLE)
-			e1:SetReset(RESET_EVENT + RESETS_STANDARD)
-			tc:RegisterEffect(e1)
-			local e2 = e1:Clone()
-			e2:SetCode(EFFECT_DISABLE_EFFECT)
-			tc:RegisterEffect(e2)
-			-- 攻击力·守备力变为0
-			local e3 = Effect.CreateEffect(e:GetHandler())
-			e3:SetType(EFFECT_TYPE_SINGLE)
-			e3:SetCode(EFFECT_SET_ATTACK_FINAL)
-			e3:SetValue(0)
-			e3:SetReset(RESET_EVENT + RESETS_STANDARD)
-			tc:RegisterEffect(e3)
-			local e4 = e3:Clone()
-			e4:SetCode(EFFECT_SET_DEFENSE_FINAL)
-			tc:RegisterEffect(e4)
-			-- 不能作为融合·同调·超量·链接的素材
-			local e5 = Effect.CreateEffect(e:GetHandler())
-			e5:SetType(EFFECT_TYPE_SINGLE)
-			e5:SetCode(EFFECT_CANNOT_BE_FUSION_MATERIAL)
-			e5:SetValue(1)
-			e5:SetReset(RESET_EVENT + RESETS_STANDARD)
-			tc:RegisterEffect(e5)
-			local e6 = e5:Clone()
-			e6:SetCode(EFFECT_CANNOT_BE_SYNCHRO_MATERIAL)
-			tc:RegisterEffect(e6)
-			local e7 = e5:Clone()
-			e7:SetCode(EFFECT_CANNOT_BE_XYZ_MATERIAL)
-			tc:RegisterEffect(e7)
-			local e8 = e5:Clone()
-			e8:SetCode(EFFECT_CANNOT_BE_LINK_MATERIAL)
-			tc:RegisterEffect(e8)
-		end
-		Duel.SpecialSummonComplete()
+
+	-- 特殊召唤 & 赋予各种负面效果
+	if Duel.SpecialSummonStep(tc, 0, tp, tp, false, false, POS_FACEUP) then
+		-- 效果无效
+		local e1 = Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetCode(EFFECT_DISABLE)
+		e1:SetReset(RESET_EVENT + RESETS_STANDARD)
+		tc:RegisterEffect(e1)
+		local e2 = e1:Clone()
+		e2:SetCode(EFFECT_DISABLE_EFFECT) -- 修正了原代码错写成两次 DISABLE 的问题
+		tc:RegisterEffect(e2)
+		
+		-- 攻击力·守备力变为0
+		local e3 = Effect.CreateEffect(e:GetHandler())
+		e3:SetType(EFFECT_TYPE_SINGLE)
+		e3:SetCode(EFFECT_SET_ATTACK_FINAL)
+		e3:SetValue(0)
+		e3:SetReset(RESET_EVENT + RESETS_STANDARD)
+		tc:RegisterEffect(e3)
+		local e4 = e3:Clone()
+		e4:SetCode(EFFECT_SET_DEFENSE_FINAL)
+		tc:RegisterEffect(e4)
+		
+		-- 不能作为融合·同调·超量·链接的素材
+		local e5 = Effect.CreateEffect(e:GetHandler())
+		e5:SetType(EFFECT_TYPE_SINGLE)
+		e5:SetCode(EFFECT_CANNOT_BE_FUSION_MATERIAL)
+		e5:SetValue(1)
+		e5:SetReset(RESET_EVENT + RESETS_STANDARD)
+		tc:RegisterEffect(e5)
+		local e6 = e5:Clone()
+		e6:SetCode(EFFECT_CANNOT_BE_SYNCHRO_MATERIAL)
+		tc:RegisterEffect(e6)
+		local e7 = e5:Clone()
+		e7:SetCode(EFFECT_CANNOT_BE_XYZ_MATERIAL)
+		tc:RegisterEffect(e7)
+		local e8 = e5:Clone()
+		e8:SetCode(EFFECT_CANNOT_BE_LINK_MATERIAL)
+		tc:RegisterEffect(e8)
 	end
+	Duel.SpecialSummonComplete()
 end

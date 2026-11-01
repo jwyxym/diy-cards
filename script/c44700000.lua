@@ -5,6 +5,7 @@ function s.initial_effect(c)
     c:EnableReviveLimit()
     aux.AddSynchroProcedure(c, aux.FilterBoolFunction(Card.IsRace,RACE_SPELLCASTER), aux.NonTuner(nil), 1, 99)
 
+    -- ① 同调召唤成功时 / 暗属性怪兽回到额外卡组时
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))
     e1:SetCategory(CATEGORY_SSET)
@@ -30,9 +31,10 @@ function s.initial_effect(c)
     e2:SetOperation(s.op1)
     c:RegisterEffect(e2)
 
+    -- ② 双方主要阶段，送墓表侧卡，无效同种类卡，自身回额外
     local e3=Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id,1))
-    e3:SetCategory(CATEGORY_DISABLE+CATEGORY_TOGRAVE)
+    e3:SetCategory(CATEGORY_DISABLE)
     e3:SetType(EFFECT_TYPE_QUICK_O)
     e3:SetCode(EVENT_FREE_CHAIN)
     e3:SetRange(LOCATION_MZONE)
@@ -55,7 +57,7 @@ function s.filter1b(c)
 end
 
 function s.filter1(c)
-    return c:IsSetCard(HOLY) and c:IsType(TYPE_SPELL) and c:IsType(TYPE_CONTINUOUS) and c:IsSSetable()
+    return c:IsSetCard(HOLY) and c:IsType(TYPE_SPELL) and c:IsSSetable()
 end
 function s.tg1(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return Duel.IsExistingMatchingCard(s.filter1,tp,LOCATION_DECK,0,1,nil) end
@@ -105,32 +107,34 @@ function s.tg2(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 end
 
 function s.op2(e,tp,eg,ep,ev,re,r,rp)
-    local c=e:GetHandler()
-    local tc=Duel.GetFirstTarget()
+    local c = e:GetHandler()
+    local tc = Duel.GetFirstTarget()
     if not tc or not tc:IsRelateToEffect(e) then return end
-    local kind=e:GetLabel()
+    local kind = e:GetLabel()
 
-    Duel.SendtoGrave(tc,REASON_EFFECT)
+    -- 1. 送去墓地
+    Duel.SendtoGrave(tc, REASON_EFFECT)
 
-    local g=Duel.GetMatchingGroup(function(cc)
-        return cc:IsFaceup() and (cc:GetOriginalType() & kind) > 0
-    end, 0, LOCATION_ONFIELD, LOCATION_ONFIELD, nil)
-    if g:GetCount()>0 then
-        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DISABLE)
-        local dc=g:Select(tp,1,1,nil):GetFirst()
+    -- 2. 无效同种类卡
+    local g = Duel.GetMatchingGroup(Card.IsFaceup, 0, LOCATION_ONFIELD, LOCATION_ONFIELD, nil)
+    local sg = g:Filter(function(cc) return (cc:GetOriginalType() & kind) > 0 end, nil)
+    if sg:GetCount() > 0 then
+        Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_DISABLE)
+        local dc = sg:Select(tp, 1, 1, nil):GetFirst()
         if dc then
-            local e1=Effect.CreateEffect(c)
+            local e1 = Effect.CreateEffect(c)
             e1:SetType(EFFECT_TYPE_SINGLE)
             e1:SetCode(EFFECT_DISABLE)
-            e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+            e1:SetReset(RESET_EVENT + RESETS_STANDARD)
             dc:RegisterEffect(e1)
-            local e2=e1:Clone()
+            local e2 = e1:Clone()
             e2:SetCode(EFFECT_DISABLE_EFFECT)
             dc:RegisterEffect(e2)
         end
     end
 
-    if c:IsRelateToEffect(e) and c:IsLocation(LOCATION_MZONE) then
-        Duel.SendtoDeck(c,nil,SEQ_DECKTOP,REASON_EFFECT)
+    -- ★ 核心修正：只要这张卡在场上或墓地，都送回额外卡组
+    if c:IsLocation(LOCATION_MZONE) or c:IsLocation(LOCATION_GRAVE) then
+        Duel.SendtoDeck(c, nil, SEQ_DECKTOP, REASON_EFFECT)
     end
 end

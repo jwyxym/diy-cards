@@ -1,5 +1,6 @@
 --大墓之祭礼者
 -- 卡片类型：怪兽卡, 效果, 连接
+-- 暗 不死族 LINK-1 ATK/0
 local cm, m, o = GetID()
 function cm.initial_effect(c)
 	-- 「大墓」怪兽1只
@@ -7,7 +8,7 @@ function cm.initial_effect(c)
 	c:EnableReviveLimit()
 	aux.AddLinkProcedure(c, cm.lkfilter, 1, 1)
 
-	-- ①：这张卡连接召唤成功的场合才能发动。从卡组把1只「大墓」怪兽特殊召唤。这个效果发动后，这个回合自己不是不死族怪兽不能从卡组特殊召唤。
+	-- ①：这张卡连接召唤成功的场合才能发动。从卡组把1只「大墓」怪兽特殊召唤。这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤。
 	local e1 = Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(m, 0))
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -59,7 +60,7 @@ function cm.spop1(e, tp, eg, ep, ev, re, r, rp)
 	local g = Duel.SelectMatchingCard(tp, cm.spfilter, tp, LOCATION_DECK, 0, 1, 1, nil, e, tp)
 	if #g > 0 then
 		Duel.SpecialSummon(g, 0, tp, tp, false, false, POS_FACEUP)
-		-- 这个回合自己不是不死族怪兽不能从卡组特殊召唤
+		-- 这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤
 		local e1 = Effect.CreateEffect(e:GetHandler())
 		e1:SetType(EFFECT_TYPE_FIELD)
 		e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -71,8 +72,12 @@ function cm.spop1(e, tp, eg, ep, ev, re, r, rp)
 	end
 end
 
-function cm.splimit(e, c)
-	return not c:IsRace(RACE_ZOMBIE) and c:IsLocation(LOCATION_DECK)
+-- 【核心修改】特召限制：必须是「大墓」怪兽才能从 手卡·卡组·额外卡组 特召
+function cm.splimit(e, c, sump, sumtype, sumpos, targetp, se)
+	if c:IsLocation(LOCATION_HAND + LOCATION_DECK + LOCATION_EXTRA) then
+		return not (c:IsSetCard(0x3e11) and c:IsType(TYPE_MONSTER))
+	end
+	return false
 end
 
 function cm.tg2(e, tp, eg, ep, ev, re, r, rp, chk)

@@ -1,5 +1,6 @@
 --大墓之司祭主
 -- 卡片类型：怪兽卡, 效果, 连接
+-- 暗 不死族 LINK-3 ATK/2500
 local cm, m, o = GetID()
 function cm.initial_effect(c)
 	-- 「大墓」怪兽2只以上
@@ -7,7 +8,7 @@ function cm.initial_effect(c)
 	c:EnableReviveLimit()
 	aux.AddLinkProcedure(c, cm.matfilter, 2, 3)
 
-	-- ①：这张卡连接召唤成功的场合才能发动。从自己墓地把1只「大墓」怪兽特殊召唤。那之后，自己场上有对方怪兽的场合，可以再从卡组把1只「大墓」卡送去墓地或除外。这个回合，自己不是不死族怪兽不能从额外卡组特殊召唤。
+	-- ①：这张卡连接召唤成功的场合才能发动。从自己墓地把1只「大墓」怪兽特殊召唤。那之后，自己场上有对方怪兽的场合，可以把1只对方怪兽送去墓地，从卡组把1张「大墓」卡送去墓地或除外。这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤。
 	local e1 = Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(m, 0))
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON + CATEGORY_TOGRAVE + CATEGORY_REMOVE)
@@ -20,7 +21,7 @@ function cm.initial_effect(c)
 	e1:SetOperation(cm.e1op)
 	c:RegisterEffect(e1)
 
-	-- ②：这张卡被除外的场合才能发动。从自己除外状态把不死族融合怪兽卡决定的融合素材怪兽返回卡组，把那1只融合怪兽从额外卡组融合召唤（这个场合，特殊召唤当作融合召唤）。
+	-- ②：这张卡被除外的场合才能发动。从自己除外状态把「大墓」融合怪兽卡决定的融合素材怪兽返回卡组，把那1只融合怪兽从额外卡组融合召唤（这个场合，特殊召唤当作融合召唤）。
 	local e2 = Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(m, 1))
 	e2:SetCategory(CATEGORY_TODECK + CATEGORY_SPECIAL_SUMMON)
@@ -66,32 +67,35 @@ function cm.e1op(e, tp, eg, ep, ev, re, r, rp)
 	Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SPSUMMON)
 	local g = Duel.SelectMatchingCard(tp, cm.spfilter, tp, LOCATION_GRAVE, 0, 1, 1, nil, e, tp)
 	if #g > 0 and Duel.SpecialSummon(g, 0, tp, tp, false, false, POS_FACEUP) > 0 then
-		-- 那之后，自己场上有对方怪兽的场合，可以选那只对方怪兽送去墓地
+		
+		-- 【核心修改】那之后，自己场上有对方怪兽的场合，可以把1只对方怪兽送去墓地，从卡组把1张「大墓」卡送去墓地或除外。
 		local g2 = Duel.GetMatchingGroup(cm.oppmonfilter, tp, LOCATION_MZONE, 0, nil)
-		if #g2 > 0 then
-			-- 询问是否适用“那之后”效果（把对方怪兽送去墓地）
+		local can_tg = Duel.IsExistingMatchingCard(cm.tgfilter, tp, LOCATION_DECK, 0, 1, nil)
+		
+		if #g2 > 0 and can_tg then
+			-- 询问是否适用“那之后”效果（处理对方怪兽和卡组卡）
 			if Duel.SelectYesNo(tp, aux.Stringid(m, 4)) then
+				Duel.BreakEffect()
+				-- 把1只对方怪兽送去墓地
 				Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
 				local sg2 = g2:Select(tp, 1, 1, nil)
 				Duel.SendtoGrave(sg2, REASON_EFFECT)
-				-- 可以再从卡组把1张「大墓」卡送去墓地或除外
-				if Duel.IsExistingMatchingCard(cm.tgfilter, tp, LOCATION_DECK, 0, 1, nil) then
-					if Duel.SelectYesNo(tp, aux.Stringid(m, 2)) then
-						Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
-						local sg = Duel.SelectMatchingCard(tp, cm.tgfilter, tp, LOCATION_DECK, 0, 1, 1, nil)
-						if #sg > 0 then
-							if sg:GetFirst():IsAbleToRemove() and Duel.SelectYesNo(tp, aux.Stringid(m, 3)) then
-								Duel.Remove(sg, POS_FACEUP, REASON_EFFECT)
-							else
-								Duel.SendtoGrave(sg, REASON_EFFECT)
-							end
-						end
+				
+				-- 从卡组把1张「大墓」卡送去墓地或除外
+				Duel.BreakEffect()
+				Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
+				local sg = Duel.SelectMatchingCard(tp, cm.tgfilter, tp, LOCATION_DECK, 0, 1, 1, nil)
+				if #sg > 0 then
+					if sg:GetFirst():IsAbleToRemove() and Duel.SelectYesNo(tp, aux.Stringid(m, 3)) then
+						Duel.Remove(sg, POS_FACEUP, REASON_EFFECT)
+					else
+						Duel.SendtoGrave(sg, REASON_EFFECT)
 					end
 				end
 			end
 		end
 
-		-- 这个回合，自己不是不死族怪兽不能从额外卡组特殊召唤
+		-- 【核心修改】这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤
 		local e1 = Effect.CreateEffect(e:GetHandler())
 		e1:SetType(EFFECT_TYPE_FIELD)
 		e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -103,16 +107,22 @@ function cm.e1op(e, tp, eg, ep, ev, re, r, rp)
 	end
 end
 
-function cm.splimit(e, c)
-	return not c:IsRace(RACE_ZOMBIE) and c:IsLocation(LOCATION_EXTRA)
+-- 【核心修改】特召限制：必须是「大墓」怪兽才能从 手卡·卡组·额外卡组 特召
+function cm.splimit(e, c, sump, sumtype, sumpos, targetp, se)
+	if c:IsLocation(LOCATION_HAND + LOCATION_DECK + LOCATION_EXTRA) then
+		return not (c:IsSetCard(0x3E11) and c:IsType(TYPE_MONSTER))
+	end
+	return false
 end
 
+-- ========== ② ==========
 function cm.filter1(c, e)
 	return c:IsType(TYPE_MONSTER) and c:IsAbleToDeck()
 end
 
+-- 【核心修改】必须是「大墓」融合怪兽
 function cm.filter2(c, e, tp, m, f, chkf)
-	return c:IsType(TYPE_FUSION) and c:IsRace(RACE_ZOMBIE) and (not f or f(c))
+	return c:IsType(TYPE_FUSION) and c:IsSetCard(0x3E11) and (not f or f(c))
 		and c:IsCanBeSpecialSummoned(e, SUMMON_TYPE_FUSION, tp, false, false) and c:CheckFusionMaterial(m, nil, chkf)
 end
 

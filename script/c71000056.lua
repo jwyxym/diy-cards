@@ -2,8 +2,7 @@
 -- 卡片类型：魔法卡, 场地
 local cm, m, o = GetID()
 function cm.initial_effect(c)
-	-- 这个卡名的①②效果1回合只能使用1次。
-	-- ①：作为这张卡的发动时的效果处理。从卡组把1只「大墓」怪兽加入手卡或送去墓地。
+	-- ①：作为这张卡的发动时的效果处理。从卡组把1只「大墓」怪兽加入手卡或送去墓地。这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤。
 	local e1 = Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(m, 0))
 	e1:SetCategory(CATEGORY_TOGRAVE + CATEGORY_SEARCH)
@@ -14,7 +13,7 @@ function cm.initial_effect(c)
 	e1:SetOperation(cm.op1)
 	c:RegisterEffect(e1)
 
-	-- ②：把自己场上1只对方怪兽送去墓地才能发动，这个回合，对方墓地·除外状态的怪兽也当做「大墓」怪兽使用。这个效果发动的回合，自己只能从额外卡组特殊召唤「大墓」怪兽。
+	-- ②：把自己场上1只对方怪兽送去墓地才能发动。这个回合，对方墓地·除外状态的怪兽也当做「大墓」怪兽使用。那之后，从对方墓地把「大墓」融合怪兽卡决定的融合素材怪兽回到卡组，把那1只融合怪兽从额外卡组融合召唤。
 	local e2 = Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(m, 1))
 	e2:SetType(EFFECT_TYPE_IGNITION)
@@ -46,6 +45,16 @@ function cm.op1(e, tp, eg, ep, ev, re, r, rp)
 			Duel.SendtoHand(g, nil, REASON_EFFECT)
 			Duel.ConfirmCards(1 - tp, g)
 		end
+		
+		-- 【新增】这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤。
+		local e1 = Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_FIELD)
+		e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+		e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e1:SetTargetRange(1, 0)
+		e1:SetTarget(cm.splimit1)
+		e1:SetReset(RESET_PHASE + PHASE_END)
+		Duel.RegisterEffect(e1, tp)
 	end
 end
 
@@ -96,6 +105,7 @@ function cm.op2(e, tp, eg, ep, ev, re, r, rp)
 	Duel.BreakEffect()
 
 	local chkf = tp
+	-- 【注意】这里的位置参数 tp, 0, LOCATION_GRAVE 代表对方墓地
 	local mg1 = Duel.GetMatchingGroup(cm.fusmatfilter, tp, 0, LOCATION_GRAVE, nil)
 	local sg1 = Duel.GetMatchingGroup(cm.filter2, tp, LOCATION_EXTRA, 0, nil, e, tp, mg1, nil, chkf)
 	local res = Duel.IsExistingMatchingCard(cm.filter2, tp, LOCATION_EXTRA, 0, 1, nil, e, tp, mg1, nil, chkf)
@@ -105,13 +115,13 @@ function cm.op2(e, tp, eg, ep, ev, re, r, rp)
 			local fgroup = ce:GetTarget()
 			local mg2 = fgroup(ce, e, tp)
 			local mf = ce:GetValue()
-			res = Duel.IsExistingMatchingCard(cm.filter2, tp, LOCATION_EXTRA, 0, 1, nil, e, tp, mg2, mf,
-				chkf)
+			res = Duel.IsExistingMatchingCard(cm.filter2, tp, LOCATION_EXTRA, 0, 1, nil, e, tp, mg2, mf, chkf)
 		end
 	end
 	if res then
 		local mg2 = nil
 		local sg2 = nil
+		local ce = Duel.GetChainMaterial(tp)
 		if ce ~= nil then
 			local fgroup = ce:GetTarget()
 			mg2 = fgroup(ce, e, tp)
@@ -127,7 +137,10 @@ function cm.op2(e, tp, eg, ep, ev, re, r, rp)
 			if sg1:IsContains(tc) and (sg2 == nil or not sg2:IsContains(tc) or not Duel.SelectYesNo(tp, ce:GetDescription())) then
 				local mat1 = Duel.SelectFusionMaterial(tp, tc, mg1, nil, chkf)
 				tc:SetMaterial(mat1)
-				local num = Duel.SendtoDeck(mat1, nil, SEQ_DECKTOP, REASON_EFFECT + REASON_MATERIAL + REASON_FUSION)
+				
+				-- 送回卡组并洗切
+				local num = Duel.SendtoDeck(mat1, nil, SEQ_DECKSHUFFLE, REASON_EFFECT + REASON_MATERIAL + REASON_FUSION)
+				
 				Duel.BreakEffect()
 				if num == mat1:GetCount() then
 					Duel.SpecialSummon(tc, SUMMON_TYPE_FUSION, tp, tp, false, false, POS_FACEUP)
@@ -140,22 +153,18 @@ function cm.op2(e, tp, eg, ep, ev, re, r, rp)
 			tc:CompleteProcedure()
 		end
 	end
-
-	-- 这个效果发动的回合，自己只能从额外卡组特殊召唤「大墓」怪兽
-	local e2 = Effect.CreateEffect(e:GetHandler())
-	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e2:SetTargetRange(1, 0)
-	e2:SetReset(RESET_PHASE + PHASE_END)
-	e2:SetTarget(cm.splimit)
-	Duel.RegisterEffect(e2, tp)
+	
+	-- 【删除】删除了原本②效果末尾的特召限制代码
 end
 
 function cm.tgfilter(e, c)
 	return c:IsType(TYPE_MONSTER)
 end
 
-function cm.splimit(e, c, sump, sumtype, sumpos, targetp, se)
-	return c:IsLocation(LOCATION_EXTRA) and not c:IsSetCard(0x3e11)
+-- 【新增】限制条件：必须是「大墓」怪兽才能从 手卡·卡组·额外卡组 特召
+function cm.splimit1(e, c, sump, sumtype, sumpos, targetp, se)
+	if c:IsLocation(LOCATION_HAND + LOCATION_DECK + LOCATION_EXTRA) then
+		return not (c:IsSetCard(0x3e11) and c:IsType(TYPE_MONSTER))
+	end
+	return false
 end

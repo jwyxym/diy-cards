@@ -18,10 +18,10 @@ function s.initial_effect(c)
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,0))
 	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
-	e2:SetType(EFFECT_TYPE_QUICK_O)
-	e2:SetCode(EVENT_FREE_CHAIN)
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e2:SetCode(EVENT_CHAINING)
+	e2:SetProperty(EFFECT_FLAG_DELAY)
 	e2:SetRange(LOCATION_SZONE)
-	e2:SetHintTiming(0,TIMING_MAIN_END)
 	e2:SetCountLimit(1,id+o)
 	e2:SetCondition(s.syncon)
 	e2:SetTarget(s.syntg)
@@ -34,8 +34,7 @@ function s.nsfilter(e,c)
 end
 
 function s.syncon(e,tp,eg,ep,ev,re,r,rp)
-	local ph=Duel.GetCurrentPhase()
-	return ph==PHASE_MAIN1 or ph==PHASE_MAIN2
+	return rp==1-tp and re:IsActiveType(TYPE_MONSTER)
 end
 function s.synfilter(c,e,tp,mg)
 	return c:IsType(TYPE_SYNCHRO) and c:IsRace(RACE_INSECT) and c:IsSynchroSummonable(nil,mg)

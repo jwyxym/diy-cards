@@ -1,8 +1,9 @@
 -- Rose
 -- ID: 44821006
--- 记述关系：此卡本身不记述「Roselia」，但效果涉及「Roselia」(44821000)
+-- 记述「Roselia」(44821000)
 local s,id=GetID()
 function s.initial_effect(c)
+    aux.AddCodeList(c,44821000)  -- 此卡记述「Roselia」
     -- ① 场上·墓地的这张卡的种族当作植物族使用
     local e1=Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_SINGLE)

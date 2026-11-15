@@ -30,7 +30,7 @@ function s.initial_effect(c)
 end
 --通用
 function s.lmatfilter(c)
-	return c:IsRace(RACE_WINGEDBEAST) or c:IsRace(RACE_SPELLCASTER)
+	return c:IsRace(RACE_WINDBEAST) or c:IsRace(RACE_SPELLCASTER)
 end
 function s.pfilter(c)
 	return c:IsSetCard(0xe99) and c:IsType(TYPE_PENDULUM) and c:IsType(TYPE_MONSTER)
@@ -38,29 +38,32 @@ end
 function s.cxfilter(c,tp)
 	return c:IsSetCard(0xe99) and c:IsType(TYPE_MONSTER) and c:IsControler(tp) and c:IsFaceup()
 end
+function s.dkfilter(c)
+	return c:IsSetCard(0xe99) and c:IsType(TYPE_MONSTER)
+end
 function s.matfilter(c,tp)
 	return c:IsSetCard(0xe99) and c:IsType(TYPE_MONSTER) and c:IsControler(tp)
 end
 --①
 function s.tetg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
 	if chk==0 then return Duel.IsExistingMatchingCard(s.pfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil) end
+	local mg=c:GetMaterial()
+	e:SetLabel((c:IsSummonType(SUMMON_TYPE_LINK) and mg~=nil and mg:IsExists(s.matfilter,1,nil,tp)) and 1 or 0)
 	Duel.SetOperationInfo(0,CATEGORY_TOEXTRA,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
 end
 function s.teop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOEXTRA)
 	local g=Duel.SelectMatchingCard(tp,s.pfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
 	if g:GetCount()>0 then
 		Duel.SendtoExtraP(g,nil,REASON_EFFECT)
 	end
 	--以「唱晓」怪兽作为连接素材连接召唤的场合，可以再从卡组加1只「唱晓」怪兽
-	if not c:IsSummonType(SUMMON_TYPE_LINK) then return end
-	local mg=c:GetMaterial()
-	if mg==nil or not mg:IsExists(s.matfilter,1,nil,tp) then return end
-	if not Duel.IsExistingMatchingCard(s.cxfilter,tp,LOCATION_DECK,0,1,nil,tp) then return end
+	if e:GetLabel()==0 then return end
+	if not Duel.IsExistingMatchingCard(s.dkfilter,tp,LOCATION_DECK,0,1,nil,tp) then return end
 	if not Duel.SelectYesNo(tp,aux.Stringid(id,2)) then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local sg=Duel.SelectMatchingCard(tp,s.cxfilter,tp,LOCATION_DECK,0,1,1,nil,tp)
+	local sg=Duel.SelectMatchingCard(tp,s.dkfilter,tp,LOCATION_DECK,0,1,1,nil,tp)
 	if sg:GetCount()>0 then
 		Duel.SendtoHand(sg,nil,REASON_EFFECT)
 		Duel.ConfirmCards(1-tp,sg)

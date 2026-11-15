@@ -3,14 +3,13 @@
 -- 暗 6星 不死族 1800/1800
 local cm, m, o = GetID()
 function cm.initial_effect(c)
-	-- ①：这张卡在手卡·墓地存在的场合才能发动。这张卡从手卡·墓地特殊召唤。那之后，可以把自己手卡·场上1张卡送去墓地，从自己墓地把1只怪兽加入手卡。这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤。
+	-- ①：这张卡在手卡·墓地存在的场合才能发动。这张卡从手卡·墓地特殊召唤。那之后，把自己手卡·场上1张卡送去墓地，从自己墓地把1只怪兽加入手卡。这个效果发动后，这个回合自己不是「大墓」怪兽不能从手卡·卡组·额外卡组特殊召唤。
 	local e1 = Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(m, 0))
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON + CATEGORY_TOGRAVE + CATEGORY_TOHAND)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_HAND + LOCATION_GRAVE)
 	e1:SetCountLimit(1, m + 1)
-	-- 删除了 e1:SetCost(cm.cost1)
 	e1:SetTarget(cm.tg1)
 	e1:SetOperation(cm.op1)
 	c:RegisterEffect(e1)
@@ -30,12 +29,15 @@ function cm.initial_effect(c)
 end
 
 -- ========== ① ==========
--- 因为去掉了代价，目标阶段只需要检查能不能特召即可
+-- 目标阶段：必须同时满足 1.可特召自身 2.有其他卡可送墓 3.墓地有怪兽可回收
 function cm.tg1(e, tp, eg, ep, ev, re, r, rp, chk)
 	local c = e:GetHandler()
 	if chk == 0 then
+		local can_send = Duel.IsExistingMatchingCard(Card.IsAbleToGrave, tp, LOCATION_HAND + LOCATION_ONFIELD, 0, 1, c)
+		local can_add = Duel.IsExistingMatchingCard(cm.thfilter, tp, LOCATION_GRAVE, 0, 1, nil)
 		return Duel.GetLocationCount(tp, LOCATION_MZONE) > 0 and
-			c:IsCanBeSpecialSummoned(e, 0, tp, false, false)
+			c:IsCanBeSpecialSummoned(e, 0, tp, false, false) and
+			can_send and can_add
 	end
 	Duel.SetOperationInfo(0, CATEGORY_SPECIAL_SUMMON, c, 1, 0, c:GetLocation())
 end
@@ -44,22 +46,22 @@ function cm.op1(e, tp, eg, ep, ev, re, r, rp)
 	local c = e:GetHandler()
 	if not c:IsRelateToEffect(e) then return end
 	
-	-- 1. 从手卡·墓地特召
+	-- 1. 从手卡·墓地特召自身
 	if Duel.SpecialSummon(c, 0, tp, tp, false, false, POS_FACEUP) > 0 then
 		
-		-- 2. 那之后，可以选择把自己手卡·场上1张卡送去墓地，从墓地把1只怪兽加入手卡
+		-- 2. 【核心修改】去掉了 SelectYesNo，变成了强制执行的处理
 		local can_send = Duel.IsExistingMatchingCard(Card.IsAbleToGrave, tp, LOCATION_HAND + LOCATION_ONFIELD, 0, 1, c)
 		local can_add = Duel.IsExistingMatchingCard(cm.thfilter, tp, LOCATION_GRAVE, 0, 1, nil)
 		
-		if can_send and can_add and Duel.SelectYesNo(tp, aux.Stringid(m, 2)) then
+		if can_send and can_add then
 			Duel.BreakEffect()
-			-- 选1张卡送去墓地
+			-- 强制选1张卡送去墓地
 			Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
 			local g = Duel.SelectMatchingCard(tp, Card.IsAbleToGrave, tp, LOCATION_HAND + LOCATION_ONFIELD, 0, 1, 1, c)
 			if #g > 0 then
 				Duel.SendtoGrave(g, REASON_EFFECT)
 				Duel.BreakEffect()
-				-- 从墓地选1只怪兽加入手卡
+				-- 强制从墓地选1只怪兽加入手卡
 				Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_ATOHAND)
 				local sg = Duel.SelectMatchingCard(tp, cm.thfilter, tp, LOCATION_GRAVE, 0, 1, 1, nil)
 				if #sg > 0 then

@@ -1,51 +1,41 @@
---残云封天剑
+-- 残云封天剑（ID: 61000055）通常魔法
+-- 效果文本：
+--   这个卡名在规则上也当作「云剑」卡使用。
+--   ①：自己主要阶段1开始时才能发动。自己手卡的卡全部除外，给与对方那之中「云剑」卡数量×800的伤害。
 local s,id,o=GetID()
+s.setcode=0xa7c0
+
 function s.initial_effect(c)
 	local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_REMOVE+CATEGORY_DAMAGE)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
-	e1:SetCondition(s.condition)
-	e1:SetTarget(s.target)
-	e1:SetOperation(s.activate)
+	e1:SetCondition(s.con)
+	e1:SetTarget(s.tg)
+	e1:SetOperation(s.op)
 	c:RegisterEffect(e1)
-	local e2=Effect.CreateEffect(c)
-	e2:SetCategory(CATEGORY_TODECK)
-	e2:SetType(EFFECT_TYPE_IGNITION)
-	e2:SetRange(LOCATION_GRAVE)
-	e2:SetTarget(s.tdtg)
-	e2:SetOperation(s.tdop)
-	c:RegisterEffect(e2)
 end
-function s.condition(e,tp,eg,ep,ev,re,r,rp)
+
+-- 自己主要阶段1开始时
+function s.con(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.GetCurrentPhase()==PHASE_MAIN1 and not Duel.CheckPhaseActivity()
 end
-function s.rmfilter(c)
-	return c:IsAbleToRemove()
+
+function s.tg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	local g=Duel.GetFieldGroup(tp,LOCATION_HAND,0)
+	Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,g:GetCount(),tp,LOCATION_HAND)
 end
-function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.rmfilter,tp,LOCATION_HAND,0,1,e:GetHandler()) end
-	local g=Duel.GetMatchingGroup(s.rmfilter,tp,0,0,e:GetHandler())
-	Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,g:GetCount(),0,0)
+
+function s.op(e,tp,eg,ep,ev,re,r,rp)
+	local g=Duel.GetFieldGroup(tp,LOCATION_HAND,0)
+	if g:GetCount()==0 then return end
+	local n=g:FilterCount(s.yjfilter,nil)
+	Duel.Remove(g,POS_FACEUP,REASON_EFFECT)
+	if n>0 then Duel.Damage(1-tp,n*800,REASON_EFFECT) end
 end
-function s.activate(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetMatchingGroup(s.rmfilter,tp,LOCATION_HAND,0,aux.ExceptThisCard(e))
-	if g:GetCount()>0 and Duel.Remove(g,POS_FACEUP,REASON_EFFECT)~=0 then
-		local rg=Duel.GetOperatedGroup()
-		Duel.Damage(1-tp,rg:FilterCount(function (c) return c:IsFaceup() and c:IsSetCard(0xa7c0) and c:IsLocation(LOCATION_REMOVED) end , nil)*800,REASON_EFFECT)
-	end
-end
-function s.tdtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return e:GetHandler():IsAbleToDeck() end
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,e:GetHandler(),1,0,0)
-end
-function s.tdop(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.SendtoDeck(e:GetHandler(),nil,SEQ_DECKSHUFFLE,REASON_EFFECT)~=0
-		and e:GetHandler():IsLocation(LOCATION_DECK)
-		and Duel.IsExistingMatchingCard(Card.IsAbleToDeck,tp,LOCATION_REMOVED,LOCATION_REMOVED,1,nil)
-		and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
-		Duel.BreakEffect()
-		local rg=Duel.GetMatchingGroup(Card.IsAbleToDeck,tp,LOCATION_REMOVED,LOCATION_REMOVED,nil)
-		Duel.SendtoDeck(rg,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
-	end
+
+function s.yjfilter(c)
+	return c:IsSetCard(s.setcode)
 end

@@ -39,7 +39,6 @@ function s.initial_effect(c)
     e3:SetType(EFFECT_TYPE_IGNITION)
     e3:SetRange(LOCATION_FZONE)
     e3:SetProperty(EFFECT_FLAG_CARD_TARGET)
-    e3:SetCountLimit(1,id)
     e3:SetTarget(s.xyztg)
     e3:SetOperation(s.xyzop)
     c:RegisterEffect(e3)
@@ -71,6 +70,9 @@ end
 function s.tgfilter(c)
     return c:IsFaceup() and c:IsSetCard(0xb15) and c:IsType(TYPE_MONSTER)
 end
+
+-- ② 额外卡组过滤：同属性、可特殊召唤的「TOGENASHI TOGEARI」超量怪兽
+-- 移除 GetLocationCountFromEx 与 IsCanBeXyzMaterial 的兼容性调用，防止参数报错
 function s.xyzfilter(c,e,tp,attr)
     return c:IsSetCard(0xb15) and c:IsType(TYPE_XYZ)
         and c:IsAttribute(attr)
@@ -92,28 +94,35 @@ function s.xyztg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
         return false
     end
 
-    -- 发动前添加两个不影响实际效果的选项（使用标准 是/否 界面，避免乱码）
+    -- 发动前添加两个不影响实际效果的选项
     Duel.SelectYesNo(tp, aux.Stringid(id,1))
 
-    -- 正常选择对象
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
     local g=Duel.SelectTarget(tp,s.tgfilter,tp,LOCATION_MZONE,0,1,1,nil)
     Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 end
 
--- ② 操作：叠放超量召唤
+-- ② 操作：在素材怪兽原本所在的格子上叠放超量召唤
 function s.xyzop(e,tp,eg,ep,ev,re,r,rp)
     local tc=Duel.GetFirstTarget()
     if not tc or not tc:IsRelateToEffect(e) or not tc:IsFaceup() then return end
     local attr=tc:GetAttribute()
-    local g=Duel.GetMatchingGroup(s.xyzfilter,tp,LOCATION_EXTRA,0,nil,e,tp,attr)
-    if #g==0 then return end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-    local sg=g:Select(tp,1,1,nil)
-    local sc=sg:GetFirst()
+    local g=Duel.SelectMatchingCard(tp,s.xyzfilter,tp,LOCATION_EXTRA,0,1,1,nil,e,tp,attr)
+    local sc=g:GetFirst()
     if not sc then return end
-    if Duel.SpecialSummon(sc,SUMMON_TYPE_XYZ,tp,tp,false,false,POS_FACEUP)~=0 then
-        Duel.Overlay(sc,Group.FromCards(tc))
-        sc:CompleteProcedure()
+
+    -- 将 tc 原有的超量素材转移给 sc（如果 tc 本身也是超量怪兽）
+    local mg=tc:GetOverlayGroup()
+    if mg and mg:GetCount()>0 then
+        Duel.Overlay(sc,mg)
     end
+
+    -- 将 tc 作为素材叠放到 sc 下方
+    sc:SetMaterial(Group.FromCards(tc))
+    Duel.Overlay(sc,Group.FromCards(tc))
+
+    -- 在 tc 原本所在的格子上特殊召唤 sc
+    Duel.SpecialSummon(sc,SUMMON_TYPE_XYZ,tp,tp,false,false,POS_FACEUP)
+    sc:CompleteProcedure()
 end

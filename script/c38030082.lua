@@ -48,18 +48,6 @@ function c38030082.initial_effect(c)
 	e4:SetTarget(c38030082.tdtg)
 	e4:SetOperation(c38030082.tdop)
 	c:RegisterEffect(e4)
---召唤词
-	local e9=Effect.CreateEffect(c)
-	e9:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-	e9:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e9:SetCountLimit(1,38030082+10000)
-	e9:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e9:SetOperation(c38030082.cop)
-	c:RegisterEffect(e9)
-	end
-function c38030082.cop(e,tp,eg,ep,ev,re,r,rp)
-	Debug.Message("穿越空间，超越时间，将少女们受诅咒的灵魂尽数解放，于高天之上诞生新的秩序！")
-	Debug.Message("伟大的愿望啊，实现吧！融合召唤，等级12，圆环之理")
 end
 function c38030082.valcheck(e,c)
 	local g=c:GetMaterial():Filter(Card.IsSetCard,nil,0x614)

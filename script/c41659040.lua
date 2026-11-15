@@ -44,12 +44,13 @@ function s.initial_effect(c)
 	--②
 	local e4=Effect.CreateEffect(c)
 	e4:SetDescription(aux.Stringid(id,1))
-	e4:SetCategory(CATEGORY_TOHAND+CATEGORY_CONTROL)
+	e4:SetCategory(CATEGORY_CONTROL)
 	e4:SetType(EFFECT_TYPE_QUICK_O)
 	e4:SetCode(EVENT_CHAINING)
 	e4:SetRange(LOCATION_EXTRA)
 	e4:SetCountLimit(1,id)
 	e4:SetCondition(s.ecxcon)
+	e4:SetCost(s.ecxcost)
 	e4:SetTarget(s.ecxtg)
 	e4:SetOperation(s.ecxop)
 	c:RegisterEffect(e4)
@@ -155,19 +156,22 @@ end
 function s.maxtgfilter(c)
 	return c:IsFaceup() and c:IsType(TYPE_MONSTER)
 end
+--回手作为cost
+function s.ecxcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return c:IsAbleToHand() end
+	Duel.SendtoHand(c,nil,REASON_COST)
+	Duel.ConfirmCards(1-tp,c)
+end
 function s.ecxtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then
-		if not e:GetHandler():IsAbleToHand() then return false end
-		return Duel.IsExistingMatchingCard(s.maxtgfilter,tp,0,LOCATION_MZONE,1,nil)
-	end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,e:GetHandler(),1,0,0)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.maxtgfilter,tp,0,LOCATION_MZONE,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_CONTROL,nil,1,1-tp,LOCATION_MZONE)
 end
 function s.ecxop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) then
-		Duel.SendtoHand(c,nil,REASON_EFFECT)
-		Duel.ConfirmCards(1-tp,c)
-	end
+	s.exop(e,tp,e:GetHandler())
+end
+--回手后的效果（陷阱②也适用这部分）
+function s.exop(e,tp,ec)
 	local g=Duel.GetMatchingGroup(s.maxtgfilter,tp,0,LOCATION_MZONE,nil)
 	if g:GetCount()==0 then return end
 	local maxlv=0
@@ -179,3 +183,5 @@ function s.ecxop(e,tp,eg,ep,ev,re,r,rp)
 	local tc=sg:Select(tp,1,1,nil):GetFirst()
 	if tc then Duel.GetControl(tc,tp) end
 end
+_G.KETSUBA_EXTRA_EFFECTS=_G.KETSUBA_EXTRA_EFFECTS or {}
+_G.KETSUBA_EXTRA_EFFECTS[id]=s.exop

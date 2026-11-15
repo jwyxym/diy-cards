@@ -44,6 +44,7 @@ function s.initial_effect(c)
 	e4:SetRange(LOCATION_EXTRA)
 	e4:SetCountLimit(1,id)
 	e4:SetCondition(s.ecxcon)
+	e4:SetCost(s.ecxcost)
 	e4:SetTarget(s.ecxtg)
 	e4:SetOperation(s.ecxop)
 	c:RegisterEffect(e4)
@@ -146,19 +147,22 @@ function s.ecxcon(e,tp,eg,ep,ev,re,r,rp)
 	return rc:IsSetCard(0xe99) and rc:IsRace(RACE_SPELLCASTER)
 		and rc:IsControler(tp) and rc:IsLocation(LOCATION_MZONE)
 end
-function s.ecxtg(e,tp,eg,ep,ev,re,r,rp,chk)
+--回手作为cost
+function s.ecxcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
-	if chk==0 then return c:IsAbleToHand()
-		and Duel.IsExistingMatchingCard(s.exmfilter,tp,LOCATION_EXTRA,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,c,1,0,0)
+	if chk==0 then return c:IsAbleToHand() end
+	Duel.SendtoHand(c,nil,REASON_COST)
+	Duel.ConfirmCards(1-tp,c)
+end
+function s.ecxtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.exmfilter,tp,LOCATION_EXTRA,0,1,nil) end
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_EXTRA)
 end
 function s.ecxop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) then
-		Duel.SendtoHand(c,nil,REASON_EFFECT)
-		Duel.ConfirmCards(1-tp,c)
-	end
+	s.exop(e,tp,e:GetHandler())
+end
+--回手后的效果（陷阱②也适用这部分）
+function s.exop(e,tp,ec)
 	local g=Duel.GetMatchingGroup(s.exmfilter,tp,LOCATION_EXTRA,0,nil)
 	if g:GetCount()==0 then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
@@ -168,3 +172,5 @@ function s.ecxop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.ConfirmCards(1-tp,sg)
 	end
 end
+_G.KETSUBA_EXTRA_EFFECTS=_G.KETSUBA_EXTRA_EFFECTS or {}
+_G.KETSUBA_EXTRA_EFFECTS[id]=s.exop

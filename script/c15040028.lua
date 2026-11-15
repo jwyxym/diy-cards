@@ -6,6 +6,8 @@
 -- 「「死亡」的子弹」：15040016
 local s,id=GetID()
 function s.initial_effect(c)
+aux.AddCodeList(c,26062911)  -- 此卡记述「春日影」
+
     -- ① 把这张卡从手卡丢弃才能发动，选择以下效果之一
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))

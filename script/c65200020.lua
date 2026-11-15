@@ -1,121 +1,159 @@
--- 《<梦魇>讴歌青春》
--- 卡种：速攻魔法  卡号：65200020  字段：梦魇 (0x32a)
 local s,id=GetID()
-local NM=0x32a
 local TOKEN_SKULL=65200900
-local TOKEN_ZOMBIE=65200901
+local TOKEN_BAT=65200902
+local TOKEN_GHOST=65200903
+local id_toki=65200090
 
 function s.initial_effect(c)
-    -- ① 场上发动
+    aux.AddCodeList(c, id_toki)
+
+    -- 选项1：生衍生物
     local e1=Effect.CreateEffect(c)
-    e1:SetDescription("①：可以从以下选择1个发动。●从卡组将1张「<梦魇>」卡加入手卡。●在自己场上将各最多1只「骷髅士兵衍生物」「僵尸衍生物」特殊召唤，这个效果特殊召唤的怪兽在这个回合结束时破坏。")
-    e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH+CATEGORY_SPECIAL_SUMMON+CATEGORY_TOKEN)
+    e1:SetDescription(aux.Stringid(id,0))
+    e1:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TOKEN)
     e1:SetType(EFFECT_TYPE_ACTIVATE)
     e1:SetCode(EVENT_FREE_CHAIN)
     e1:SetCountLimit(1,id)
-    e1:SetTarget(s.target)
-    e1:SetOperation(s.activate)
+    e1:SetCondition(s.cond1)
+    e1:SetTarget(s.tgtg1)
+    e1:SetOperation(s.tgop1)
     c:RegisterEffect(e1)
 
-    -- ② 被除外时回收/盖放
+    -- 选项2：解放检索
     local e2=Effect.CreateEffect(c)
-    e2:SetDescription("②：这张卡被除外的场合才能发动。这张卡加入手卡或在自己场上盖放。")
-    e2:SetCategory(CATEGORY_TOHAND)
-    e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-    e2:SetProperty(EFFECT_FLAG_DELAY)
-    e2:SetCode(EVENT_REMOVE)
-    e2:SetCountLimit(1,id+1)
-    e2:SetTarget(s.remtg)
-    e2:SetOperation(s.remop)
+    e2:SetDescription(aux.Stringid(id,1))
+    e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
+    e2:SetType(EFFECT_TYPE_ACTIVATE)
+    e2:SetCode(EVENT_FREE_CHAIN)
+    e2:SetCountLimit(1,id)
+    e2:SetCondition(s.cond2)
+    e2:SetTarget(s.tgtg2)
+    e2:SetOperation(s.tgop2)
     c:RegisterEffect(e2)
+
+    -- 被除外回收
+    local e3=Effect.CreateEffect(c)
+    e3:SetDescription(aux.Stringid(id,2))
+    e3:SetCategory(CATEGORY_TOHAND+CATEGORY_SSET)
+    e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+    e3:SetProperty(EFFECT_FLAG_DELAY)
+    e3:SetCode(EVENT_REMOVE)
+    e3:SetCountLimit(1,id+3)
+    e3:SetTarget(s.remtg)
+    e3:SetOperation(s.remop)
+    c:RegisterEffect(e3)
 end
 
--- ① 目标
-function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
-    local b1=Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil)
-    local canA=Duel.IsPlayerCanSpecialSummonMonster(tp,TOKEN_SKULL,0,TYPES_TOKEN,1000,1000,1,RACE_ZOMBIE,ATTRIBUTE_DARK)
-    local canB=Duel.IsPlayerCanSpecialSummonMonster(tp,TOKEN_ZOMBIE,0,TYPES_TOKEN,1000,1000,3,RACE_ZOMBIE,ATTRIBUTE_DARK)
-    local b2=Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and (canA or canB)
+-- 选项1的独立次数限制
+function s.cond1(e,tp,eg,ep,ev,re,r,rp)
+    return Duel.GetFlagEffect(tp,id+1)==0
+end
+-- 选项2的独立次数限制
+function s.cond2(e,tp,eg,ep,ev,re,r,rp)
+    return Duel.GetFlagEffect(tp,id+2)==0
+end
 
-    if chk==0 then return b1 or b2 end
+function s.tgtg1(e,tp,eg,ep,ev,re,r,rp,chk)
+    if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 end
+end
 
-    local op=Duel.SelectOption(tp,"从卡组将1张「<梦魇>」卡加入手卡","特殊召唤衍生物（可能只召唤1种）")
-    e:SetLabel(op)
-    if op==0 then
-        e:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
-        Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
-    else
-        e:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_TOKEN)
-        Duel.SetOperationInfo(0,CATEGORY_TOKEN,nil,1,tp,0)
+function s.tgop1(e,tp,eg,ep,ev,re,r,rp)
+    Duel.RegisterFlagEffect(tp,id+1,RESET_PHASE+PHASE_END,0,1)
+    local e1=Effect.CreateEffect(e:GetHandler())
+    e1:SetType(EFFECT_TYPE_FIELD)
+    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+    e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+    e1:SetTargetRange(1,0)
+    e1:SetTarget(function(_,c) return not c:IsRace(RACE_ZOMBIE) end)
+    e1:SetReset(RESET_PHASE+PHASE_END)
+    Duel.RegisterEffect(e1,tp)
+
+    local ft=Duel.GetLocationCount(tp,LOCATION_MZONE)
+    if ft>0 and Duel.SelectYesNo(tp, aux.Stringid(id,4)) then
+        local token=Duel.CreateToken(tp,TOKEN_SKULL)
+        Duel.SpecialSummonStep(token,0,tp,tp,false,false,POS_FACEUP)
+        s.register_token_effect(token, e:GetHandler())
+        ft=ft-1
+    end
+    if ft>0 and Duel.SelectYesNo(tp, aux.Stringid(id,5)) then
+        local token=Duel.CreateToken(tp,TOKEN_BAT)
+        Duel.SpecialSummonStep(token,0,tp,tp,false,false,POS_FACEUP)
+        s.register_token_effect(token, e:GetHandler())
+        ft=ft-1
+    end
+    if ft>0 and Duel.SelectYesNo(tp, aux.Stringid(id,6)) then
+        local token=Duel.CreateToken(tp,TOKEN_GHOST)
+        Duel.SpecialSummonStep(token,0,tp,tp,false,false,POS_FACEUP)
+        s.register_token_effect(token, e:GetHandler())
+        ft=ft-1
+    end
+    Duel.SpecialSummonComplete()
+end
+
+function s.tgtg2(e,tp,eg,ep,ev,re,r,rp,chk)
+    if chk==0 then return Duel.IsExistingMatchingCard(aux.FilterBoolFunction(Card.IsRace, RACE_ZOMBIE), tp, LOCATION_HAND+LOCATION_MZONE, 0, 1, nil) end
+end
+
+function s.tgop2(e,tp,eg,ep,ev,re,r,rp)
+    Duel.RegisterFlagEffect(tp,id+2,RESET_PHASE+PHASE_END,0,1)
+    local e1=Effect.CreateEffect(e:GetHandler())
+    e1:SetType(EFFECT_TYPE_FIELD)
+    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+    e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+    e1:SetTargetRange(1,0)
+    e1:SetTarget(function(_,c) return not c:IsRace(RACE_ZOMBIE) end)
+    e1:SetReset(RESET_PHASE+PHASE_END)
+    Duel.RegisterEffect(e1,tp)
+
+    local g=Duel.SelectMatchingCard(tp, aux.FilterBoolFunction(Card.IsRace, RACE_ZOMBIE), tp, LOCATION_HAND+LOCATION_MZONE, 0, 1, 1, nil)
+    local code = g:GetFirst():GetCode()
+    Duel.Release(g, REASON_COST)
+    
+    local sg=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_DECK,0,nil,e,tp,code)
+    if #sg>0 then
+        Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+        local tg=sg:Select(tp,1,1,nil)
+        Duel.SpecialSummon(tg,0,tp,tp,false,false,POS_FACEUP)
     end
 end
 
--- ① 发动
-function s.activate(e,tp,eg,ep,ev,re,r,rp)
-    if e:GetLabel()==0 then
-        Duel.Hint(HINT_SELECTMSG,tp,"选择要加入手卡的卡片")
-        local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK,0,1,1,nil)
-        if #g>0 then
-            Duel.SendtoHand(g,nil,REASON_EFFECT)
-            Duel.ConfirmCards(1-tp,g)
-        end
-    else
-        local ct=0
-        if Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-            and Duel.IsPlayerCanSpecialSummonMonster(tp,TOKEN_SKULL,0,TYPES_TOKEN,1000,1000,1,RACE_ZOMBIE,ATTRIBUTE_DARK) then
-            local token=Duel.CreateToken(tp,TOKEN_SKULL)
-            Duel.SpecialSummonStep(token,0,tp,tp,false,false,POS_FACEUP)
-            ct=ct+1
-        end
-        if Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-            and Duel.IsPlayerCanSpecialSummonMonster(tp,TOKEN_ZOMBIE,0,TYPES_TOKEN,1000,1000,3,RACE_ZOMBIE,ATTRIBUTE_DARK) then
-            local token=Duel.CreateToken(tp,TOKEN_ZOMBIE)
-            Duel.SpecialSummonStep(token,0,tp,tp,false,false,POS_FACEUP)
-            ct=ct+1
-        end
-        if ct>0 then
-            Duel.SpecialSummonComplete()
-            local g=Duel.GetOperatedGroup()
-            for tc in aux.Next(g) do
-                local e1=Effect.CreateEffect(e:GetHandler())
-                e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
-                e1:SetCode(EVENT_PHASE+PHASE_END)
-                e1:SetCountLimit(1)
-                e1:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
-                e1:SetLabelObject(tc)
-                e1:SetCondition(s.descon)
-                e1:SetOperation(s.desop)
-                e1:SetReset(RESET_PHASE+PHASE_END)
-                Duel.RegisterEffect(e1,tp)
-            end
-        end
-    end
+function s.register_token_effect(tc, source)
+    local e1=Effect.CreateEffect(source)
+    e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+    e1:SetCode(EVENT_PHASE+PHASE_END)
+    e1:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE)
+    e1:SetLabelObject(tc)
+    e1:SetCountLimit(1)
+    e1:SetCondition(function(e,tp) return Duel.GetTurnPlayer()==tp end)
+    e1:SetOperation(function(e,tp)
+        local token=e:GetLabelObject()
+        if token:IsLocation(LOCATION_MZONE) then Duel.Destroy(token,REASON_EFFECT) end
+    end)
+    e1:SetReset(RESET_PHASE+PHASE_END)
+    Duel.RegisterEffect(e1, source:GetControler())
+
+    local e2=Effect.CreateEffect(source)
+    e2:SetType(EFFECT_TYPE_SINGLE)
+    e2:SetCode(EFFECT_MATERIAL_LIMIT)
+    e2:SetValue(function(e,c) return c:IsType(TYPE_LINK) end)
+    e2:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
+    tc:RegisterEffect(e2)
 end
 
-function s.thfilter(c)
-    return c:IsSetCard(NM) and c:IsAbleToHand()
+function s.spfilter(c,e,tp,code)
+    return (c:IsCode(id_toki) or aux.IsCodeListed(c, id_toki)) and c:IsType(TYPE_MONSTER) and not c:IsCode(code) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 
-function s.descon(e,tp,eg,ep,ev,re,r,rp)
-    return Duel.GetTurnPlayer()==tp
-end
-function s.desop(e,tp,eg,ep,ev,re,r,rp)
-    local tc=e:GetLabelObject()
-    if tc and tc:IsLocation(LOCATION_MZONE) then
-        Duel.Destroy(tc,REASON_EFFECT)
-    end
-end
-
--- ② 除外时回收/盖放
 function s.remtg(e,tp,eg,ep,ev,re,r,rp,chk)
     local c=e:GetHandler()
     if chk==0 then return c:IsAbleToHand() or c:IsSSetable() end
     Duel.SetOperationInfo(0,CATEGORY_TOHAND,c,1,0,0)
 end
+
 function s.remop(e,tp,eg,ep,ev,re,r,rp)
     local c=e:GetHandler()
     if not c:IsRelateToEffect(e) then return end
-    if c:IsAbleToHand() and (not c:IsSSetable() or Duel.SelectOption(tp,"加入手卡","盖放到场上")==0) then
+    if c:IsAbleToHand() and (not c:IsSSetable() or Duel.SelectOption(tp,aux.Stringid(id,7),aux.Stringid(id,8))==0) then
         Duel.SendtoHand(c,nil,REASON_EFFECT)
         Duel.ConfirmCards(1-tp,c)
     else

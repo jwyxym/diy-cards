@@ -1,100 +1,138 @@
---云剑·飞刺
+-- 云剑·飞刺（ID: 61000047）通常陷阱
+-- 效果文本：
+--   这个卡名的①②的效果1回合只能有1次使用其中任意1个。自己回合，这张卡的发动从手卡也能用。
+--   ①：选这张卡以外的手卡·场上的1张陷阱卡送去墓地才能发动（这个效果发动的回合，自己若非不能通常召唤的怪兽则不能特殊召唤，也不能把那个的怪兽效果发动）。场上1只怪兽破坏。连锁「云剑」卡的效果把这张卡发动的场合，可以再选场上1张卡破坏。
+--   ②：这张卡在墓地存在，自己在连锁2以后把「云剑」卡的效果发动时才能发动。这张卡加入手卡。
 local s,id,o=GetID()
+s.setcode=0xa7c0
+
 function s.initial_effect(c)
+	-- 手卡发动（只限自己回合）
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_SINGLE)
+	e0:SetCode(EFFECT_TRAP_ACT_IN_HAND)
+	e0:SetCondition(s.handcon)
+	c:RegisterEffect(e0)
+
+	-- ① 卡的发动
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_DESTROY)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
-	e1:SetCode(EVENT_CHAINING)
+	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e1:SetCode(EVENT_FREE_CHAIN)
+	e1:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
 	e1:SetCountLimit(1,id)
-	e1:SetCondition(s.condition)
 	e1:SetCost(s.cost)
-	e1:SetTarget(s.target)
-	e1:SetOperation(s.activate)
+	e1:SetTarget(s.tg1)
+	e1:SetOperation(s.op1)
 	c:RegisterEffect(e1)
+
+	-- ② 墓地回收（二速：连锁响应）
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_TOHAND)
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e2:SetCode(EVENT_PHASE+PHASE_STANDBY)
-	e2:SetCountLimit(1,id)
+	e2:SetType(EFFECT_TYPE_QUICK_O)
+	e2:SetCode(EVENT_CHAINING)
 	e2:SetRange(LOCATION_GRAVE)
-	e2:SetCondition(s.sthcon)
-	e2:SetTarget(s.sthtg)
-	e2:SetOperation(s.sthop)
+	e2:SetCountLimit(1,id)
+	e2:SetCondition(s.gycon)
+	e2:SetTarget(s.gytg)
+	e2:SetOperation(s.gyop)
 	c:RegisterEffect(e2)
-	if not s.global_check then
-		s.global_check=true
-		local ge1=Effect.CreateEffect(c)
-		ge1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
-		ge1:SetCode(EVENT_CHAINING)
-		ge1:SetOperation(s.chk)
-		Duel.RegisterEffect(ge1,0)
-	end
 end
-function s.chk(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.GetCurrentChain()>3 then
-		Duel.RegisterFlagEffect(rp,id+o*10000,RESET_PHASE+PHASE_END,0,2)
-	end
+
+function s.handcon(e)
+	return Duel.GetTurnPlayer()==e:GetHandlerPlayer()
 end
-function s.sthcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetTurnPlayer()==tp
-		and Duel.GetFlagEffect(tp,id+o*10000)>0
+
+-- 费用：这张卡以外的手卡·场上1张陷阱卡送墓
+function s.cfilter(c,ec)
+	return c~=ec and c:IsType(TYPE_TRAP) and c:IsAbleToGraveAsCost()
 end
-function s.sthtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return e:GetHandler():IsAbleToHand() end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,e:GetHandler(),1,0,0)
-end
-function s.sthop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) then
-		Duel.SendtoHand(c,nil,REASON_EFFECT)
-	end
-end
-function s.condition(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetCurrentChain()>0
-end
-function s.cfilter(c,tp)
-	return c:IsType(TYPE_SPELL) and c:IsAbleToGraveAsCost()
-end
+
 function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,e:GetHandler(),tp) end
+	if chk==0 then return Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,nil,e:GetHandler()) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-	local g=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,e:GetHandler(),tp)
+	local g=Duel.SelectMatchingCard(tp,s.cfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,nil,e:GetHandler())
 	Duel.SendtoGrave(g,REASON_COST)
 end
-function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
-	local g=Duel.GetMatchingGroup(aux.TRUE,tp,LOCATION_MZONE,LOCATION_MZONE,e:GetHandler())
-	if chk==0 then return Duel.GetFlagEffect(tp,id)==0 and #g>0 end
-	Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
-	if re:GetHandler():IsSetCard(0xa7c0) then
-		e:SetLabel(1)
-	else
-		e:SetLabel(0)
-	end
+
+function s.tg1(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsDestructable() end
+	if chk==0 then return Duel.IsExistingTarget(Card.IsDestructable,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) end
+	-- 这张卡是不是连锁「云剑」卡的效果发动
+	-- 连锁「云剑」卡 = 前一个连锁（ct 是自己这一条）
+	local ct=Duel.GetCurrentChain()
+	local prev=ct-1
+	local te=prev>0 and Duel.GetChainInfo(prev,CHAININFO_TRIGGERING_EFFECT)
+	local h=te and te:GetHandler()
+	Duel.SetTargetParam((h and h:IsSetCard(s.setcode)) and 1 or 0)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+	local g=Duel.SelectTarget(tp,Card.IsDestructable,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
 	Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
 end
-function s.activate(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-	local g=Duel.GetMatchingGroup(aux.TRUE,tp,LOCATION_MZONE,LOCATION_MZONE,aux.ExceptThisCard(e)):Select(tp,1,1,nil)
-	if #g>0 and Duel.Destroy(g,REASON_EFFECT)~=0 and e:GetLabel()==1
-		and Duel.IsExistingMatchingCard(aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,aux.ExceptThisCard(e))
-		and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
-		Duel.BreakEffect()
+
+function s.op1(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	s.applylimit(e,tp)
+	local tc=Duel.GetFirstTarget()
+	if tc and tc:IsRelateToEffect(e) and Duel.Destroy(tc,REASON_EFFECT)>0
+		and Duel.GetChainInfo(0,CHAININFO_TARGET_PARAM)==1 then
+		if Duel.GetMatchingGroupCount(Card.IsDestructable,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,nil)==0 then return end
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-		local dg=Duel.SelectMatchingCard(tp,aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,aux.ExceptThisCard(e))
-		Duel.Destroy(dg,REASON_EFFECT)
+		local g=Duel.SelectMatchingCard(tp,Card.IsDestructable,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
+		if g:GetCount()>0 then Duel.Destroy(g,REASON_EFFECT) end
 	end
 end
-function s.thcon(e,tp,eg,ep,ev,re,r,rp)
+
+-- 自肃：只能特召不能通常召唤的怪兽；不能把怪兽效果发动
+function s.applylimit(e,tp)
 	local c=e:GetHandler()
-	return re:GetHandler():IsSetCard(0xa7c0) and c:IsAbleToHand()
-		and Duel.GetFlagEffect(tp,id)==0
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e1:SetTargetRange(1,0)
+	e1:SetTarget(s.splimit)
+	e1:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e1,tp)
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_FIELD)
+	e2:SetCode(EFFECT_CANNOT_ACTIVATE)
+	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+	e2:SetTargetRange(1,0)
+	e2:SetValue(s.actlimit)
+	e2:SetReset(RESET_PHASE+PHASE_END)
+	Duel.RegisterEffect(e2,tp)
 end
-function s.thop(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
-		Duel.Hint(HINT_CARD,0,id)
-		Duel.SendtoHand(e:GetHandler(),nil,REASON_EFFECT)
-		Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
+
+-- 与 22420202 同款检测
+function s.splimit(e,c)
+	return c:IsSummonableCard() and c:GetOriginalType()&(TYPE_SPELL|TYPE_TRAP|TYPE_TRAPMONSTER)==0
+end
+
+function s.actlimit(e,re,rp)
+	local h=re:GetHandler()
+	return h~=nil and h:IsType(TYPE_MONSTER) and h:IsSummonableCard()
+end
+
+-- ② 条件：连锁2以后、自己把「云剑」卡的效果发动
+function s.gycon(e,tp,eg,ep,ev,re,r,rp)
+	if ev<2 or re==nil then return false end
+	local h=re:GetHandler()
+	return h~=nil and h:IsSetCard(s.setcode) and h:GetControler()==tp
+end
+
+function s.gytg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,e:GetHandler(),1,0,0)
+end
+
+function s.gyop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsRelateToEffect(e) and c:IsLocation(LOCATION_GRAVE) then
+		Duel.SendtoHand(c,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,c)
 	end
 end

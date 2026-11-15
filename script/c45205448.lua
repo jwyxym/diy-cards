@@ -71,6 +71,7 @@ function s.ovfilter(c)
 	return c:IsCanOverlay()
 end
 
+-- 核心修复：不直接传全场的组，而是把所有的 9 星怪兽抓出来，交给玩家自己选
 function s.xyzsumfilter(c,mg)
 	return c:IsXyzSummonable(mg)
 end
@@ -79,17 +80,27 @@ end
 function s.effop(e,tp,eg,ep,ev,re,r,rp)
 	local op=e:GetLabel()
 	if op==1 then
-		local g=Duel.GetMatchingGroup(s.xyzfilter,tp,LOCATION_MZONE,0,nil)
-		if g:GetCount()<2 then return end
-		local xyzg=Duel.GetMatchingGroup(s.xyzsumfilter,tp,LOCATION_EXTRA,0,nil,g)
-		if xyzg:GetCount()>0 then
-			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-			local xyz=xyzg:Select(tp,1,1,nil):GetFirst()
-			-- 用 SpecialSummon + Overlay 模拟超量召唤（立即处理）
-			xyz:SetMaterial(g)
-			Duel.Overlay(xyz,g)
+		-- 1. 选超量怪兽
+		local xyzg=Duel.GetMatchingGroup(s.xyzfilter,tp,LOCATION_MZONE,0,nil)
+		if xyzg:GetCount()<2 then return end
+		
+		local g=Duel.GetMatchingGroup(s.xyzsumfilter,tp,LOCATION_EXTRA,0,nil,xyzg)
+		if g:GetCount()==0 then return end
+		
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+		local xyz=g:Select(tp,1,1,nil):GetFirst()
+		if not xyz then return end
+
+		-- 2. ★ 核心修复：由玩家自己选择作为超量素材的 9 星怪兽
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
+		-- 这里让玩家从场上的9星怪兽中自选2只或以上
+		local mat=xyzg:Select(tp,2,99,nil)
+		if mat:GetCount()>=2 then
+			xyz:SetMaterial(mat)
+			Duel.Overlay(xyz,mat)
 			Duel.SpecialSummon(xyz,SUMMON_TYPE_XYZ,tp,tp,false,false,POS_FACEUP)
 			xyz:CompleteProcedure()
+			
 			-- 全抗：直到下个回合结束阶段
 			local e1=Effect.CreateEffect(e:GetHandler())
 			e1:SetType(EFFECT_TYPE_SINGLE)
@@ -100,6 +111,7 @@ function s.effop(e,tp,eg,ep,ev,re,r,rp)
 			e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,2)
 			xyz:RegisterEffect(e1)
 		end
+		
 	elseif op==2 then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TARGET)
 		local xg=Duel.SelectMatchingCard(tp,s.xyzfilter2,tp,LOCATION_MZONE,0,1,1,nil)

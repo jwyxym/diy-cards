@@ -38,12 +38,13 @@ function s.initial_effect(c)
 	--②
 	local e4=Effect.CreateEffect(c)
 	e4:SetDescription(aux.Stringid(id,1))
-	e4:SetCategory(CATEGORY_TOHAND+CATEGORY_DRAW)
+	e4:SetCategory(CATEGORY_DRAW)
 	e4:SetType(EFFECT_TYPE_QUICK_O)
 	e4:SetCode(EVENT_CHAINING)
 	e4:SetRange(LOCATION_EXTRA)
 	e4:SetCountLimit(1,id)
 	e4:SetCondition(s.ecxcon)
+	e4:SetCost(s.ecxcost)
 	e4:SetTarget(s.ecxtg)
 	e4:SetOperation(s.ecxop)
 	c:RegisterEffect(e4)
@@ -123,16 +124,24 @@ function s.ecxcon(e,tp,eg,ep,ev,re,r,rp)
 	return rc:IsSetCard(0xe99) and rc:IsRace(RACE_SPELLCASTER)
 		and rc:IsControler(tp) and rc:IsLocation(LOCATION_MZONE)
 end
+--回手作为cost
+function s.ecxcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return c:IsAbleToHand() end
+	Duel.SendtoHand(c,nil,REASON_COST)
+	Duel.ConfirmCards(1-tp,c)
+end
 function s.ecxtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return e:GetHandler():IsAbleToHand() end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,e:GetHandler(),1,0,0)
+	if chk==0 then return true end
 	Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,1)
 end
 function s.ecxop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) then
-		Duel.SendtoHand(c,nil,REASON_EFFECT)
-		Duel.ConfirmCards(1-tp,c)
-		Duel.Draw(tp,1,REASON_EFFECT)
-	end
+	s.exop(e,tp,e:GetHandler())
 end
+--回手后的效果（陷阱②也适用这部分）
+function s.exop(e,tp,ec)
+	Duel.Draw(tp,1,REASON_EFFECT)
+end
+_G.KETSUBA_EXTRA_EFFECTS=_G.KETSUBA_EXTRA_EFFECTS or {}
+_G.KETSUBA_EXTRA_EFFECTS[id]=s.exop
+_G.KETSUBA_EXTRA_EFFECTS[41659020]=s.exop

@@ -56,9 +56,7 @@ end
 function s.splimit(e,c,sump,sumtype,sumpos,target_p,se)
 	return not c:IsRace(RACE_INSECT)
 end
-function s.splimit1(e,c,sump,sumtype,sumpos,target_p,se)
-	return not c:IsSummonLocation(LOCATION_EXTRA) or c:IsType(TYPE_XYZ)  
-end
+
 -- 超量素材过滤器：本回合若已召唤/特召过非昆虫族怪兽，则不能超量召唤此卡
 function s.mfilter(c,xyzc)
 	local tp=xyzc and xyzc:GetControler() or c:GetControler()
@@ -83,9 +81,6 @@ function s.regop(e,tp,eg,ep,ev,re,r,rp)
 	local e2=e1:Clone()
 	e2:SetCode(EFFECT_CANNOT_SUMMON)
 	Duel.RegisterEffect(e2,tp)
-	local e3=e1:Clone()
-	e3:SetTarget(s.splimit1)
-	Duel.RegisterEffect(e3,tp)
 
 	-- 状态提示
 	local e3=Effect.CreateEffect(e:GetHandler())

@@ -13,12 +13,12 @@ function s.initial_effect(c)
     e0:SetValue(aux.tgoval)
     c:RegisterEffect(e0)
 
-    -- ① 任意区域起跳+直攻+离场除外
+    -- ① 手卡·墓地起跳+直攻+离场除外
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))
     e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
     e1:SetType(EFFECT_TYPE_IGNITION)
-    e1:SetRange(LOCATION_HAND+LOCATION_GRAVE+LOCATION_REMOVED) -- ★ 核心修改：加入除外区
+    e1:SetRange(LOCATION_HAND+LOCATION_GRAVE) -- ★ 核心修改：只能从手卡·墓地起跳
     e1:SetCountLimit(1,id)
     e1:SetCost(s.spcost)
     e1:SetTarget(s.sptg)

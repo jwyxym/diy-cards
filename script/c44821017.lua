@@ -1,11 +1,8 @@
 -- Requiem for Fate
 -- ID: 44821017
 -- 永续陷阱
--- 记述「Roselia」(44821000)
 local s,id=GetID()
 function s.initial_effect(c)
-    aux.AddCodeList(c,44821000)  -- 此卡记述「Roselia」
-
     -- 卡的发动（卡名1回合只能发动1张）
     local e0=Effect.CreateEffect(c)
     e0:SetType(EFFECT_TYPE_ACTIVATE)
@@ -17,10 +14,11 @@ function s.initial_effect(c)
     c:SetUniqueOnField(1,0,id)
 
     -- ② 对方把魔法卡发动时，把这张卡以外的自己场上1张表侧永续魔陷送去墓地，无效那个发动
+    -- 改为 QUICK_O（可选发动），并保留可连锁对方回合的时机与伤害步骤许可
     local e1=Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id,0))
     e1:SetCategory(CATEGORY_NEGATE)
-    e1:SetType(EFFECT_TYPE_QUICK_F)
+    e1:SetType(EFFECT_TYPE_QUICK_O)                                  -- 可选（非必发）
     e1:SetCode(EVENT_CHAINING)
     e1:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL)
     e1:SetRange(LOCATION_SZONE)

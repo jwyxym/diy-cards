@@ -28,6 +28,7 @@ function s.initial_effect(c)
 	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER+TIMING_END_PHASE)
 	e2:SetCountLimit(1,id+o,EFFECT_COUNT_CODE_CHAIN)
 	e2:SetCost(s.jycost)
+	e2:SetTarget(s.jytg)
 	e2:SetOperation(s.jyop)
 	c:RegisterEffect(e2)
     --②：墓地这张卡和额外（表侧）1只「结羽」怪兽除外
@@ -73,6 +74,9 @@ function s.jycost(e,tp,eg,ep,ev,re,r,rp,chk)
 	local sg=g:Select(tp,3,3,nil)
 	Duel.SendtoDeck(sg,nil,SEQ_DECKSHUFFLE,REASON_COST)
 end
+function s.jytg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return e:GetHandler():GetAttack()>=800 end
+end
 function s.jyop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if not c:IsRelateToEffect(e) then return end
@@ -106,8 +110,11 @@ function s.op2(e,tp,eg,ep,ev,re,r,rp)
 	local tc=e:GetLabelObject()
 	if not tc then return end
 	local code=tc:GetCode()
-	--「结羽」怪兽在额外卡组（表侧）发动的效果
-	if _G.KETSUBA_EXTRA_EFFECTS and type(_G.KETSUBA_EXTRA_EFFECTS[code])=='function' then
-		_G.KETSUBA_EXTRA_EFFECTS[code](e,tp,tc)
+	--「结羽」怪兽在额外卡组（表侧）发动的效果（回手后的部分）
+	local f=_G.KETSUBA_EXTRA_EFFECTS and _G.KETSUBA_EXTRA_EFFECTS[code]
+	if f==nil then
+		pcall(Duel.LoadScript,"c"..tostring(code)..".lua")
+		f=_G.KETSUBA_EXTRA_EFFECTS and _G.KETSUBA_EXTRA_EFFECTS[code]
 	end
+	if type(f)=='function' then f(e,tp,tc) end
 end

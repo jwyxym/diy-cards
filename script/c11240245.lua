@@ -1,0 +1,71 @@
+local s,id,o=GetID()
+function s.initial_effect(c)
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_ACTIVATE)
+	e1:SetCode(EVENT_FREE_CHAIN)
+	c:RegisterEffect(e1)
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e2:SetCode(EVENT_SUMMON_SUCCESS)
+	e2:SetRange(LOCATION_SZONE)
+	e2:SetCondition(s.pubcon)
+	e2:SetOperation(s.pubop)
+	c:RegisterEffect(e2)
+	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,0))
+	e3:SetType(EFFECT_TYPE_FIELD)
+	e3:SetCode(EFFECT_SUMMON_PROC)
+	e3:SetRange(LOCATION_SZONE)
+	e3:SetTargetRange(LOCATION_HAND,0)
+	e3:SetCondition(s.ntcon)
+	e3:SetTarget(s.nttg)
+	e3:SetValue(SUMMON_TYPE_ADVANCE)
+	c:RegisterEffect(e3)
+	local e4=Effect.CreateEffect(c)
+	e4:SetType(EFFECT_TYPE_FIELD)
+	e4:SetCode(EFFECT_CANNOT_INACTIVATE)
+	e4:SetRange(LOCATION_SZONE)
+	e4:SetValue(s.efilter)
+	c:RegisterEffect(e4)
+	local e5=Effect.CreateEffect(c)
+	e5:SetType(EFFECT_TYPE_FIELD)
+	e5:SetCode(EFFECT_CANNOT_DISEFFECT)
+	e5:SetRange(LOCATION_SZONE)
+	e5:SetValue(s.efilter)
+	c:RegisterEffect(e5)
+end
+function s.cfilter(c,tp)
+	return c:IsControler(tp) and c:IsRace(RACE_MACHINE) and c:IsSetCard(0xf03)
+end
+function s.pubcon(e,tp,eg,ep,ev,re,r,rp)
+	return eg:IsExists(s.cfilter,1,nil,tp)
+end
+function s.pubfilter(c)
+	return not c:IsPublic()
+end
+function s.pubop(e,tp,eg,ep,ev,re,r,rp)
+	local g=Duel.GetMatchingGroup(s.pubfilter,tp,0,LOCATION_HAND,nil)
+	if #g>0 then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
+		local sg=g:Select(tp,1,1,nil)
+		local tc=sg:GetFirst()
+		local e1=Effect.CreateEffect(e:GetHandler())
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetCode(EFFECT_PUBLIC)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+		tc:RegisterEffect(e1)
+	end
+end
+function s.nttg(e,c)
+	return c:IsRace(RACE_MACHINE) and c:IsLevelAbove(5)
+end
+function s.ntcon(e,c,minc)
+	if c==nil then return true end
+	return minc==0 and Duel.GetLocationCount(c:GetControler(),LOCATION_MZONE)>0
+end
+function s.efilter(e,ct)
+	local te,p,loc=Duel.GetChainInfo(ct,CHAININFO_TRIGGERING_EFFECT,CHAININFO_TRIGGERING_PLAYER,CHAININFO_TRIGGERING_LOCATION)
+	local tc=te:GetHandler()
+	return p==e:GetHandlerPlayer() and te:IsActiveType(TYPE_MONSTER)
+		and tc:IsRace(RACE_MACHINE) and (loc&LOCATION_HAND)~=0
+end

@@ -53,19 +53,6 @@ function c38030084.initial_effect(c)
 	e4:SetTarget(c38030084.tdtg)
 	e4:SetOperation(c38030084.tdop)
 	c:RegisterEffect(e4)
---召唤词
-	local e9=Effect.CreateEffect(c)
-	e9:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-	e9:SetCode(EVENT_SPSUMMON_SUCCESS)
-	e9:SetCountLimit(1,38030084+10000)
-	e9:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	e9:SetOperation(c38030084.cop)
-	c:RegisterEffect(e9)
-	end
-function c38030084.cop(e,tp,eg,ep,ev,re,r,rp)
-	Debug.Message("比希望更炽热，比绝望更深沉！")
-	Debug.Message("为寻回那被世人遗忘的憧憬，咽下悲叹之魂！唯一的见证者啊，叛逆吧！")
-	Debug.Message("融合召唤，等级12，堕魔之焰")
 end
 function c38030084.rmcon(e,tp,eg,ep,ev,re,r,rp)
 	return e:GetHandler():IsSummonType(SUMMON_TYPE_FUSION) and e:GetLabel()==1

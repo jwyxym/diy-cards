@@ -79,7 +79,7 @@ function s.attrcon(e,tp,eg,ep,ev,re,r,rp)
     local tc=g:GetFirst()
     while tc do
         local a=tc:GetAttribute()
-        if not attrs[a] then
+        if a and a>0 and not attrs[a] then
             attrs[a]=true
             cnt=cnt+1
         end
@@ -95,13 +95,13 @@ function s.rmtg(e,tp,eg,ep,ev,re,r,rp,chk)
     local ct=math.min(3,g:GetCount())
     Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,ct,0,0)
 end
--- ③ 操作：除外对方墓地最多3张卡
+-- ③ 操作：除外对方墓地最多3张卡（允许选择1~3张）
 function s.rmop(e,tp,eg,ep,ev,re,r,rp)
     local g=Duel.GetMatchingGroup(Card.IsAbleToRemove,tp,0,LOCATION_GRAVE,nil)
     if #g==0 then return end
     local ct=math.min(3,#g)
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-    local sg=g:Select(tp,ct,ct,nil)
+    local sg=g:Select(tp,1,ct,nil)
     if #sg>0 then
         Duel.Remove(sg,POS_FACEUP,REASON_EFFECT)
     end

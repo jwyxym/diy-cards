@@ -1,91 +1,95 @@
--- 暗镜堕翼 魅塔骑士
+-- 新星同盟 暗魅塔骑士
 -- ID: 26051957
--- 字段: 规则上当作「新星同盟」(0x902)
+-- 字段: 0x902
 local s,id=GetID()
 function s.initial_effect(c)
-    -- 超量召唤（7星怪兽×2）
-    aux.AddXyzProcedure(c,nil,7,2)
-    c:EnableReviveLimit()
-
-    -- 规则上当作「新星同盟」卡
-    local e0=Effect.CreateEffect(c)
-    e0:SetType(EFFECT_TYPE_SINGLE)
-    e0:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-    e0:SetCode(EFFECT_ADD_SETCODE)
-    e0:SetRange(LOCATION_MZONE+LOCATION_GRAVE+LOCATION_REMOVED)
-    e0:SetValue(0x902)
-    c:RegisterEffect(e0)
-
-    -- ① 特召成功时，选墓地1只怪兽作为超量素材（参考ライゼオル）
+    -- ① 规则上被视作「新星同盟 魅塔骑士」的所有异画
+    aux.AddCodeList(c, 26051905, 26051906)
+    
+    -- 在场·墓地时，卡名实际变为「魅塔骑士」的原画代码
     local e1=Effect.CreateEffect(c)
-    e1:SetDescription(aux.Stringid(id,0))
-    e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-    e1:SetProperty(EFFECT_FLAG_DELAY)
-    e1:SetCode(EVENT_SPSUMMON_SUCCESS)
-    e1:SetCountLimit(1,id)
-    e1:SetTarget(s.mttg)
-    e1:SetOperation(s.mtop)
+    e1:SetType(EFFECT_TYPE_SINGLE)
+    e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+    e1:SetCode(EFFECT_CHANGE_CODE)
+    e1:SetRange(LOCATION_MZONE+LOCATION_GRAVE)
+    e1:SetValue(26051905)  -- 魅塔骑士的ID
     c:RegisterEffect(e1)
 
-    -- ② 有特定素材时，对方发动效果时二速炸卡（参考ライゼオル）
+    -- ② 丢弃自身，从卡组堆1只「新星同盟」怪兽
     local e2=Effect.CreateEffect(c)
-    e2:SetDescription(aux.Stringid(id,1))
-    e2:SetCategory(CATEGORY_DESTROY)
-    e2:SetType(EFFECT_TYPE_QUICK_O)
-    e2:SetCode(EVENT_CHAINING)
-    e2:SetRange(LOCATION_MZONE)
-    e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
-    e2:SetCondition(s.descon)
-    e2:SetCost(s.descost)
-    e2:SetTarget(s.destg)
-    e2:SetOperation(s.desop)
+    e2:SetDescription(aux.Stringid(id,0))
+    e2:SetCategory(CATEGORY_TOGRAVE)
+    e2:SetType(EFFECT_TYPE_IGNITION)
+    e2:SetRange(LOCATION_HAND)
+    e2:SetCountLimit(1,id)
+    e2:SetCost(s.cost2)
+    e2:SetTarget(s.tg2)
+    e2:SetOperation(s.op2)
     c:RegisterEffect(e2)
+
+    -- ③ 自己场上有「新星同盟」怪兽召唤·特殊召唤时，墓地特召自身
+    local e3=Effect.CreateEffect(c)
+    e3:SetDescription(aux.Stringid(id,1))
+    e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
+    e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+    e3:SetCode(EVENT_SUMMON_SUCCESS)
+    e3:SetRange(LOCATION_GRAVE)
+    e3:SetCountLimit(1,id+1000)
+    e3:SetCondition(s.spcon)
+    e3:SetTarget(s.sptg)
+    e3:SetOperation(s.spop)
+    c:RegisterEffect(e3)
+    local e4=e3:Clone()
+    e4:SetCode(EVENT_SPSUMMON_SUCCESS)
+    c:RegisterEffect(e4)
 end
 
--- ① 素材目标（参考ライゼオル的mtfilter）
-function s.mtfilter(c,e)
-    return c:IsType(TYPE_MONSTER) and c:IsCanOverlay() and not (e and c:IsImmuneToEffect(e))
-end
-function s.mttg(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return e:GetHandler():IsType(TYPE_XYZ)
-        and Duel.IsExistingMatchingCard(s.mtfilter,tp,LOCATION_GRAVE,0,1,nil) end
-    Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,nil,1,0,0)
-end
-function s.mtop(e,tp,eg,ep,ev,re,r,rp)
+-- ② cost：丢弃自身
+function s.cost2(e,tp,eg,ep,ev,re,r,rp,chk)
     local c=e:GetHandler()
-    if not c:IsRelateToEffect(e) then return end
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_XMATERIAL)
-    local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.mtfilter),tp,LOCATION_GRAVE,0,1,1,nil,e)
-    if g:GetCount()>0 then
-        Duel.Overlay(c,g)
+    if chk==0 then return c:IsDiscardable() end
+    Duel.SendtoGrave(c,REASON_COST+REASON_DISCARD)
+end
+-- ② 目标：卡组有可堆的「新星同盟」怪兽
+function s.tgfilter(c)
+    return c:IsSetCard(0x902) and c:IsType(TYPE_MONSTER) and c:IsAbleToGrave()
+end
+function s.tg2(e,tp,eg,ep,ev,re,r,rp,chk)
+    if chk==0 then return Duel.IsExistingMatchingCard(s.tgfilter,tp,LOCATION_DECK,0,1,nil) end
+    Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_DECK)
+end
+function s.op2(e,tp,eg,ep,ev,re,r,rp)
+    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+    local g=Duel.SelectMatchingCard(tp,s.tgfilter,tp,LOCATION_DECK,0,1,1,nil)
+    if #g>0 then
+        Duel.SendtoGrave(g,REASON_EFFECT)
     end
 end
 
--- ② 条件：对方发动效果，且此卡持有特定素材
-function s.descon(e,tp,eg,ep,ev,re,r,rp)
-    if rp==tp then return false end
+-- ③ 条件：自己场上有「新星同盟」怪兽召唤·特殊召唤
+function s.spfilter(c,tp)
+    return c:IsSetCard(0x902) and c:IsFaceup() and c:IsControler(tp)
+end
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+    return eg:IsExists(s.spfilter,1,nil,tp)
+end
+-- ③ 目标：自身特召
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
     local c=e:GetHandler()
-    return c:GetOverlayGroup():IsExists(s.matfilter,1,nil)
+    if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+        and c:IsCanBeSpecialSummoned(e,0,tp,false,false) end
+    Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)
 end
-function s.matfilter(c)
-    return c:IsCode(26051905) or c:IsCode(26051956)
-end
--- ② cost：取除1个超量素材
-function s.descost(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,1,REASON_COST) end
-    e:GetHandler():RemoveOverlayCard(tp,1,1,REASON_COST)
-end
--- ② 目标：场上1张卡
-function s.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-    if chkc then return chkc:IsOnField() end
-    if chk==0 then return Duel.IsExistingTarget(nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) end
-    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-    local g=Duel.SelectTarget(tp,nil,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
-    Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
-end
-function s.desop(e,tp,eg,ep,ev,re,r,rp)
-    local tc=Duel.GetFirstTarget()
-    if tc:IsRelateToEffect(e) then
-        Duel.Destroy(tc,REASON_EFFECT)
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+    if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)~=0 then
+        -- 离场时除外（兼容旧引擎）
+        local e1=Effect.CreateEffect(c)
+        e1:SetType(EFFECT_TYPE_SINGLE)
+        e1:SetCode(EFFECT_LEAVE_FIELD_REDIRECT)
+        e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+        e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+        e1:SetValue(LOCATION_REMOVED)
+        c:RegisterEffect(e1)
     end
 end

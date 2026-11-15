@@ -3,7 +3,10 @@
 -- 字段: 0x902
 local s,id=GetID()
 function s.initial_effect(c)
-    -- ① 卡名当作「新星同盟 魅塔骑士」使用
+    -- ① 规则上被视作「新星同盟 魅塔骑士」的所有异画
+    aux.AddCodeList(c, 26051905, 26051906)
+    
+    -- 在场·墓地时，卡名实际变为「魅塔骑士」的原画代码
     local e1=Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_SINGLE)
     e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)

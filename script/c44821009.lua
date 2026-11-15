@@ -28,7 +28,7 @@ function s.initial_effect(c)
     e2:SetType(EFFECT_TYPE_IGNITION)
     e2:SetRange(LOCATION_MZONE)
     e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
-    e2:SetCountLimit(1,id)  -- 防止同一时点无限连锁，实际次数由条件控制
+    -- 移除 SetCountLimit，次数改由条件与玩家 Flag 控制
     e2:SetCondition(s.descon)
     e2:SetTarget(s.destg)
     e2:SetOperation(s.desop)
@@ -55,10 +55,11 @@ function s.rosefilter(c)
     return c:IsFaceup() and c:IsType(TYPE_FUSION) and aux.IsCodeListed(c,44821000)
 end
 
--- ② 条件：本回合已发动次数 < 自己场上符合条件的融合怪兽数量
+-- ② 条件：已发动次数 < 自己场上符合条件的融合怪兽数量
 function s.descon(e,tp,eg,ep,ev,re,r,rp)
     local cnt=Duel.GetMatchingGroupCount(s.rosefilter,tp,LOCATION_MZONE,0,nil)
-    return cnt>0 and Duel.GetFlagEffect(tp,id) < cnt
+    if cnt<=0 then return false end
+    return Duel.GetFlagEffect(tp,id) < cnt
 end
 
 -- ② 目标：对方场上1只怪兽
@@ -70,13 +71,13 @@ function s.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
     Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,1,0,0)
 end
 
--- ② 操作
+-- ② 操作：破坏，并记录本回合发动次数
 function s.desop(e,tp,eg,ep,ev,re,r,rp)
     local tc=Duel.GetFirstTarget()
     if tc and tc:IsRelateToEffect(e) then
         Duel.Destroy(tc,REASON_EFFECT)
     end
-    -- 记录本回合发动次数，重置到回合结束
+    -- 记录本回合已发动次数，重置到回合结束
     Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
 end
 

@@ -18,15 +18,14 @@ function s.initial_effect(c)
 	e2:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
 	e2:SetValue(s.eqlim)
 	c:RegisterEffect(e2)
-	--negate
+	--opponent activates spell/trap -> banish 2
 	local e4=Effect.CreateEffect(c)
 	e4:SetType(EFFECT_TYPE_QUICK_O)
-	e4:SetCategory(CATEGORY_NEGATE)
+	e4:SetCategory(CATEGORY_REMOVE)
 	e4:SetCode(EVENT_CHAINING)
 	e4:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL)
 	e4:SetRange(LOCATION_SZONE)
 	e4:SetCountLimit(1,id+id)
-	e4:SetCost(s.cost)
 	e4:SetCondition(s.dacon)
 	e4:SetTarget(s.datg)
 	e4:SetOperation(s.daop)
@@ -80,7 +79,7 @@ end
 function s.dacon(e,tp,eg,ep,ev,re,r,rp)
 	local tc=e:GetHandler():GetEquipTarget()
 	return tc and tc:GetControler()==tp and not e:GetHandler():IsStatus(STATUS_BATTLE_DESTROYED)
-		and ep~=tp and re:IsActiveType(TYPE_SPELL+TYPE_TRAP) and Duel.IsChainNegatable(ev)
+		and ep~=tp and re:IsActiveType(TYPE_SPELL+TYPE_TRAP)
 end
 function s.dacon1(e,tp,eg,ep,ev,re,r,rp)
 	local tc=e:GetHandler():GetEquipTarget()
@@ -90,31 +89,19 @@ function s.dacost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.CheckLPCost(tp,1500) end
 	Duel.PayLPCost(tp,1500)
 end
-function s.spfilter(c,e,tp)
-	return c:IsFaceupEx() and c:IsSetCard(0x5ce1)
-		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-end
-function s.costfilter(c)
-	return c:IsSetCard(0x5ce1) and c:IsAbleToRemoveAsCost()
-end
-function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then
-		return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_MZONE+LOCATION_GRAVE,0,1,nil)
-	end
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-	local g=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_MZONE+LOCATION_GRAVE,0,1,1,nil)
-	Duel.Remove(g,POS_FACEUP,REASON_COST)
+function s.rmfilter(c)
+	return c:IsAbleToRemove()
 end
 function s.datg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return true end
-	Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
-	if re:GetHandler():IsDestructable() and re:GetHandler():IsRelateToEffect(re) then
-		Duel.SetOperationInfo(0,CATEGORY_DESTROY,eg,1,0,0)
-	end
+	if chk==0 then return Duel.IsExistingMatchingCard(s.rmfilter,tp,0,LOCATION_ONFIELD+LOCATION_GRAVE,2,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,2,1-tp,LOCATION_ONFIELD+LOCATION_GRAVE)
 end
 function s.daop(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) then
-		Duel.Destroy(eg,REASON_EFFECT)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
+	local g=Duel.SelectMatchingCard(tp,s.rmfilter,tp,0,LOCATION_ONFIELD+LOCATION_GRAVE,2,2,nil)
+	if g:GetCount()>0 then
+		Duel.HintSelection(g)
+		Duel.Remove(g,POS_FACEUP,REASON_EFFECT)
 	end
 end
 function s.datg1(e,tp,eg,ep,ev,re,r,rp,chk)

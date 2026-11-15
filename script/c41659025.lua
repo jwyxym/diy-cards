@@ -6,35 +6,17 @@ function s.initial_effect(c)
 	e0:SetType(EFFECT_TYPE_ACTIVATE)
 	e0:SetCode(EVENT_FREE_CHAIN)
 	c:RegisterEffect(e0)
-	--①A 加手
+	--①：「唱晓」怪兽表侧加入额外卡组的场合，从以下效果选择1个发动
 	local e1=Effect.CreateEffect(c)
-	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
+	e1:SetDescription(aux.Stringid(id,3))
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e1:SetCode(EVENT_TO_DECK)
 	e1:SetProperty(EFFECT_FLAG_DELAY)
 	e1:SetRange(LOCATION_SZONE)
-	e1:SetCountLimit(1,id+30000)
 	e1:SetCondition(s.con)
-	e1:SetTarget(s.atg)
-	e1:SetOperation(s.aop)
+	e1:SetTarget(s.tg)
+	e1:SetOperation(s.op)
 	c:RegisterEffect(e1)
-	--①B 破坏耐性
-	local e2=e1:Clone()
-	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetCategory(0)
-	e2:SetCountLimit(1,id+40000)
-	e2:SetTarget(s.btg)
-	e2:SetOperation(s.bop)
-	c:RegisterEffect(e2)
-	--①C 回卡组抽3
-	local e3=e1:Clone()
-	e3:SetDescription(aux.Stringid(id,2))
-	e3:SetCategory(CATEGORY_TODECK+CATEGORY_DRAW)
-	e3:SetCountLimit(1,id+50000)
-	e3:SetTarget(s.ctg)
-	e3:SetOperation(s.cop)
-	c:RegisterEffect(e3)
 end
 function s.exfilter(c)
 	return c:IsLocation(LOCATION_EXTRA) and c:IsFaceup() and c:IsSetCard(0xe99) and c:IsType(TYPE_MONSTER)
@@ -57,12 +39,52 @@ function s.countcx(tp,loc)
 	local g=Duel.GetMatchingGroup(s.gfilter,tp,loc,0,nil)
 	return g:GetCount()
 end
---①A
-function s.atg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK+LOCATION_EXTRA,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_EXTRA)
-	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
+--本回合可以使用(未使用)的效果
+function s.avail(e,tp)
+	local ops={}
+	if Duel.GetFlagEffect(tp,id+30000)==0
+		and Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK+LOCATION_EXTRA,0,1,nil) then
+		ops[#ops+1]=0
+	end
+	if Duel.GetFlagEffect(tp,id+40000)==0 and s.countcx(tp,LOCATION_HAND+LOCATION_EXTRA)>=3 then
+		ops[#ops+1]=1
+	end
+	if Duel.GetFlagEffect(tp,id+50000)==0 and s.countcx(tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_EXTRA)>=9 then
+		ops[#ops+1]=2
+	end
+	return ops
 end
+function s.tg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local ops=s.avail(e,tp)
+	if chk==0 then return #ops>0 end
+	local op=ops[1]
+	if #ops>1 then
+		if #ops==2 then
+			op=ops[Duel.SelectOption(tp,aux.Stringid(id,ops[1]),aux.Stringid(id,ops[2]))+1]
+		else
+			op=ops[Duel.SelectOption(tp,aux.Stringid(id,ops[1]),aux.Stringid(id,ops[2]),aux.Stringid(id,ops[3]))+1]
+		end
+	end
+	e:SetLabel(op)
+	if op==0 then
+		Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_EXTRA)
+	elseif op==2 then
+		Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,0,tp,LOCATION_EXTRA)
+		Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,3)
+	end
+end
+function s.op(e,tp,eg,ep,ev,re,r,rp)
+	local op=e:GetLabel()
+	Duel.RegisterFlagEffect(tp,({id+30000,id+40000,id+50000})[op+1],RESET_PHASE+PHASE_END,0,1)
+	if op==0 then
+		s.aop(e,tp,eg,ep,ev,re,r,rp)
+	elseif op==1 then
+		s.bop(e,tp,eg,ep,ev,re,r,rp)
+	else
+		s.cop(e,tp,eg,ep,ev,re,r,rp)
+	end
+end
+--①A
 function s.aop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
 	local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK+LOCATION_EXTRA,0,1,1,nil)
@@ -72,10 +94,6 @@ function s.aop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 --①B
-function s.btg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return s.countcx(tp,LOCATION_HAND+LOCATION_EXTRA)>=3 end
-	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
-end
 function s.bop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
 	local g=Duel.SelectMatchingCard(tp,s.gfilter,tp,LOCATION_HAND+LOCATION_EXTRA,0,3,3,nil)
@@ -116,18 +134,12 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	for tc in aux.Next(g) do s.regind(tc,cc) end
 end
 --①C
-function s.ctg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return s.countcx(tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_EXTRA)>=9 end
-	Duel.SetOperationInfo(0,CATEGORY_TODECK,nil,0,tp,LOCATION_EXTRA)
-	Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,3)
-	Duel.Hint(HINT_OPSELECTED,1-tp,e:GetDescription())
-end
 function s.cop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_CONFIRM)
 	local g=Duel.SelectMatchingCard(tp,s.gfilter,tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_EXTRA,0,9,9,nil)
 	if g:GetCount()<9 then return end
 	Duel.ConfirmCards(1-tp,g)
-	eg=g:Filter(Card.IsLocation,nil,LOCATION_EXTRA)
+	local eg=g:Filter(Card.IsLocation,nil,LOCATION_EXTRA)
 	if eg:GetCount()>0 then
 		Duel.SendtoDeck(eg,nil,SEQ_DECKSHUFFLE,REASON_EFFECT)
 	end
